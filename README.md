@@ -1,11 +1,11 @@
 # 简介
 
-ray adapter 兼容了开源软件 Ray 的核心接口，可以将运行在 Ray 上的工作负载（如 vllm/verl 等）无缝迁移到 OpenYuanrong 集群上，享受 Openyuanrong 在华为鲲鹏和昇腾硬件上深度优化带来的性能优势。
+ray adapter 兼容了开源软件 Ray 的核心接口，可以将运行在 Ray 上的工作负载（如 vllm/verl 等）无缝迁移到 openYuanrong 集群上，享受 openYuanrong 在华为鲲鹏和昇腾硬件上深度优化带来的性能优势。
 
 ## 入门
 
 - 安装：`pip install ray_adapter`
-- 部署：查看 openYuanRong 文档的[安装部署](https://pages.openeuler.openatom.cn/openyuanrong/docs/zh-cn/latest/deploy/index.html)章节。
+- 部署：查看 openYuanrong 文档的[安装部署](https://pages.openeuler.openatom.cn/openyuanrong/docs/zh-cn/latest/deploy/index.html)章节。
 - 使用：将原来使用 Ray 开发的应用代码中的 `import ray` 替换为 `import ray_adapter as ray`，并关注接口的差异。
 
 ### ray adapter 接口与 ray 接口的差异说明
