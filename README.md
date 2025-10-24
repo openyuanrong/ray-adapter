@@ -1,15 +1,14 @@
-# ray_adapter 
+# 简介
 
-兼容开源软件 Ray 的核心接口，可以将运行在 Ray 上的工作负载（如 vllm/verl 等）无缝迁移到 openYuanRong 集群上，同时享受 openYuanRong 在华为鲲鹏和 Ascend 硬件上深度优化带来的性能优势。
-openYuanRong 的安装部署请参考文档: https://pages.openeuler.openatom.cn/openyuanrong/zh_cn/latest/index.html。
+ray adapter 兼容了开源软件 Ray 的核心接口，可以将运行在 Ray 上的工作负载（如 vllm/verl 等）无缝迁移到 openYuanrong 集群上，享受 openYuanrong 在华为鲲鹏和昇腾硬件上深度优化带来的性能优势。
 
-:::{Note}
+## 入门
 
-使用时将应用代码中的 import ray 替换为 import ray_adapter as ray，并关注接口的差异。
+- 安装：`pip install ray_adapter`
+- 部署：查看 openYuanrong 文档的[安装部署](https://pages.openeuler.openatom.cn/openyuanrong/docs/zh-cn/latest/deploy/index.html)章节。
+- 使用：将原来使用 Ray 开发的应用代码中的 `import ray` 替换为 `import ray_adapter as ray`，并关注接口的差异。
 
-:::
-
-### ray_adapter 接口与 ray 接口的差异说明
+### ray adapter 接口与 ray 接口的差异说明
 
 | 接口名称                    | 与 Ray接口 的差异                                                                        |
 |-----------------------------|------------------------------------------------------------------------------------|
@@ -121,7 +120,7 @@ ray.init()
 ray.shutdown()
 ```
 
-### kill 示例
+#### kill 示例
 
 ```python
 import ray_adapter as ray
@@ -134,7 +133,7 @@ a = Actor
 ray.kill(a)
 ```
 
-### shutdown 示例
+#### shutdown 示例
 
 ```python
 import ray_adapter as ray
@@ -142,7 +141,7 @@ ray.init()
 ray.shutdown()
 ```
 
-### available_resources_per_node 示例
+#### available_resources_per_node 示例
 
 ```python
 import ray_adapter as ray
@@ -151,7 +150,7 @@ res = ray.available_resources_per_node()
 print(res)
 ```
 
-### get_actor 示例
+#### get_actor 示例
 
 ```python
 import ray_adapter as ray
@@ -161,7 +160,7 @@ print(actor)
 ray.shutdown()
 ```
 
-### util.get_node_ip_address 示例
+#### util.get_node_ip_address 示例
 
 ```python
 import ray_adapter as ray
@@ -170,7 +169,7 @@ node_ip = ray.util.get_node_ip_address()
 print(node_ip)
 ```
 
-### util.list_named_actors 示例
+#### util.list_named_actors 示例
 
 ```python
 import ray_adapter as ray
@@ -179,7 +178,7 @@ named_actors = ray.list_named_actors()
 print(named_actors)
 ```
 
-### runtime_context().get_accelerator_ids 示例
+#### runtime_context().get_accelerator_ids 示例
 
 ```python
 import ray_adapter as ray
@@ -188,7 +187,7 @@ result = ray.runtime_context().get_accelerator_ids()
 print(result)
 ```
 
-### runtime_context().get_node_id 示例
+#### runtime_context().get_node_id 示例
 
 ```python
 import ray_adapter as ray
@@ -197,7 +196,7 @@ result = ray.runtime_context().get_node_id()
 print(result)
 ```
 
-### runtime_context().namespace 示例
+#### runtime_context().namespace 示例
 
 ```python
 import ray_adapter as ray
@@ -212,3 +211,10 @@ res = ray.util.list_named_actors()
 print(res)
 ```
 
+## 贡献
+
+我们欢迎您做各种形式的贡献，请参阅我们的[贡献者指南](https://pages.openeuler.openatom.cn/openyuanrong/docs/zh-cn/latest/contributor_guide/index.html)。
+
+## 许可证
+
+[Apache License 2.0](./LICENSE)
