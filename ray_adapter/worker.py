@@ -238,7 +238,6 @@ def remote(*args, **kwargs) -> Union[RemoteFunction, ActorClass]:
     """
     if len(args) == 1 and not kwargs and callable(args[0]):
         return _make_remote(args[0], {})
-
     return functools.partial(_make_remote, options=kwargs)
 
 
@@ -304,6 +303,8 @@ def nodes() -> List[Dict]:
                 res_dict["NPU"] = res_dict.get("NPU", 0) + value
             elif "Memory" in key:
                 res_dict["memory"] = value
+            elif "GPU" in key:
+                res_dict["GPU"] = res_dict.get("GPU", 0) + value
             else:
                 res_dict[key] = value
         ray_node_info["Resources"] = res_dict
@@ -336,6 +337,8 @@ def available_resources() -> Dict:
                 available_dict["NPU"] += value
             elif "Memory" in key:
                 available_dict["memory"] += value
+            elif "GPU" in key:
+                available_dict["GPU"] += value
             else:
                 available_dict[key] += value
     return dict(available_dict)
@@ -361,8 +364,10 @@ def cluster_resources() -> Dict:
         for key, value in node["capacity"].items():
             if "NPU" in key:
                 total_resources["NPU"] += value
-            if "Memory" in key:
+            elif "Memory" in key:
                 total_resources["memory"] += value
+            elif "GPU" in key:
+                total_resources["GPU"] += value
             else:
                 total_resources[key] += value
     return dict(total_resources)
