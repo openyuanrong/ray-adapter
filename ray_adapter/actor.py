@@ -175,7 +175,7 @@ class ActorClass:
         DerivedActorClass.__qualname__ = name
         # Construct the base object.
         self = DerivedActorClass.__new__(DerivedActorClass)
-        self.__instance_creator = InstanceCreator.create_from_user_class(modified_class, actor_options)
+        object.__setattr__(self, "_ActorClass__instance_creator", InstanceCreator.create_from_user_class(modified_class, actor_options))
         self.__option_wrapper = None
         return self
 
