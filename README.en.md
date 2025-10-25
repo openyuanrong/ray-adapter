@@ -5,7 +5,7 @@ For detailed installation and deployment instructions of openYuanrong, please re
 
 ## Installation
 
-- Installation: `pip install ray_adapter`
+- Installation: `pip install https://openyuanrong.obs.cn-southwest-2.myhuaweicloud.com/ray_adapter-0.5.0a0-py3-none-any.whl`
 - Deploy: See [Deploy](https://pages.openeuler.openatom.cn/openyuanrong/docs/zh-cn/latest/deploy/index.html)
 - Usage: When using it, replace `import ray` in the application code with `import ray_adapter as ray` , and pay attention to the differences in the interfaces.
 
