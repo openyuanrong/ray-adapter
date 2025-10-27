@@ -193,6 +193,57 @@ named_actors = ray.util.list_named_actors()
 print(named_actors)
 ```
 
+#### util.placement_group
+
+```python
+import ray_adapter as ray
+ray.init()
+pg = ray.util.placement_group([{"CPU": 1, "GPU": 1}])
+pg.wait()
+ray.get(pg.ready(), timeout=10)
+print(ray.util.placement_group_table(pg))
+ray.util.remove_placement_group(pg)
+```
+
+#### util.PlacementGroupSchedulingStrategy
+
+```python
+import ray_adapter as ray
+from ray_adapter.util.scheduling_strategies import PlacementGroupSchedulingStrategy
+ray.init()
+pg = ray.util.placement_group([{"CPU": 2}])
+ray.get(pg.ready())
+@ray.remote(num_cpus=1)
+def child():
+    import time
+    time.sleep(5)
+@ray.remote(num_cpus=1)
+def parent():
+    ray.get(child.remote())
+ray.get(
+    parent.options(
+        scheduling_strategy=PlacementGroupSchedulingStrategy(
+            placement_group=pg
+        )
+    ).remote()
+)
+```
+
+#### util.NodeAffinitySchedulingStrategy
+
+```python
+import ray_adapter as ray
+from ray_adapter.util.scheduling_strategies import NodeAffinitySchedulingStrategy
+ray.init()
+node_id = ray.runtime_context().get_node_id()
+@ray.remote(num_cpus=1)
+class Actor:
+    def add(self, x):
+        return x + 1
+actor = Actor.options(scheduling_strategy=NodeAffinitySchedulingStrategy(node_id=node_id, soft=False)).remote()
+ray.get(actor.add.remote(1))
+```
+
 #### runtime_context().get_accelerator_ids 示例
 
 ```python
