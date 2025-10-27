@@ -298,6 +298,12 @@ def nodes() -> List[Dict]:
             "NodeID": node.get("id", ""),
             "Alive": node.get("status", -1) == 0,
         }
+        node_id = ray_node_info["NodeID"]
+        ip = ""
+        parts = node_id.split("-")
+        if len(parts) >= 3:
+            ip = parts[-2]
+        ray_node_info["NodeManagerAddress"] = ip
         for key, value in node["capacity"].items():
             if "NPU" in key:
                 res_dict["NPU"] = res_dict.get("NPU", 0) + value
