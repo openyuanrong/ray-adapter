@@ -20,15 +20,17 @@ from collections import defaultdict
 from typing import Optional, List, Dict, Union, Any, Sequence, Tuple
 
 import yr.apis
+from yr.affinity import AffinityType, AffinityKind, OperatorType, LabelOperator, Affinity
 from yr.decorator.function_proxy import FunctionProxy
 from yr.decorator.instance_proxy import InstanceCreator, InstanceProxy
 from yr.apis import get_instance, resources
 from yr.object_ref import ObjectRef
-from yr.config import InvokeOptions
+from yr.config import InvokeOptions, ResourceGroupOptions
 from yr.common import constants
 
 from yr.config import Config
 from ray_adapter.actor import ActorClass, RemoteFunction, ActorHandle
+from ray_adapter.util.scheduling_strategies import PlacementGroupSchedulingStrategy, NodeAffinitySchedulingStrategy
 
 
 def is_cython(obj):
@@ -200,6 +202,20 @@ def _make_remote(function_or_class, options):
     runtime_env = options.get("runtime_env")
     if runtime_env is not None:
         opts.runtime_env = runtime_env
+
+    scheduling_strategy = options.get("scheduling_strategy", None)
+    if isinstance(scheduling_strategy, PlacementGroupSchedulingStrategy):
+        rg_opts = ResourceGroupOptions()
+        if scheduling_strategy.placement_group is not None:
+            rg_opts.resource_group_name = scheduling_strategy.placement_group.resource_group.name
+        rg_opts.bundle_index = scheduling_strategy.placement_group_bundle_index
+        opts.resource_group_options = rg_opts
+    if isinstance(scheduling_strategy, NodeAffinitySchedulingStrategy):
+        operators = [LabelOperator(OperatorType.LABEL_IN, "NODE_ID", [scheduling_strategy.node_id])]
+        if scheduling_strategy.soft:
+            opts.schedule_affinities = [Affinity(AffinityKind.RESOURCE, AffinityType.PREFERRED, operators)]
+        else:
+            opts.schedule_affinities = [Affinity(AffinityKind.RESOURCE, AffinityType.REQUIRED, operators)]
 
     if inspect.isfunction(function_or_class):
         return_nums = options.get("num_returns", None)

@@ -34,7 +34,7 @@ def build_yr_scheduling_options(opts, *args, **kwargs) -> InvokeOptions:
     if isinstance(scheduling_strategy, NodeAffinitySchedulingStrategy):
         operators = [LabelOperator(OperatorType.LABEL_IN, "NODE_ID", [scheduling_strategy.node_id])]
         if scheduling_strategy.soft:
-            opts.schedule_affinities = [Affinity(AffinityKind.RESOURCE, AffinityType.PREFERRED_ANTI, operators)]
+            opts.schedule_affinities = [Affinity(AffinityKind.RESOURCE, AffinityType.PREFERRED, operators)]
         else:
             opts.schedule_affinities = [Affinity(AffinityKind.RESOURCE, AffinityType.REQUIRED, operators)]
 
