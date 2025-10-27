@@ -203,6 +203,23 @@ def _make_remote(function_or_class, options):
     if runtime_env is not None:
         opts.runtime_env = runtime_env
 
+    name = options.get("name")
+    namespace = options.get("namespace")
+    if name is not None:
+        if not isinstance(name, str):
+            raise TypeError(
+                f"name must be None or a string, got: '{type(name)}'.")
+        if name == "":
+            raise ValueError("stateful function name cannot be an empty string.")
+    if namespace is not None:
+        if not isinstance(namespace, str):
+            raise TypeError("namespace must be None or a string.")
+        if namespace == "":
+            raise ValueError('"" is not a valid namespace. '
+                             "Pass None to not specify a namespace.")
+    opts.name = name
+    opts.namespace = namespace
+
     scheduling_strategy = options.get("scheduling_strategy", None)
     if isinstance(scheduling_strategy, PlacementGroupSchedulingStrategy):
         rg_opts = ResourceGroupOptions()
