@@ -124,7 +124,7 @@ ray.init()
 ray.shutdown()
 ```
 
-#### kill 示例
+### kill 示例
 
 ```python
 import ray_adapter as ray
@@ -137,7 +137,7 @@ a = Actor.remote()
 ray.kill(a)
 ```
 
-#### shutdown 示例
+### shutdown 示例
 
 ```python
 import ray_adapter as ray
@@ -145,7 +145,7 @@ ray.init()
 ray.shutdown()
 ```
 
-#### available_resources_per_node 示例
+### available_resources_per_node 示例
 
 ```python
 import ray_adapter as ray
@@ -154,7 +154,7 @@ res = ray.available_resources_per_node()
 print(res)
 ```
 
-#### get_actor 示例
+### get_actor 示例
 
 ```python
 import ray_adapter as ray
@@ -169,7 +169,7 @@ print(f"res is {ray.get(a.add.remote())}")
 ray.shutdown()
 ```
 
-#### util.get_node_ip_address 示例
+### util.get_node_ip_address 示例
 
 ```python
 import ray_adapter as ray
@@ -178,7 +178,7 @@ node_ip = ray.util.get_node_ip_address()
 print(node_ip)
 ```
 
-#### util.list_named_actors 示例
+### util.list_named_actors 示例
 
 ```python
 import ray_adapter as ray
@@ -193,7 +193,7 @@ named_actors = ray.util.list_named_actors()
 print(named_actors)
 ```
 
-#### util.placement_group
+### util.placement_group
 
 ```python
 import ray_adapter as ray
@@ -205,7 +205,7 @@ print(ray.util.placement_group_table(pg))
 ray.util.remove_placement_group(pg)
 ```
 
-#### util.PlacementGroupSchedulingStrategy
+### util.PlacementGroupSchedulingStrategy
 
 ```python
 import ray_adapter as ray
@@ -229,7 +229,7 @@ ray.get(
 )
 ```
 
-#### util.NodeAffinitySchedulingStrategy
+### util.NodeAffinitySchedulingStrategy
 
 ```python
 import ray_adapter as ray
@@ -244,7 +244,7 @@ actor = Actor.options(scheduling_strategy=NodeAffinitySchedulingStrategy(node_id
 ray.get(actor.add.remote(1))
 ```
 
-#### runtime_context().get_accelerator_ids 示例
+### runtime_context().get_accelerator_ids 示例
 
 ```python
 import ray_adapter as ray
@@ -253,7 +253,7 @@ result = ray.runtime_context().get_accelerator_ids()
 print(result)
 ```
 
-#### runtime_context().get_node_id 示例
+### runtime_context().get_node_id 示例
 
 ```python
 import ray_adapter as ray
@@ -262,7 +262,7 @@ result = ray.runtime_context().get_node_id()
 print(result)
 ```
 
-#### runtime_context().namespace 示例
+### runtime_context().namespace 示例
 
 ```python
 import ray_adapter as ray
