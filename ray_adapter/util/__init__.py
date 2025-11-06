@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import importlib
 
 __all__ = [
     "placement_group",
@@ -21,8 +21,20 @@ __all__ = [
     "get_node_ip_address",
     "list_named_actors"
     "placement_group_table"
+    "get_current_placement_group"
+    "state"
 ]
 
-from ray_adapter.util.placement_group import (placement_group, remove_placement_group, placement_group_table)
+from ray_adapter.util.placement_group import (placement_group, remove_placement_group, placement_group_table,
+                                              get_current_placement_group)
 from ray_adapter.util.scheduling_strategies import PlacementGroupSchedulingStrategy, NodeAffinitySchedulingStrategy
 from ray_adapter._private.services import get_node_ip_address, list_named_actors
+
+
+def __getattr__(name):
+    if name == "state":
+        module = importlib.import_module("ray_adapter.util.state")
+        globals()[name] = module
+        return module
+    raise AttributeError(f"module 'ray_adapter.util' has no attributes '{name}'")
+

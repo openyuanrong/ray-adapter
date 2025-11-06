@@ -16,6 +16,7 @@
 import inspect
 import functools
 import logging
+import os
 from collections import defaultdict
 from typing import Optional, List, Dict, Union, Any, Sequence, Tuple
 
@@ -646,3 +647,12 @@ def wait(
 
     ready_ref, unready_ref = yr.apis.wait(ray_waitables, wait_num, timeout)
     return ready_ref, unready_ref
+
+
+def get_gpu_ids() -> List[int]:
+    """
+    Get the list of GPU IDS.
+    """
+    if os.getenv("GPU-DEVICE-IDS"):
+        return list(map(int, os.getenv("GPU-DEVICE-IDS").split(",")))
+    return []
