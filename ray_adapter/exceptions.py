@@ -50,6 +50,8 @@ class RayTaskError(YRError):
 
 
     ):
+        message = f"Funcion: {function_name}, Error: {traceback_str}, Cause: {cause}"
+        super().__init__(message)
         self.function_name = function_name
         self.traceback_str = traceback_str
         self.proctitle = proctitle
