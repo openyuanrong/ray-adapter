@@ -13,7 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import importlib
+
 
 __all__ = [
     "placement_group",
@@ -29,6 +29,8 @@ from ray_adapter.util.placement_group import (placement_group, remove_placement_
                                               get_current_placement_group)
 from ray_adapter.util.scheduling_strategies import PlacementGroupSchedulingStrategy, NodeAffinitySchedulingStrategy
 from ray_adapter._private.services import get_node_ip_address, list_named_actors
+
+import importlib
 
 
 def __getattr__(name):

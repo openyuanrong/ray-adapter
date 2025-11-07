@@ -37,7 +37,7 @@ class RayTaskError(YRError):
     Indicates that a task threw an exceptions during execution.
     """
 
-    def __int__(
+    def __init__(
             self,
             function_name: str,
             traceback_str: str,
