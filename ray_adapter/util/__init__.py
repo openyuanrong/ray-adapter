@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 __all__ = [
     "placement_group",
     "remove_placement_group",
@@ -25,12 +24,11 @@ __all__ = [
     "state"
 ]
 
+import importlib
 from ray_adapter.util.placement_group import (placement_group, remove_placement_group, placement_group_table,
                                               get_current_placement_group)
 from ray_adapter.util.scheduling_strategies import PlacementGroupSchedulingStrategy, NodeAffinitySchedulingStrategy
 from ray_adapter._private.services import get_node_ip_address, list_named_actors
-
-import importlib
 
 
 def __getattr__(name):
