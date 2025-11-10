@@ -176,9 +176,8 @@ def _make_remote(function_or_class, options):
     if num_gpus is not None:
         if not isinstance(num_gpus, (int, float)):
             raise TypeError("Parameter 'num_gpus' must be a number.")
-        if num_gpus < 0.0001:
-            raise ValueError("Parameter 'num_gpus' cannot be set to < 0.0001")
-        custom_resources["GPU/.+/count"] = float(num_gpus)
+        if num_gpus > 0.0001:
+            custom_resources["GPU/.+/count"] = float(num_gpus)
     if "resources" in options and isinstance(options["resources"], dict):
         if "NPU" in options["resources"]:
             nums_npu = options["resources"].get("NPU")

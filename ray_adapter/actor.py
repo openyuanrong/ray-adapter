@@ -55,11 +55,10 @@ def build_yr_scheduling_options(opts, *args, **kwargs) -> InvokeOptions:
 
     num_gpus = kwargs.get("num_gpus")
     if num_gpus is not None:
-        if not isinstance(num_cpus, int):
-            raise TypeError("num_gpus must be an integer")
-        if num_gpus < 0.0001:
-            raise ValueError("Parameter 'num_gpus' cannot be set to < 0.0001")
-        opts.custom_resources["GPU/.+/count"] = float(num_gpus)
+        if not isinstance(num_gpus, (int, float)):
+            raise TypeError("num_gpus must be an number")
+        if num_gpus > 0.0001:
+            opts.custom_resources["GPU/.+/count"] = float(num_gpus)
 
     max_concurrency = kwargs.get("max_concurrency")
     if max_concurrency is not None:
