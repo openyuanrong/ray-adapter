@@ -31,9 +31,17 @@ VALID_PLACEMENT_GROUP_STRATEGIES = {
 }
 
 
+def _get_bundle_cache(pg_id: str) -> list[Dict]:
+    try:
+        return list(ray_adapter._private.state.state.placement_group_table(pg_id)["bundles"].values())
+    except Exception as e:
+        return []
+
+
 class PlacementGroup:
-    def __init__(self, resource_group: ResourceGroup):
+    def __init__(self, resource_group: ResourceGroup, bundle_cache: Optional[List[Dict]] = None):
         self._resource_group = resource_group
+        self.bundle_cache = bundle_cache
 
     def __eq__(self, other):
 
@@ -50,6 +58,15 @@ class PlacementGroup:
     def resource_group(self):
         """resource_group property"""
         return self._resource_group
+
+    @property
+    def bundle_specs(self) -> list[Dict]:
+        self._fill_bundle_cache_if_needed()
+        return self.bundle_cache
+
+    def _fill_bundle_cache_if_needed(self):
+        if not self.bundle_cache:
+            self.bundle_cache = _get_bundle_cache(self.get_id())
 
     def ready(self):
         """Returns an RgObjectRef to check ready status."""
