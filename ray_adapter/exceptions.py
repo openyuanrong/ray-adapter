@@ -16,14 +16,8 @@
 import os
 import pickle
 import logging
+from yr.exception import YRError
 from ray_adapter._private.services import get_node_ip_address
-
-
-class YRError(Exception):
-    """
-    Base class for all custom exceptions in the YR module.
-    This is a base class and should not be instantiated directly.
-    """
 
 
 class GetTimeoutError(YRError):
