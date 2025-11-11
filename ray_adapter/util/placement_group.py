@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+import os
 from typing import Dict, List, Optional, Union
 import ray_adapter._private.state
 from yr.apis import create_resource_group, remove_resource_group
@@ -184,3 +185,17 @@ def placement_group_table(input_placement_group: PlacementGroup = None):
     """
     resource_group_name = input_placement_group.get_id() if (input_placement_group is not None) else None
     return ray_adapter._private.state.state.placement_group_table(resource_group_name)
+
+
+def get_current_placement_group() -> Optional[PlacementGroup]:
+    pg_name = os.getenv("RG_NAME")
+    if not pg_name:
+        return None
+    rg = ResourceGroup(name=pg_name, request_id="")
+    pg = PlacementGroup(rg)
+    info = placement_group_table(pg)
+    if info and "bundles" in info:
+        pg.resource_group.bundles = info["bundles"]
+    if not info or info.get("state") == "REMOVE":
+        return None
+    return pg
