@@ -41,7 +41,7 @@ class RayTaskError(YRError):
             self,
             function_name: str,
             traceback_str: str,
-            cause: Excaptions,
+            cause: Exception,
             proctitle: str = None,
             pid: int = None,
             ip: str = None,
