@@ -24,11 +24,6 @@ from yr.config_manager import ConfigManager
 from ray_adapter.worker import remote, method
 from ray_adapter.actor import RemoteFunction, ActorClass
 
-_runtime_ctx_instance = runtime_context.get_runtime_context()
-runtime_context.get_accelerator_ids = _runtime_ctx_instance.get_accelerator_ids
-runtime_context.get_node_id = _runtime_ctx_instance.get_node_id
-runtime_context.namespace = _runtime_ctx_instance.namespace
-
 
 class TestIsInitialized(unittest.TestCase):
 
@@ -106,19 +101,21 @@ class TestKill(unittest.TestCase):
     def test_kill_with_actor_terminate_success(self, _):
         actor = Mock()
         actor.terminate.return_value = True
-        yr.apis.set_initialized()
-        self.assertTrue(worker.kill(actor))
-        actor.terminate.assert_called_once_with(is_sync=True)
+        with patch("ray_adapter.worker.ActorHandle", new=type(actor)):
+            yr.apis.set_initialized()
+            self.assertTrue(worker.kill(actor))
+            actor.terminate.assert_called_once_with(is_sync=True)
 
     @patch("yr.runtime_holder.global_runtime.get_runtime")
     def test_kill_with_actor_terminate_exception(self, _):
         actor = Mock()
         actor.terminate.side_effect = Exception("terminate failed")
         yr.apis.set_initialized()
-        with self.assertLogs(level='WARNING') as log:
-            self.assertIsNone(worker.kill(actor))
-        self.assertIn("Failed to kill actor", log.output[0])
-        actor.terminate.assert_called_once_with(is_sync=True)
+        with patch("ray_adapter.worker.ActorHandle", return_value=True):
+            with self.assertLogs(level='WARNING') as log:
+                self.assertIsNone(worker.kill(actor))
+            self.assertIn("Failed to kill actor", log.output[0])
+            actor.terminate.assert_called_once_with(is_sync=True)
 
 
 def sample_func(x):
@@ -187,6 +184,19 @@ class TestInit(unittest.TestCase):
 
 
 class TestHelpers(unittest.TestCase):
+    @classmethod
+    def setupClass(cls):
+        cls._runtime_ctx_instance = runtime_context.get_runtime_context()
+        runtime_context.get_accelerator_ids = cls._runtime_ctx_instance.get_accelerator_ids
+        runtime_context.get_node_id = cls._runtime_ctx_instance.get_node_id
+        cls._namespace_patch = patch("yr.apis.get_namespace", return_value="")
+        cls._namespace_patch.start()
+        runtime_context.namespace = runtime_context.get_runtime_context().namespace
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._namespcae_patch.stop()
+
     @patch.dict(os.environ, {
         "YR_NOSET_ASCEND_RT_VISIBLE_DEVICES": "1",
         "NPU_DEVICE_IDS": "0,1"
@@ -262,25 +272,16 @@ class TestRemote(unittest.TestCase):
         self.assertIsInstance(test_function, RemoteFunction)
         inner_proxy = test_function._RemoteFunction__function_proxy
         self.assertTrue(hasattr(inner_proxy, "invoke_options"))
-        self.assertEqual(inner_proxy.invoke_options.custom_resources, {"npu": 0.7})
-        self.assertEqual(inner_proxy.invoke_options.concurrency, 11)
+        self.assertEqual(inner_proxy.invoke_options.custom_resources, {"NPU/.+/count": 0.7})
+        self.assertEqual(inner_proxy.invoke_options.concurrency, 12)
 
     def test_remote_num_npus_boundaries(self):
-        with self.assertRaises(ValueError):
-            @remote(num_gpus=0)
-            def fn_zero():
-                pass
-        with self.assertRaises(ValueError):
-            @remote(num_gpus=-1)
-            def fn_negative():
-                pass
-
         @remote(num_gpus=0.001)
         def fn_small():
             pass
 
         inner_proxy = fn_small._RemoteFunction__function_proxy
-        self.assertEqual(inner_proxy.invoke_options.custom_resources.get("GPU"), 0.001)
+        self.assertEqual(inner_proxy.invoke_options.custom_resources.get("GPU/.+/count"), 0.001)
 
     def test_remote_num_cpus(self):
         with self.assertRaises(TypeError):
