@@ -185,7 +185,7 @@ class TestInit(unittest.TestCase):
 
 class TestHelpers(unittest.TestCase):
     @classmethod
-    def setupClass(cls):
+    def setUpClass(cls):
         cls._runtime_ctx_instance = runtime_context.get_runtime_context()
         runtime_context.get_accelerator_ids = cls._runtime_ctx_instance.get_accelerator_ids
         runtime_context.get_node_id = cls._runtime_ctx_instance.get_node_id
