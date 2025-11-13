@@ -155,7 +155,7 @@ def _make_remote(function_or_class, options):
         raise ValueError("Parameter 'max_retries' cannot be set to < 0.")
     opts.retry_time = max_retries
 
-    max_concurrency = options.get("max_concurrency", 1)
+    max_concurrency = options.get("max_concurrency", None)
     concurrency_groups = options.get("concurrency_groups", None)
 
     if max_concurrency is not None:
@@ -163,7 +163,6 @@ def _make_remote(function_or_class, options):
             raise TypeError("Parameter 'max_concurrency' must be an integer.")
         opts.concurrency = max_concurrency
     elif concurrency_groups is not None:
-
         if not isinstance(concurrency_groups, dict):
             raise TypeError("Parameter 'concurrency_groups' must be a dict if provided.")
         valid_values = [v for v in concurrency_groups.values() if v is not None]
@@ -173,6 +172,8 @@ def _make_remote(function_or_class, options):
         if not isinstance(concurrency_sum, int):
             raise ValueError("The sum of concurrency_groups values must be an integer.")
         opts.concurrency = sum(valid_values) + 1
+    else:
+        opts.concurrency = 1
 
     custom_resources: Dict[str, float] = {}
     num_gpus = options.get("num_gpus")
