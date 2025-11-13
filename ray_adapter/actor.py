@@ -61,7 +61,7 @@ def build_yr_scheduling_options(opts, *args, **kwargs) -> InvokeOptions:
             opts.custom_resources["GPU/.+/count"] = float(num_gpus)
 
     max_concurrency = kwargs.get("max_concurrency", None)
-    concurrency_groups = options.get("concurrency_groups", None)
+    concurrency_groups = kwargs.get("concurrency_groups", None)
     if max_concurrency is not None:
         if not isinstance(max_concurrency, int):
             raise TypeError("max_concurrency must be an integer")
