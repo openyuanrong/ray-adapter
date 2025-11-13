@@ -90,8 +90,7 @@ if [ $COMMAND == "build" ]; then
     export BUILD_VERSION
     $PYTHON3_BIN_PATH setup.py bdist_wheel -b $BUILD_DIR -d $OUTPUT_DIR
 elif [ $COMMAND == "test" ]; then
-    export PYTHONPATH="$BASE_DIR"
-    pytest -s -vv -m smoke ray_adapter/tests/
+    bazel test --test_tag_filters=smoke //ray_adapter/tests/... --test_output=all
 elif [ $COMMAND == "coverage" ]; then
     echo "not support"
 elif [ $COMMAND == "clean" ]; then
