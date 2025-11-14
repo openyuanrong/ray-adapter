@@ -201,7 +201,7 @@ class TestHelpers(unittest.TestCase):
         "YR_NOSET_ASCEND_RT_VISIBLE_DEVICES": "1",
         "NPU-DEVICE-IDS": "0,1"
     }, clear=True)
-    def test_get_accelerator_ids_NPU_device_ids(self):
+    def test_get_accelerator_ids_npu_device_ids(self):
         acc_ids = runtime_context.get_accelerator_ids()
         self.assertIn("NPU", acc_ids)
         self.assertEqual(acc_ids["NPU"], ["0", "1"])
@@ -275,7 +275,7 @@ class TestRemote(unittest.TestCase):
         self.assertEqual(inner_proxy.invoke_options.custom_resources, {"NPU/.+/count": 0.7})
         self.assertEqual(inner_proxy.invoke_options.concurrency, 12)
 
-    def test_remote_num_NPUs_boundaries(self):
+    def test_remote_num_npus_boundaries(self):
         @remote(num_gpus=0.001)
         def fn_small():
             pass
