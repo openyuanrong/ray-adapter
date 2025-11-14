@@ -29,7 +29,7 @@ class TestProxyAdaptor(unittest.TestCase):
     def test_ray_function_proxy(self):
         mock_function_proxy = Mock()
         mock_function_proxy.options.return_value = "options"
-        mock_function_proxy.invoke.return_value.invoke.return_value = "remote"
+        mock_function_proxy.create_opts_wrapper.return_value.invoke.return_value = "remote"
         ray_func_proxy = ray_adapter.actor.RemoteFunction(mock_function_proxy)
         ray_func_proxy.options(1)
         res = ray_func_proxy.remote(1)

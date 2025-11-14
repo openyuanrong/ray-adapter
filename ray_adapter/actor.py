@@ -60,11 +60,21 @@ def build_yr_scheduling_options(opts, *args, **kwargs) -> InvokeOptions:
         if num_gpus > 0.0001:
             opts.custom_resources["GPU/.+/count"] = float(num_gpus)
 
-    max_concurrency = kwargs.get("max_concurrency")
+    max_concurrency = kwargs.get("max_concurrency", None)
+    concurrency_groups = kwargs.get("concurrency_groups", None)
     if max_concurrency is not None:
         if not isinstance(max_concurrency, int):
             raise TypeError("max_concurrency must be an integer")
         opts.concurrency = int(max_concurrency)
+    elif concurrency_groups is not None:
+        if not isinstance(concurrency_groups, dict):
+            raise TypeError("concurrency_groups must be a dict if provided")
+        valid_values = [v for v in concurrency_groups.values() if v is not None]
+        if not valid_values:
+            raise ValueError("All keys in concurrency_groups have None values")
+        opts.concurrency = sum(valid_values) + 1
+    else:
+        opts.concurrency = 1
     custom_resources = kwargs.get("resources", {})
     for k, v in custom_resources.items():
         if v is None:

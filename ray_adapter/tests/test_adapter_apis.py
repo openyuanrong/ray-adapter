@@ -21,7 +21,7 @@ import ray_adapter.runtime_context as runtime_context
 import yr
 import ray_adapter.worker as worker
 from yr.config_manager import ConfigManager
-from ray_adapter.worker import remote, method
+from ray_adapter.worker import remote, method, _make_remote
 from ray_adapter.actor import RemoteFunction, ActorClass
 
 
@@ -111,7 +111,7 @@ class TestKill(unittest.TestCase):
         actor = Mock()
         actor.terminate.side_effect = Exception("terminate failed")
         yr.apis.set_initialized()
-        with patch("ray_adapter.worker.ActorHandle", return_value=True):
+        with patch("ray_adapter.worker.isinstance", return_value=True):
             with self.assertLogs(level='WARNING') as log:
                 self.assertIsNone(worker.kill(actor))
             self.assertIn("Failed to kill actor", log.output[0])
@@ -195,24 +195,24 @@ class TestHelpers(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls._namespcae_patch.stop()
+        cls._namespace_patch.stop()
 
     @patch.dict(os.environ, {
         "YR_NOSET_ASCEND_RT_VISIBLE_DEVICES": "1",
-        "NPU_DEVICE_IDS": "0,1"
+        "NPU-DEVICE-IDS": "0,1"
     }, clear=True)
     def test_get_accelerator_ids_npu_device_ids(self):
         acc_ids = runtime_context.get_accelerator_ids()
-        self.assertIn("npu", acc_ids)
-        self.assertEqual(acc_ids["npu"], ["0", "1"])
+        self.assertIn("NPU", acc_ids)
+        self.assertEqual(acc_ids["NPU"], ["0", "1"])
 
     @patch.dict(os.environ, {
         "ASCEND_RT_VISIBLE_DEVICES": "2,3"
     }, clear=True)
     def test_get_accelerator_ids_ascend_visible(self):
         acc_ids = runtime_context.get_accelerator_ids()
-        self.assertIn("npu", acc_ids)
-        self.assertEqual(acc_ids["npu"], ["2", "3"])
+        self.assertIn("NPU", acc_ids)
+        self.assertEqual(acc_ids["NPU"], ["2", "3"])
 
     @patch.dict(os.environ, {
         "DEVICE_INFO": "gpu0,gpu1"
