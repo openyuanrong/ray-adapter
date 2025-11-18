@@ -20,7 +20,7 @@ __all__ = [
     "cluster_resources", "get", "finalize", "ExistenceOpt",
     "WriteMode", "CacheType", "SetParam", "MSetParam", "CreateParam",
     "AlarmSeverity", "AlarmInfo", "ConsistencyType", "GetParams", "GetParam", "put",
-    "get_runtime_context"
+    "get_runtime_context", "ObjectRef"
 ]
 
 from ray_adapter.worker import (
@@ -31,6 +31,7 @@ from ray_adapter.worker import (
 from ray_adapter import util
 from ray_adapter import actor
 from ray_adapter.runtime_context import get_runtime_context
+from yr.object_ref import ObjectRef
 
 from yr.runtime import (  # noqa: E402
     ExistenceOpt, WriteMode, CacheType, SetParam, MSetParam, CreateParam, AlarmSeverity, AlarmInfo,
