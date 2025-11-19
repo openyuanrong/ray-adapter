@@ -68,7 +68,7 @@ class PlacementGroup:
     @property
     def id(self):
         """get group name"""
-        return get_id(self)
+        return self.get_id()
 
     def _fill_bundle_cache_if_needed(self):
         if not self.bundle_cache:
