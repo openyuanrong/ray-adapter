@@ -41,6 +41,11 @@ class RuntimeContext(object):
         """
         return yr.apis.get_namespace()
 
+    @property
+    def gcs_address(self):
+        """Get the GCS address of the ray cluster"""
+        return ""
+
     def get_accelerator_ids(self):
         """
         Get the IDs of available accelerators.

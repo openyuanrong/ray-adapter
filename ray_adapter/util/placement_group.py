@@ -193,6 +193,7 @@ def placement_group_table(input_placement_group: PlacementGroup = None):
 
 
 def get_current_placement_group() -> Optional[PlacementGroup]:
+    """Retrieve the placement-group instance that the current process belongs to."""
     pg_name = os.getenv("RG_NAME")
     if not pg_name:
         return None
