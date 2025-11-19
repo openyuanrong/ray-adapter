@@ -23,6 +23,7 @@ __all__ = [
     "get_runtime_context", "ObjectRef"
 ]
 
+from yr.object_ref import ObjectRef
 from ray_adapter.worker import (
     _make_remote, remote, get_actor, nodes, available_resources, cluster_resources, get,
     is_initialized, shutdown, available_resources_per_node, method, kill, init, wait
@@ -31,7 +32,6 @@ from ray_adapter.worker import (
 from ray_adapter import util
 from ray_adapter import actor
 from ray_adapter.runtime_context import get_runtime_context
-from yr.object_ref import ObjectRef
 
 from yr.runtime import (  # noqa: E402
     ExistenceOpt, WriteMode, CacheType, SetParam, MSetParam, CreateParam, AlarmSeverity, AlarmInfo,
