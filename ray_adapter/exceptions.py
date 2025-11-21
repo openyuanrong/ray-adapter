@@ -19,6 +19,8 @@ import logging
 from yr.exception import YRError
 from ray_adapter._private.services import get_node_ip_address
 
+logger = logging.getLogger(__name__)
+
 
 class GetTimeoutError(YRError):
     """

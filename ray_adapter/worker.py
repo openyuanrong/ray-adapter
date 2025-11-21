@@ -32,6 +32,7 @@ from yr.common import constants
 from yr.config import Config
 from ray_adapter.actor import ActorClass, RemoteFunction, ActorHandle
 from ray_adapter.util.scheduling_strategies import PlacementGroupSchedulingStrategy, NodeAffinitySchedulingStrategy
+from ray_adapter.exceptions import GetTimeoutError, RayTaskError
 
 
 def is_cython(obj):
@@ -448,15 +449,55 @@ def get(ray_waitables: Union[
         >>> print(result)
         >>> ray.shutdown()
     """
-    if timeout is None or timeout < 0:
-        timeout = constants.NO_LIMIT
-        yr_get = yr.apis.get(ray_waitables, timeout)
-    else:
-        try:
-            yr_get = yr.apis.get(ray_waitables, int(timeout))
-        except ValueError as e:
-            raise ValueError("No object returned when time is 0") from e
+    # try:
+    #     yr_get = yr.apis.get(ray_waitables,timeout)
+    # except TimeoutError as e:
+    #     raise GetTimeoutError(str(e)) from None
+    # except yr.RayTaskError as e:
+    #     raise RayTaskError(
+    #         function_name=str(e.cause),
+    #         traceback_str=getattr(e, "traceback_str", str(e)),
+    #         cause=e,
+    #     ) from None
+    # if timeout is None or timeout < 0:
+    #     timeout = constants.NO_LIMIT
+    #     yr_get = yr.apis.get(ray_waitables, timeout)
+    #
+    # else:
+    #     try:
+    #         yr_get = yr.apis.get(ray_waitables, int(timeout))
+    #     except ValueError as e:
+    #         raise ValueError("No object returned when time is 0")
+    # if timeout is None or timeout < 0:
+    #     timeout = constants.NO_LIMIT
+    # try:
+    #     yr_get = yr.apis.get(ray_waitables, timeout)
+    # except TimeoutError as e:
+    #     raise GetTimeoutError(str(e)) from e
+    # except Exception as e:
+    #     if isinstance(e, ValueError):
+    #         cause = e.origin_error()
+    #     else:
+    #         cause = e
+    #     raise RayTaskError(
+    #         function_name="<remote>",
+    #         traceback_str=str(cause),
+    #         cause=cause
+    #     ) from e
+    # return yr_get
+    try:
+        return yr.apis.get(ray_waitables, timeout)
+    except TimeoutError as e:
+        raise GetTimeoutError(str(e)) from e
+    except Exception as e:
+        raise RayTaskError(
+            function_name="<remote>",
+            traceback_str=str(e),
+            cause=e,
+        ) from e
+
     return yr_get
+
 
 
 def is_initialized() -> bool:
