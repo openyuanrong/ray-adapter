@@ -449,52 +449,21 @@ def get(ray_waitables: Union[
         >>> print(result)
         >>> ray.shutdown()
     """
-    # try:
-    #     yr_get = yr.apis.get(ray_waitables,timeout)
-    # except TimeoutError as e:
-    #     raise GetTimeoutError(str(e)) from None
-    # except yr.RayTaskError as e:
-    #     raise RayTaskError(
-    #         function_name=str(e.cause),
-    #         traceback_str=getattr(e, "traceback_str", str(e)),
-    #         cause=e,
-    #     ) from None
-    # if timeout is None or timeout < 0:
-    #     timeout = constants.NO_LIMIT
-    #     yr_get = yr.apis.get(ray_waitables, timeout)
-    #
-    # else:
-    #     try:
-    #         yr_get = yr.apis.get(ray_waitables, int(timeout))
-    #     except ValueError as e:
-    #         raise ValueError("No object returned when time is 0")
-    # if timeout is None or timeout < 0:
-    #     timeout = constants.NO_LIMIT
-    # try:
-    #     yr_get = yr.apis.get(ray_waitables, timeout)
-    # except TimeoutError as e:
-    #     raise GetTimeoutError(str(e)) from e
-    # except Exception as e:
-    #     if isinstance(e, ValueError):
-    #         cause = e.origin_error()
-    #     else:
-    #         cause = e
-    #     raise RayTaskError(
-    #         function_name="<remote>",
-    #         traceback_str=str(cause),
-    #         cause=cause
-    #     ) from e
-    # return yr_get
+    if timeout is None or timeout < 0:
+        timeout = constants.NO_LIMIT
+    elif timeout == 0:
+        raise GetTimeoutError("Timeout is 0, cannot return object immediately.")
     try:
-        return yr.apis.get(ray_waitables, timeout)
-    except TimeoutError as e:
-        raise GetTimeoutError(str(e)) from e
+        yr_get = yr.apis.get(ray_waitables, timeout)
     except Exception as e:
-        raise RayTaskError(
-            function_name="<remote>",
-            traceback_str=str(e),
-            cause=e,
-        ) from e
+        if isinstance(e, TimeoutError):
+            raise GetTimeoutError("Get object timeout.") from e
+        else:
+            raise RayTaskError(
+                function_name="get",
+                traceback_str=str(e),
+                cause=e,
+            ) from e
 
     return yr_get
 
