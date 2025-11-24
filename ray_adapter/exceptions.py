@@ -16,14 +16,27 @@
 import os
 import pickle
 import logging
+from typing import Optional
 from yr.exception import YRError
 from ray_adapter._private.services import get_node_ip_address
+
+logger = logging.getLogger(__name__)
 
 
 class GetTimeoutError(YRError):
     """
     Indicates that a call to a worker or task timed out.
     """
+
+
+class YRErrorWithCause(YRError):
+    """
+    A subclass of YRError that stores the original cause of the error.
+    """
+
+    def __int__(self, message: str, cause: Optional[Exception] = None):
+        super().__int__(message)
+        self.cause = cause
 
 
 class RayTaskError(YRError):
@@ -41,7 +54,6 @@ class RayTaskError(YRError):
             ip: str = None,
             actor_repr: str = None,
             actor_id: str = None,
-
 
     ):
         message = f"Funcion: {function_name}, Error: {traceback_str}, Cause: {cause}"
@@ -64,15 +76,52 @@ class RayTaskError(YRError):
 
     def _set_cause(self, cause: Exception):
         """
-        Set the cause of the error, handling pickling issues.
+        Handle YRInvokeError dynamic subclasses by reconstructing standard exceptions.
         """
+        candidate = cause
+        qualname = type(cause).__qualname__
+
+        if qualname.startwith('YRInvokeError('):
+            error_msg = str(cause)
+            try:
+                inner_name = qualname.split('(')[1].rstrip(')')
+            except IndexError:
+                inner_name = 'Exception'
+            if inner_name == 'ValueError':
+                candidate = ValueError(error_msg)
+            if inner_name == 'TypeError':
+                candidate = TypeError(error_msg)
+            if inner_name == 'RuntimeError':
+                candidate = RuntimeError(error_msg)
+            else:
+                candidate = Exception(error_msg)
         try:
-            pickle.dumps(cause)
-            self.cause = cause
+            pickle.dumps(candidate)
+            self.cause = candidate
         except (pickle.PicklingError, TypeError) as e:
-            err_msg = (
-                f"The original cause of RayTaskError ({type(cause)})"
-                f"isn't serializable: {e}. Overwriting the cause to a YRError"
+            logger.warning(
+                f"The cause {type(candidate)} is not serializable: {e}."
+                f"Falling back to YRErrorWithCause."
             )
-            logger.warning(err_msg)
-            self.cause = YRError(err_msg)
+            self.cause = YRErrorWithCause(
+                f"Unserializable exception wrapped: {type(candidate)}",
+                cause=candidate
+            )
+
+        @staticmehtod
+        def ray_task_wrap(func):
+            """
+            Decorator to wrap a remote task so that any exception is converted to RayTaskError.
+            """
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                raise RayTaskError(
+                    function_name=func.__name__,
+                    traceback_str=str(e),
+                    cause=e
+                ) from e
+        return wrapper
+
