@@ -16,6 +16,7 @@
 import os
 import pickle
 import logging
+from typing import Optional
 from yr.exception import YRError
 from ray_adapter._private.services import get_node_ip_address
 
@@ -73,20 +74,6 @@ class RayTaskError(YRError):
         """
         return proctitle or getattr(os, "getproctitle", lambda: "yr-task")()
 
-    # def _set_cause(self, cause: Exception):
-    #     """
-    #     Set the cause of the error, handling pickling issues.
-    #     """
-    #     try:
-    #         pickle.dumps(cause)
-    #         self.cause = cause
-    #     except (pickle.PicklingError, TypeError) as e:
-    #         err_msg = (
-    #             f"The original cause of RayTaskError ({type(cause)})"
-    #             f"isn't serializable: {e}. Overwriting the cause to a YRError"
-    #         )
-    #         logger.warning(err_msg)
-    #         self.cause = YRError(err_msg)
     def _set_cause(self, cause: Exception):
         """
         Handle YRInvokeError dynamic subclasses by reconstructing standard exceptions.
