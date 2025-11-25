@@ -16,6 +16,7 @@
 import os
 import pickle
 import logging
+import functools
 from typing import Optional
 from yr.exception import YRError
 from ray_adapter._private.services import get_node_ip_address
@@ -34,8 +35,8 @@ class YRErrorWithCause(YRError):
     A subclass of YRError that stores the original cause of the error.
     """
 
-    def __int__(self, message: str, cause: Optional[Exception] = None):
-        super().__int__(message)
+    def __init__(self, message: str, cause: Optional[Exception] = None):
+        super().__init__(message)
         self.cause = cause
 
 
@@ -74,6 +75,7 @@ class RayTaskError(YRError):
         """
         return proctitle or getattr(os, "getproctitle", lambda: "yr-task")()
 
+
     def _set_cause(self, cause: Exception):
         """
         Handle YRInvokeError dynamic subclasses by reconstructing standard exceptions.
@@ -81,7 +83,7 @@ class RayTaskError(YRError):
         candidate = cause
         qualname = type(cause).__qualname__
 
-        if qualname.startwith('YRInvokeError('):
+        if qualname.startswith('YRInvokeError('):
             error_msg = str(cause)
             try:
                 inner_name = qualname.split('(')[1].rstrip(')')
@@ -108,11 +110,11 @@ class RayTaskError(YRError):
                 cause=candidate
             )
 
-        @staticmehtod
-        def ray_task_wrap(func):
-            """
-            Decorator to wrap a remote task so that any exception is converted to RayTaskError.
-            """
+    @staticmethod
+    def ray_task_wrap(func):
+        """
+        Decorator to wrap a remote task so that any exception is converted to RayTaskError.
+        """
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             try:
