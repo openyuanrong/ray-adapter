@@ -69,6 +69,25 @@ class RayTaskError(YRError):
         self._set_cause(cause)
         self.args = (function_name, traceback_str, self.cause, proctitle, pid, ip)
 
+    @staticmethod
+    def ray_task_wrap(func):
+        """
+        Decorator to wrap a remote task so that any exception is converted to RayTaskError.
+        """
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                raise RayTaskError(
+                    function_name=func.__name__,
+                    traceback_str=str(e),
+                    cause=e
+                ) from e
+
+        return wrapper
+
     def _get_proctitle(self, proctitle: str = None) -> str:
         """
         Get the process title.
@@ -109,21 +128,4 @@ class RayTaskError(YRError):
                 f"Unserializable exception wrapped: {type(candidate)}",
                 cause=candidate
             )
-
-    @staticmethod
-    def ray_task_wrap(func):
-        """
-        Decorator to wrap a remote task so that any exception is converted to RayTaskError.
-        """
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except Exception as e:
-                raise RayTaskError(
-                    function_name=func.__name__,
-                    traceback_str=str(e),
-                    cause=e
-                ) from e
-        return wrapper
 
