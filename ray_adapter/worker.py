@@ -32,7 +32,6 @@ from yr.common import constants
 from yr.config import Config
 from ray_adapter.actor import ActorClass, RemoteFunction, ActorHandle
 from ray_adapter.util.scheduling_strategies import PlacementGroupSchedulingStrategy, NodeAffinitySchedulingStrategy
-from ray_adapter.exceptions import GetTimeoutError, RayTaskError
 
 
 def is_cython(obj):
@@ -451,22 +450,13 @@ def get(ray_waitables: Union[
     """
     if timeout is None or timeout < 0:
         timeout = constants.NO_LIMIT
-    elif timeout == 0:
-        raise GetTimeoutError("Timeout is 0, cannot return object immediately.")
-    try:
         yr_get = yr.apis.get(ray_waitables, timeout)
-    except Exception as e:
-        if isinstance(e, TimeoutError):
-            raise GetTimeoutError("Get object timeout.") from e
-        else:
-            raise RayTaskError(
-                function_name="get",
-                traceback_str=str(e),
-                cause=e,
-            ) from e
-
+    else:
+        try:
+            yr_get = yr.apis.get(ray_waitables, int(timeout))
+        except ValueError as e:
+            raise ValueError("No object returned when time is 0") from e
     return yr_get
-
 
 
 def is_initialized() -> bool:
