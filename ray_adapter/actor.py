@@ -119,6 +119,18 @@ class ActorMethod:
         return self.__method_proxy.invoke(*args, **kwargs)
 
 
+class StrWithHex:
+    def __init__(self, s):
+        self.s = s
+
+    def __str__(self):
+        return self.s
+
+    def hex(self):
+        """"""
+        return self.s
+
+
 class ActorHandle:
     def __init__(self, instance_proxy: InstanceProxy):
         self.__instance_proxy = instance_proxy
@@ -132,6 +144,11 @@ class ActorHandle:
 
     def __setstate__(self, state):
         self.__dict__.update(state)
+
+    @property
+    def _actor_id(self):
+        iid = self.__instance_proxy.instance_id
+        return StrWithHex(iid) if isinstance(iid, str) else iid
 
     def terminate(self, is_sync: bool = False):
         """terminate actor"""
@@ -184,7 +201,8 @@ class ActorClass:
         DerivedActorClass.__qualname__ = name
         # Construct the base object.
         self = DerivedActorClass.__new__(DerivedActorClass)
-        object.__setattr__(self, "_ActorClass__instance_creator", InstanceCreator.create_from_user_class(modified_class, actor_options))
+        object.__setattr__(self, "_ActorClass__instance_creator",
+                           InstanceCreator.create_from_user_class(modified_class, actor_options))
         self.__option_wrapper = None
         return self
 

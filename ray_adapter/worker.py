@@ -632,7 +632,7 @@ def init(
 def wait(
     ray_waitables: Union[ObjectRef, List[ObjectRef]],
     wait_num: int = 1,
-    timeout: Optional[int] = None,
+    timeout: Optional[float] = None,
     fetch_local: bool = True,
 ) -> Tuple[List[ObjectRef], List[ObjectRef]]:
     """
@@ -656,7 +656,8 @@ def wait(
         Tuple[List[ObjectRef], List[ObjectRef]]: A tuple containing the list of ready object references
             and the list of unready object references.
     """
-
+    if isinstance(timeout, float):
+        timeout = int(timeout)
     ready_ref, unready_ref = yr.apis.wait(ray_waitables, wait_num, timeout)
     return ready_ref, unready_ref
 
