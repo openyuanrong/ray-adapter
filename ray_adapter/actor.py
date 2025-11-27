@@ -119,12 +119,26 @@ class ActorMethod:
         return self.__method_proxy.invoke(*args, **kwargs)
 
 
+class StrWithHex:
+    def __init__(self, s): self.s = s
+    def hex(self): return self.s
+    def __str__(self): return self.s
+
+
 class ActorHandle:
     def __init__(self, instance_proxy: InstanceProxy):
         self.__instance_proxy = instance_proxy
 
     def __getattr__(self, method_name):
         return ActorMethod(getattr(self.__instance_proxy, method_name))
+
+    @property
+    def _actor_id(self):
+        return self.__instance_proxy.instance_id
+    @property
+    def _actor_id(self):
+        iid = self.__instance_proxy.instance_id
+        return StrWithHex(iid) if isinstance(iid, str) else id
 
     def __getstate__(self):
         attrs = self.__dict__.copy()
