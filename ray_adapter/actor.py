@@ -134,9 +134,6 @@ class ActorHandle:
 
     @property
     def _actor_id(self):
-        return self.__instance_proxy.instance_id
-    @property
-    def _actor_id(self):
         iid = self.__instance_proxy.instance_id
         return StrWithHex(iid) if isinstance(iid, str) else id
 
