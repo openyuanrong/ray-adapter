@@ -148,7 +148,6 @@ class ActorHandle:
     @property
     def _actor_id(self):
         iid = self.__instance_proxy.instance_id
-        print(type(StrWithHex(iid)))
         return StrWithHex(iid) if isinstance(iid, str) else iid
 
     def terminate(self, is_sync: bool = False):
