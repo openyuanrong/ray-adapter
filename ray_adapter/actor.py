@@ -135,7 +135,7 @@ class ActorHandle:
     @property
     def _actor_id(self):
         iid = self.__instance_proxy.instance_id
-        return StrWithHex(iid) if isinstance(iid, str) else id
+        return StrWithHex(iid) if isinstance(iid, str) else iid
 
     def __getstate__(self):
         attrs = self.__dict__.copy()
