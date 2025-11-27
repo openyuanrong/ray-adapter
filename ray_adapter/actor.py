@@ -120,9 +120,15 @@ class ActorMethod:
 
 
 class StrWithHex:
-    def __init__(self, s): self.s = s
-    def hex(self): return self.s
-    def __str__(self): return self.s
+    def __init__(self, s):
+        self.s = s
+
+    def __str__(self):
+        return self.s
+
+    def hex(self):
+        """"""
+        return self.s
 
 
 class ActorHandle:
@@ -132,17 +138,18 @@ class ActorHandle:
     def __getattr__(self, method_name):
         return ActorMethod(getattr(self.__instance_proxy, method_name))
 
-    @property
-    def _actor_id(self):
-        iid = self.__instance_proxy.instance_id
-        return StrWithHex(iid) if isinstance(iid, str) else iid
-
     def __getstate__(self):
         attrs = self.__dict__.copy()
         return attrs
 
     def __setstate__(self, state):
         self.__dict__.update(state)
+
+    @property
+    def _actor_id(self):
+        iid = self.__instance_proxy.instance_id
+        print(type(StrWithHex(iid)))
+        return StrWithHex(iid) if isinstance(iid, str) else iid
 
     def terminate(self, is_sync: bool = False):
         """terminate actor"""
@@ -195,7 +202,8 @@ class ActorClass:
         DerivedActorClass.__qualname__ = name
         # Construct the base object.
         self = DerivedActorClass.__new__(DerivedActorClass)
-        object.__setattr__(self, "_ActorClass__instance_creator", InstanceCreator.create_from_user_class(modified_class, actor_options))
+        object.__setattr__(self, "_ActorClass__instance_creator",
+                           InstanceCreator.create_from_user_class(modified_class, actor_options))
         self.__option_wrapper = None
         return self
 
