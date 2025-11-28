@@ -77,7 +77,7 @@ if [ -z "$PYTHON3_BIN_PATH" ]; then
         echo "[BUILD_ERROR] Required Python not found: $PYTHON3_BIN_PATH" >&2
         exit 1
     fi
-#    export PYTHONPATH="$YR_WHL_PATH:$BASE_DIR${PYTHONPATH:+:$PYTHONPATH}"
+
     "$PYTHON3_BIN_PATH" -m pip install "$YR_WHL_PATH" --no-deps --force-reinstall -q
     export PYTHONPATH="$BASE_DIR${PYTHONPATH:+:$PYTHONPATH}"
     echo "[BUILD_INFO] Installed yr from wheel; PYTHONPATH set to project root."
@@ -165,11 +165,6 @@ elif [ $COMMAND == "coverage" ]; then
         --source="$MODULE_NAME" \
         --omit="*/tests/*,*__init__.py" \
         -m pytest "$MODULE_NAME/tests/" -v
-#    export PYTHONPATH="$BASE_DIR:$PYTHONPATH"
-#    $PYTHON3_BIN_PATH -m coverage run \
-#        --source="$MODULE_NAME" \
-#        --omit="*/tests/*,*__init__.py" \
-#        -m pytest "$MODULE_NAME/tests/" -v
 
     $PYTHON3_BIN_PATH -m coverage html -d "$COV_HTML_DIR"
     $PYTHON3_BIN_PATH -m coverage xml -o "$COV_HTML_DIR/coverage.xml"
