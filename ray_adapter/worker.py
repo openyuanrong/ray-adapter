@@ -111,7 +111,7 @@ def _make_remote(function_or_class, options):
 
     Raises:
         ValueError: The number of `max_retries` is negative.
-        TypeError: isinstance (num_cpus, int): Check whether `num_cpus` is of type int, otherwise, throw an exception.
+        TypeError: Check whether `num_cpus` is of type int or float, otherwise, throw an exception.
         TypeError: isinstance (max_retries, int): Check whether `max_retries` is of int type,
             otherwise, throw an exception.
         TypeError: `nums_cpus` <0: If the number of `nums_cpus` is negative or not of int type, an exception is thrown.
@@ -146,7 +146,7 @@ def _make_remote(function_or_class, options):
         raise TypeError("Parameter 'num_cpus' must be a number.")
     if num_cpus < 0:
         raise TypeError("Parameter 'num_cpus' cannot be set to < 0.")
-    opts.cpu = num_cpus * 1000
+    opts.cpu = int(num_cpus * 1000)
     opts.memory = 0
 
     max_retries = options.get("max_retries", 3)
@@ -596,7 +596,7 @@ def method(*args, **kwargs):
 def init(
         *,
         logging_level: int = logging.WARNING,
-        num_cpus: Optional[int] = None,
+        num_cpus: Optional[Union[int, float]] = None,
         runtime_env: Optional[Dict[str, Any]] = None,
         namespace: Optional[str] = None
 ):
@@ -605,7 +605,8 @@ def init(
 
     Args:
         logging_level (int): The logging level to use, defaults to WARNING.
-        num_cpus (Optional[int]): The number of CPU cores available, defaults to None.
+        num_cpus (Optional[Union[int, float]]): The number of CPU cores available, defalut None,
+        precision to three decimal places.
         runtime_env (Optional[Dict[str, Any]]): Configuration for the runtime environment, defaults to None.
         namespace: A namespace is a logical grouping of jobs and named actors.
 
@@ -621,7 +622,7 @@ def init(
         raise ValueError("logging_level must be one of the logging constants")
 
     conf = Config()
-    conf.num_cpus = num_cpus if num_cpus is not None else 0
+    conf.num_cpus = int(num_cpus * 1000) if num_cpus is not None else 0
     conf.runtime_env = runtime_env if runtime_env is not None else {}
     conf.log_level = logging.getLevelName(logging_level)
     conf.ns = namespace if namespace is not None else ""
