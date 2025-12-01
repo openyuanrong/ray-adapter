@@ -49,8 +49,8 @@ def build_yr_scheduling_options(opts, *args, **kwargs) -> InvokeOptions:
 
     num_cpus = kwargs.get("num_cpus")
     if num_cpus is not None:
-        if not isinstance(num_cpus, int):
-            raise TypeError("num_cpus must be an integer")
+        if not isinstance(num_cpus, (int, float)):
+            raise TypeError("num_cpus must be a number")
         opts.cpu = int(num_cpus * 1000) if num_cpus >= 0 else 1000
 
     num_gpus = kwargs.get("num_gpus")
