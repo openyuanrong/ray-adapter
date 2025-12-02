@@ -20,10 +20,12 @@ __all__ = [
     "cluster_resources", "get", "finalize", "ExistenceOpt",
     "WriteMode", "CacheType", "SetParam", "MSetParam", "CreateParam",
     "AlarmSeverity", "AlarmInfo", "ConsistencyType", "GetParams", "GetParam", "put",
-    "get_runtime_context", "ObjectRef", "GetTimeoutError", "RayTaskError"
+    "get_runtime_context", "ObjectRef", "GetTimeoutError", "RayTaskError",
+    "JobSubmissionClient"
 ]
 
 from yr.object_ref import ObjectRef
+# from yr.job_submission import Job
 from ray_adapter.worker import (
     _make_remote, remote, get_actor, nodes, available_resources, cluster_resources, get,
     is_initialized, shutdown, available_resources_per_node, method, kill, init, wait
@@ -31,13 +33,10 @@ from ray_adapter.worker import (
 )
 from ray_adapter import util
 from ray_adapter import actor
+from ray_adapter.job_submission.sdk import JobSubmissionClient
 from ray_adapter.runtime_context import get_runtime_context
 from ray_adapter.exceptions import GetTimeoutError, RayTaskError
 
-from yr.runtime import (  # noqa: E402
-    ExistenceOpt, WriteMode, CacheType, SetParam, MSetParam, CreateParam, AlarmSeverity, AlarmInfo,
-    ConsistencyType, GetParams, GetParam
-)
 from yr.apis import (
     finalize, put, resources
 )

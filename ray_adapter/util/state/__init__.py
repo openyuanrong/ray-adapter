@@ -19,4 +19,4 @@ __all__ = [
     "list_nodes",
 ]
 
-from ray_adapter.util.api import list_nodes
+from ray_adapter.util.state.api import list_nodes
