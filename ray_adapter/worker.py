@@ -331,15 +331,16 @@ def nodes() -> List[Dict]:
     node_infos = []
     for node in yr_resources:
         res_dict = {}
+        labels = node.get("labels", {})
+        host_ip_list = labels.get("HOST_IP", [])
+        ip = host_ip_list[0] if host_ip_list else ""
+
+        node_id_list = labels.get("NODE_ID", [])
+        node_id = node_id_list[0] if node_id_list else ""
         ray_node_info = {
-            "NodeID": node.get("id", ""),
+            "NodeID": node_id,
             "Alive": node.get("status", -1) == 0,
         }
-        node_id = ray_node_info["NodeID"]
-        ip = ""
-        parts = node_id.split("-")
-        if len(parts) >= 3:
-            ip = parts[-2]
         ray_node_info["NodeManagerAddress"] = ip
         for key, value in node["capacity"].items():
             if "NPU" in key:
