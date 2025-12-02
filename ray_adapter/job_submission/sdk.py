@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional, Union
 import dataclasses
 import requests
 
-from ray_adapter.job_submission.common import JobSubmitRequest, JobSubmitResponse, JobDeleteResponse, JobStopResponse
+from ray_adapter.job_submission.common import JoSubmitRequest, JobSubmitResponse, JobDeleteResponse, JobStopResponse
 from ray_adapter.job_submission.model import JobDetails
 from ray_adapter.job_submission.utils import strip_keys_with_value_none
 
