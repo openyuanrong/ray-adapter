@@ -222,6 +222,8 @@ class ActorClass:
             if namespace == "":
                 raise ValueError('"" is not a valid namespace. '
                                  "Pass None to not specify a namespace.")
+        if kwargs.get("get_if_exists") and not name:
+            raise ValueError("The actor name must be specified to use `get_if_exists`.")
         opt = build_yr_scheduling_options(self.__instance_creator.__invoke_options__, *args, **kwargs)
         opt.name = name
         opt.namespace = namespace
