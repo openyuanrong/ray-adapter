@@ -22,8 +22,9 @@ from yr.decorator.instance_proxy import InstanceCreator, MethodProxy, InstancePr
 from ray_adapter.util.scheduling_strategies import PlacementGroupSchedulingStrategy, NodeAffinitySchedulingStrategy
 
 
-def build_yr_scheduling_options(opts, *args, **kwargs) -> InvokeOptions:
+def build_yr_scheduling_options(actor_opts, *args, **kwargs) -> InvokeOptions:
     """build yr scheduling options"""
+    opts = copy.deepcopy(actor_opts)
     scheduling_strategy = kwargs.get("scheduling_strategy", None)
     if isinstance(scheduling_strategy, PlacementGroupSchedulingStrategy):
         rg_opts = ResourceGroupOptions()
