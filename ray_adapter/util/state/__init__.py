@@ -17,6 +17,7 @@
 
 __all__ = [
     "list_nodes",
+    "available_resources_per_node",
 ]
 
 from ray_adapter.util.state.api import list_nodes
