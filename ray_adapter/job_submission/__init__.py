@@ -14,9 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 __all__ = [
-    "list_nodes",
+    "JobSubmissionClient",
 ]
 
-from ray_adapter.util.state.api import list_nodes
+from ray_adapter.job_submission.sdk import JobSubmissionClient

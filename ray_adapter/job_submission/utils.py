@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any, Dict
 
-__all__ = [
-    "list_nodes",
-]
 
-from ray_adapter.util.state.api import list_nodes
+# BASED ON https://github.com/ray-project/ray/blob/ray-2.32.0/dashboard/modules/job/utils.py
+def strip_keys_with_value_none(d: Dict[str, Any]) -> Dict[str, Any]:
+    return {k: v for k, v in d}
