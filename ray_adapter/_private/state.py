@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from yr.apis import resource_group_table
+from yr.apis import resource_group_table, resources
 from yr.common.types import CommonStatus, Resource, Resources, BundleInfo, Option, RgInfo, ResourceGroupUnit
 
 
@@ -78,3 +78,28 @@ class GlobalState:
 
 
 state = GlobalState()
+
+
+def available_resources_per_node():
+    """
+    Return available resources grouped by node .
+    """
+    yr_resources = resources()
+
+    result = {}
+    for node in yr_resources:
+        node_name = node.get("id")
+        allocatable = node.get("allocatable", {})
+        processd_alloc = {}
+        for key, value in allocatable.items():
+            if key == "Memory":
+                r_key = "memory"
+            elif key.startswith("NPU"):
+                r_key = "NPU"
+            elif key.startswith("GPU"):
+                r_key = "GPU"
+            else:
+                r_key = key
+            processd_alloc[r_key] = value
+        result[node_name] = processd_alloc
+    return result

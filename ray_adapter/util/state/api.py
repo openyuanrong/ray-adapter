@@ -35,3 +35,4 @@ def list_nodes() -> List[Dict]:
         })
 
     return result
+
