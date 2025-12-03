@@ -25,7 +25,6 @@ __all__ = [
 ]
 
 from yr.object_ref import ObjectRef
-# from yr.job_submission import Job
 from ray_adapter.worker import (
     _make_remote, remote, get_actor, nodes, available_resources, cluster_resources, get,
     is_initialized, shutdown, available_resources_per_node, method, kill, init, wait

@@ -19,4 +19,4 @@ from typing import Any, Dict
 
 # BASED ON https://github.com/ray-project/ray/blob/ray-2.32.0/dashboard/modules/job/utils.py
 def strip_keys_with_value_none(d: Dict[str, Any]) -> Dict[str, Any]:
-    return {k: v for k, v in d }
+    return {k: v for k, v in d}

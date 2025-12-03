@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # coding=UTF-8
-# Copray_adapteright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+# Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,10 +28,10 @@ class JobSubmissionClient:
     def __init__(
             self,
             address: Optional[str] = None,
-            create_cluster_if_needed = False,
+            create_cluster_if_needed: bool = False,
             cookies: Optional[Dict[str, Any]] = None,
             metadata: Optional[Dict[str, Any]] = None,
-            headers: Optional[Dict[str ,Any]] = None,
+            headers: Optional[Dict[str, Any]] = None,
             verify: Optional[Union[str, bool]] = True,
     ):
         self._address = address or "http://localhost:9080"
@@ -39,7 +39,7 @@ class JobSubmissionClient:
         self._default_metadata = metadata or {}
         self._headers = headers
         self._verify = verify
-        self._address = os.environ.get("ray_adapter_DASHBOARD_ADDRESS",self._address)
+        self._address = os.environ.get("ray_adapter_DASHBOARD_ADDRESS", self._address)
 
     @staticmethod
     def _raise_error(r: requests.Response):
@@ -62,13 +62,13 @@ class JobSubmissionClient:
     ) -> str:
         metadata = metadata or {}
         metadata.update(self._default_metadata)
-        req = JobSubmitRequest(entrypoint=entrypoint, submission_id=submission_id, runtime_env=runtime_env,
-                               metadata=metadata, entrypoint_num_cpus=entrypoint_num_cpus,
-                               entrypoint_num_gpus=entrypoint_num_gpus, entrypoint_memory=entrypoint_memory,
-                               entrypoint_resources=entrypoint_resources)
+        req = JoSubmitRequest(entrypoint=entrypoint, submission_id=submission_id, runtime_env=runtime_env,
+                              metadata=metadata, entrypoint_num_cpus=entrypoint_num_cpus,
+                              entrypoint_num_gpus=entrypoint_num_gpus, entrypoint_memory=entrypoint_memory,
+                              entrypoint_resources=entrypoint_resources)
         json_data = strip_keys_with_value_none(dataclasses.asdict(req))
         r = self._do_request("POST", "/api/jobs/", json_data=json_data)
-        if r.status_code ==200:
+        if r.status_code == 200:
             return JobSubmitResponse(**r.json()).submission_id
         self._raise_error(r)
 
@@ -88,6 +88,7 @@ class JobSubmissionClient:
         r = self._do_request("GET", f"/api/jobs/{job_id}")
         if r.status_code == 200:
             return JobDetails.from_dict(r.json())
+        self._raise_error(r)
 
     def list_jobs(self) -> List[JobDetails]:
         r = self._do_request("GET", f"/api/jobs/")
@@ -97,10 +98,8 @@ class JobSubmissionClient:
             return jobs_info
         self._raise_error(r)
 
-    def _do_request(self, method:str, endpoint: str, *, data: Optional[bytes] = None, json_data: Optional[Dict] = None,
+    def _do_request(self, method: str, endpoint: str, *, data: Optional[bytes] = None, json_data: Optional[Dict] = None,
                     **kwargs, ) -> requests.Response:
         url = self._address + endpoint
         return requests.request(method, url, cookies=self._cookies, data=data, json=json_data, headers=self._headers,
-                        verify=self._verify, **kwargs, )
-
-
+                                verify=self._verify, **kwargs, )

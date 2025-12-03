@@ -28,6 +28,7 @@ class JoSubmitRequest:
     entrypoint_num_cpus: Optional[Union[int, float]] = None
     entrypoint_num_gpus: Optional[Union[int, float]] = None
     entrypoint_memory: Optional[int] = None
+    entrypoint_resources: Optional[Dict[str, float]] = None
 
     def __post_init__(self):
         if not isinstance(self.entrypoint, str):
@@ -57,7 +58,7 @@ class JoSubmitRequest:
                 if not isinstance(k, str):
                     raise TypeError(f"metadata keys must be strings, got {type(k)}")
             for v in self.metadata.values():
-                if not isinstance(v ,str):
+                if not isinstance(v, str):
                     raise TypeError(
                         f"metadata values must be strings, got {type(v)}"
                     )
