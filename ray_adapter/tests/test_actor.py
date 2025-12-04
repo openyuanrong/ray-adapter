@@ -54,11 +54,11 @@ class TestProxyAdaptor(unittest.TestCase):
 
     def test_build_yr_scheduling_options(self):
         mock_opts = Mock()
-        res = build_yr_scheduling_options(opts=mock_opts, name="name", namespace="namespace",
+        res = build_yr_scheduling_options(actor_opts=mock_opts, name="name", namespace="namespace",
                                           scheduling_strategy=ray_adapter.util.NodeAffinitySchedulingStrategy(
                                               node_id="node_id", soft=True))
         self.assertEqual(len(res.schedule_affinities), 1)
-        res = build_yr_scheduling_options(opts=mock_opts, name="name", namespace="namespace",
+        res = build_yr_scheduling_options(actor_opts=mock_opts, name="name", namespace="namespace",
                                           scheduling_strategy=ray_adapter.util.PlacementGroupSchedulingStrategy(
                                               placement_group=None, placement_group_bundle_index=0))
         self.assertEqual(res.resource_group_options.bundle_index, 0)
