@@ -15,6 +15,8 @@
 # limitations under the License.
 import os
 import threading
+from typing import Optional
+
 import yr
 
 
@@ -102,6 +104,14 @@ class RuntimeContext(object):
         """
         node_id = yr.apis.get_node_id()
         return node_id
+
+    def get_actor_id(self) -> Optional[str]:
+        actor_id = os.getenv("INSTANCE_ID")
+        if actor_id and actor_id not in ("", "nil", "None"):
+            return actor_id
+        return None
+
+
 
 
 _runtime_context = None
