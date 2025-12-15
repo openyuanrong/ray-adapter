@@ -451,22 +451,13 @@ def get(ray_waitables: Union[
     """
     if timeout is None or timeout < 0:
         timeout = constants.NO_LIMIT
-    elif timeout == 0:
-        raise GetTimeoutError("Timeout is 0, cannot return object immediately.")
-    try:
         yr_get = yr.apis.get(ray_waitables, timeout)
-    except Exception as e:
-        if isinstance(e, TimeoutError):
-            raise GetTimeoutError("Get object timeout.") from e
-        else:
-            raise RayTaskError(
-                function_name="get",
-                traceback_str=str(e),
-                cause=e,
-            ) from e
-
+    else:
+        try:
+            yr_get = yr.apis.get(ray_waitables, int(timeout))
+        except ValueError as e:
+            raise ValueError("No object returned when time is 0") from e
     return yr_get
-
 
 
 def is_initialized() -> bool:
@@ -626,7 +617,6 @@ def init(
     conf.runtime_env = runtime_env if runtime_env is not None else {}
     conf.log_level = logging.getLevelName(logging_level)
     conf.ns = namespace if namespace is not None else ""
-    conf.working_dir = os.getcwd()
 
     return yr.init(conf)
 
