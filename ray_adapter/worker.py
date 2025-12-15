@@ -627,6 +627,7 @@ def init(
     conf.runtime_env = runtime_env if runtime_env is not None else {}
     conf.log_level = logging.getLevelName(logging_level)
     conf.ns = namespace if namespace is not None else ""
+    conf.working_dir = os.getcwd()
 
     return yr.init(conf)
 
