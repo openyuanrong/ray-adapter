@@ -21,13 +21,13 @@ __all__ = [
     "WriteMode", "CacheType", "SetParam", "MSetParam", "CreateParam",
     "AlarmSeverity", "AlarmInfo", "ConsistencyType", "GetParams", "GetParam", "put",
     "get_runtime_context", "ObjectRef", "GetTimeoutError", "RayTaskError",
-    "JobSubmissionClient"
+    "JobSubmissionClient", "cancel"
 ]
 
 from yr.object_ref import ObjectRef
 from ray_adapter.worker import (
     _make_remote, remote, get_actor, nodes, available_resources, cluster_resources, get,
-    is_initialized, shutdown, available_resources_per_node, method, kill, init, wait
+    is_initialized, shutdown, available_resources_per_node, method, kill, init, wait, cancel
 
 )
 from ray_adapter import util

@@ -671,3 +671,24 @@ def get_gpu_ids() -> List[int]:
     if os.getenv("GPU-DEVICE-IDS"):
         return list(map(int, os.getenv("GPU-DEVICE-IDS").split(",")))
     return []
+
+
+def cancel(ray_waitable: Union[ObjectRef, List[ObjectRef]],
+           *,
+           force: bool = False,
+           recursive: bool = True) -> None:
+    """
+    Cancel one or more tasks.
+
+    This API is inspired by Ray but simplified to match YuanRong's capabilities.
+
+    Args:
+        ray_waitable: A single ObjectRef or a list of ObjectRefs to cancel.
+        force: Whether to forcefully terminate the task(s).
+        recursive: Whether to cancel child tasks recursively.
+    """
+    yr.cancel(
+        obj_refs=ray_waitable,
+        allow_force=force,
+        allow_recursive=recursive
+    )
