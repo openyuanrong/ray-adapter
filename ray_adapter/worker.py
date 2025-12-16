@@ -110,7 +110,7 @@ def _make_remote(function_or_class, options):
 
     Raises:
         ValueError: The number of `max_retries` is negative.
-        TypeError: Check whether `num_cpus` is of type int or float, otherwise, throw an exception.
+        TypeError: isinstance (num_cpus, int): Check whether `num_cpus` is of type int, otherwise, throw an exception.
         TypeError: isinstance (max_retries, int): Check whether `max_retries` is of int type,
             otherwise, throw an exception.
         TypeError: `nums_cpus` <0: If the number of `nums_cpus` is negative or not of int type, an exception is thrown.
@@ -155,14 +155,13 @@ def _make_remote(function_or_class, options):
         raise ValueError("Parameter 'max_retries' cannot be set to < 0.")
     opts.retry_time = max_retries
 
-    max_concurrency = options.get("max_concurrency", None)
-    concurrency_groups = options.get("concurrency_groups", None)
+    max_concurrency = options.get("max_concurrency", 1)
+    if not isinstance(max_concurrency, int):
+        raise TypeError("Parameter 'max_concurrency' must be an integer.")
+    opts.concurrency = max_concurrency
 
-    if max_concurrency is not None:
-        if not isinstance(max_concurrency, int):
-            raise TypeError("Parameter 'max_concurrency' must be an integer.")
-        opts.concurrency = max_concurrency
-    elif concurrency_groups is not None:
+    concurrency_groups = options.get("concurrency_groups", None)
+    if concurrency_groups is not None:
         if not isinstance(concurrency_groups, dict):
             raise TypeError("Parameter 'concurrency_groups' must be a dict if provided.")
         valid_values = [v for v in concurrency_groups.values() if v is not None]
@@ -172,16 +171,15 @@ def _make_remote(function_or_class, options):
         if not isinstance(concurrency_sum, int):
             raise ValueError("The sum of concurrency_groups values must be an integer.")
         opts.concurrency = sum(valid_values) + 1
-    else:
-        opts.concurrency = 1
 
     custom_resources: Dict[str, float] = {}
     num_gpus = options.get("num_gpus")
     if num_gpus is not None:
         if not isinstance(num_gpus, (int, float)):
             raise TypeError("Parameter 'num_gpus' must be a number.")
-        if num_gpus > 0.0001:
-            custom_resources["GPU/.+/count"] = float(num_gpus)
+        if num_gpus < 0.0001:
+            raise ValueError("Parameter 'num_gpus' cannot be set to < 0.0001")
+        custom_resources["GPU/.+/count"] = float(num_gpus)
     if "resources" in options and isinstance(options["resources"], dict):
         if "NPU" in options["resources"]:
             nums_npu = options["resources"].get("NPU")
@@ -337,9 +335,14 @@ def nodes() -> List[Dict]:
         node_id_list = labels.get("NODE_ID", [])
         node_id = node_id_list[0] if node_id_list else ""
         ray_node_info = {
-            "NodeID": node_id,
+            "NodeID": node.get("id", ""),
             "Alive": node.get("status", -1) == 0,
         }
+        node_id = ray_node_info["NodeID"]
+        ip = ""
+        parts = node_id.split("-")
+        if len(parts) >= 3:
+            ip = parts[-2]
         ray_node_info["NodeManagerAddress"] = ip
         for key, value in node["capacity"].items():
             if "NPU" in key:
@@ -587,7 +590,7 @@ def method(*args, **kwargs):
 def init(
         *,
         logging_level: int = logging.WARNING,
-        num_cpus: Optional[Union[int, float]] = None,
+        num_cpus: Optional[int] = None,
         runtime_env: Optional[Dict[str, Any]] = None,
         namespace: Optional[str] = None
 ):
@@ -596,8 +599,7 @@ def init(
 
     Args:
         logging_level (int): The logging level to use, defaults to WARNING.
-        num_cpus (Optional[Union[int, float]]): The number of CPU cores available, defalut None,
-        precision to three decimal places.
+        num_cpus (Optional[int]): The number of CPU cores available, defaults to None.
         runtime_env (Optional[Dict[str, Any]]): Configuration for the runtime environment, defaults to None.
         namespace: A namespace is a logical grouping of jobs and named actors.
 
@@ -613,7 +615,7 @@ def init(
         raise ValueError("logging_level must be one of the logging constants")
 
     conf = Config()
-    conf.num_cpus = int(num_cpus * 1000) if num_cpus is not None else 0
+    conf.num_cpus = num_cpus if num_cpus is not None else 0
     conf.runtime_env = runtime_env if runtime_env is not None else {}
     conf.log_level = logging.getLevelName(logging_level)
     conf.ns = namespace if namespace is not None else ""
