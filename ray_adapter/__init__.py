@@ -36,10 +36,6 @@ from ray_adapter.job_submission.sdk import JobSubmissionClient
 from ray_adapter.runtime_context import get_runtime_context
 from ray_adapter.exceptions import GetTimeoutError, RayTaskError
 
-from yr.runtime import (  # noqa: E402
-    ExistenceOpt, WriteMode, CacheType, SetParam, MSetParam, CreateParam, AlarmSeverity, AlarmInfo,
-    ConsistencyType, GetParams, GetParam
-)
 from yr.apis import (
     finalize, put, resources
 )
