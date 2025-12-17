@@ -633,7 +633,7 @@ def init(
 
 def wait(
     ray_waitables: Union[ObjectRef, List[ObjectRef]],
-    wait_num: int = 1,
+    wait_num: Optional[int] = None,
     timeout: Optional[float] = None,
     fetch_local: bool = True,
 ) -> Tuple[List[ObjectRef], List[ObjectRef]]:
