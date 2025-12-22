@@ -626,6 +626,7 @@ def init(
     conf.num_cpus = int(num_cpus * 1000) if num_cpus is not None else 0
     conf.runtime_env = runtime_env if runtime_env is not None else {}
     conf.log_level = logging.getLevelName(logging_level)
+    conf.working_dir = os.getcwd()
     conf.ns = namespace if namespace is not None else ""
 
     return yr.init(conf)
