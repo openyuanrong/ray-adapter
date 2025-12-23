@@ -62,12 +62,10 @@ const (
 	defaultGraceExitTimeout = 5
 )
 
-var (
-	errorGetZeroYuanRongProcesses = errors.New("didn't find any yuanrong processes")
-)
+var errorGetZeroYuanRongProcesses = errors.New("didn't find any yuanrong processes")
 
-// InitYrCMD init login cmd
-func InitYrCMD(cio *cmdio.CmdIO) *cobra.Command {
+// InitCMD init login cmd
+func InitCMD(cio *cmdio.CmdIO) *cobra.Command {
 	yrOpts.cmdIO = cio
 
 	yrStopCmd.Flags().IntVarP(&yrOpts.graceExitTimeout, "grace_exit_timeout", "g", defaultGraceExitTimeout,
@@ -88,7 +86,7 @@ func yrStopYuanRong(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	var keywords = []string{
+	keywords := []string{
 		filepath.Join(yuanRongDir, "deploy", "process", "deploy.sh"),
 		filepath.Join(yuanRongDir, "functionsystem"),
 		filepath.Join(yuanRongDir, "datasystem"),
