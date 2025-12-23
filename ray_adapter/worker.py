@@ -30,6 +30,7 @@ from yr.config import InvokeOptions, ResourceGroupOptions
 from yr.common import constants
 
 from yr.config import Config
+from yr.resource_group_ref import RgObjectRef
 from ray_adapter.actor import ActorClass, RemoteFunction, ActorHandle
 from ray_adapter.util.scheduling_strategies import PlacementGroupSchedulingStrategy, NodeAffinitySchedulingStrategy
 from ray_adapter.exceptions import GetTimeoutError, RayTaskError
@@ -418,7 +419,9 @@ def cluster_resources() -> Dict:
 
 
 def get(ray_waitables: Union[
-    "ObjectRef[Any]",
+    "ObjectRef",
+    List,
+    "RgObjectRef",
     Sequence["ObjectRef[Any]"],
 ],
         *,
