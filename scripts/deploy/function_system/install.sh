@@ -360,6 +360,7 @@ function install_function_agent_and_runtime_manager_in_the_same_process() {
     --etcd_ssl_base_path=${ETCD_SSL_BASE_PATH} \
     --runtime_default_config="${RUNTIME_DEFAULT_CONFIG}" \
     --proc_metrics_memory="${MEM4COMP}" ${unique_proxy_option} \
+    --enable_dis_conv_call_stack="${ENABLE_DIS_CONV_CALL_STACK}" \
     --runtime_instance_debug_enable="${RUNTIME_INSTANCE_DEBUG_ENABLE}" ${user_lod_export_option} &
   FUNCTION_AGENT_PID="$!"
   log_info "succeed to start function agent and runtime manager, port=${FUNCTION_AGENT_PORT} pid=${FUNCTION_AGENT_PID}"
