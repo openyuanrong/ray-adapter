@@ -30,6 +30,11 @@ def build_yr_scheduling_options(actor_opts, *args, **kwargs) -> InvokeOptions:
         rg_opts = ResourceGroupOptions()
         if scheduling_strategy.placement_group is not None:
             rg_opts.resource_group_name = scheduling_strategy.placement_group.resource_group.name
+            if scheduling_strategy.placement_group.bundle_cache is not None:
+                if len(scheduling_strategy.placement_group.bundle_cache) < scheduling_strategy.placement_group_bundle_index:
+                    raise ValueError(f"bundle index {scheduling_strategy.placement_group_bundle_index} is invalid")
+                if scheduling_strategy.placement_group_bundle_index < -1:
+                    raise ValueError("bundle index must be -1")
         rg_opts.bundle_index = scheduling_strategy.placement_group_bundle_index
         opts.resource_group_options = rg_opts
     if isinstance(scheduling_strategy, NodeAffinitySchedulingStrategy):

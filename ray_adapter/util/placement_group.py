@@ -170,8 +170,8 @@ def placement_group(
     """Asynchronously creates a PlacementGroup."""
     validate_placement_group(bundles, strategy, lifetime, _soft_target_node_id, bundle_label_selector)
     if len(name) == 0:
-        return PlacementGroup(create_resource_group(bundles, None, strategy))
-    return PlacementGroup(create_resource_group(bundles, name, strategy))
+        return PlacementGroup(create_resource_group(bundles, None, strategy), bundles)
+    return PlacementGroup(create_resource_group(bundles, name, strategy), bundles)
 
 
 def remove_placement_group(placement_group_object: PlacementGroup) -> None:
