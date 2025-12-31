@@ -19,6 +19,7 @@ from typing import Any, Dict, Optional
 from dataclasses import dataclass
 
 
+@dataclass
 class DriverInfo:
     id: str = ""
     node_ip_address: str = ""
@@ -56,6 +57,7 @@ class JobDetails:
     start_time: Optional[int] = None
     end_time: Optional[int] = None
     metadata: Optional[Dict[str, Any]] = None
+    runtime_env: Optional[Dict[str, Any]] = None
     driver_agent_http_address: Optional[str] = None
     driver_node_id: Optional[str] = None
     driver_exit_code: Optional[int] = None
@@ -65,5 +67,3 @@ class JobDetails:
         driver_info = data.get("driver_info")
         data["driver_info"] = DriverInfo(**driver_info)
         return JobDetails(**data)
-
-
