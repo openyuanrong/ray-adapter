@@ -86,6 +86,10 @@ find_yr_python() {
 function install_python_requirements() {
     $PYTHON3_BIN_PATH -m pip install pytest coverage
     $PYTHON3_BIN_PATH -m pip install -r requirements.txt
+    $PYTHON3_BIN_PATH -m pip install aiohttp
+    $PYTHON3_BIN_PATH -m pip install requests
+
+
 }
 
 generate_python_coverage_report() {
