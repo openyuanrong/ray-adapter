@@ -70,6 +70,11 @@ class PlacementGroup:
         """get group name"""
         return self.get_id()
 
+    @property
+    def bundle_count(self) -> int:
+        self._fill_bundle_cache_if_needed()
+        return len(self.bundle_cache)
+
     def _fill_bundle_cache_if_needed(self):
         if not self.bundle_cache:
             self.bundle_cache = _get_bundle_cache(self.get_id())
