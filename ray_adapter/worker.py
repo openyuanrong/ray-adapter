@@ -679,7 +679,7 @@ def get_gpu_ids() -> List[int]:
 
 def cancel(ray_waitable: Union[ObjectRef, List[ObjectRef]],
            *,
-           force: bool = True,
+           force: bool = False,
            recursive: bool = False) -> None:
     """
     Cancel one or more tasks.
