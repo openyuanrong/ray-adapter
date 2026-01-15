@@ -59,7 +59,6 @@
 #include "scaler/scaler_driver.h"
 #include "system_function_loader/bootstrap_actor.h"
 #include "system_function_loader/bootstrap_driver.h"
-#include "utils/string_utils.hpp"
 #include "utils/system_upgrade_switch_utils.h"
 
 using namespace functionsystem;

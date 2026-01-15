@@ -17,6 +17,7 @@
 #include "scaler_driver.h"
 
 #include "common/constants/actor_name.h"
+#include "common/crypto/crypto.h"
 
 namespace functionsystem::scaler {
 ScalerDriver::ScalerDriver(const functionsystem::functionmaster::Flags &flags,
@@ -48,6 +49,12 @@ Status ScalerDriver::Start()
     // create meta store accessor
     if (metaStorageAccessor_ == nullptr) {
         return Status(StatusCode::FAILED, "failed to create meta store accessor.");
+    }
+
+    Crypto::GetInstance().SetAlgorithm(flags_.GetDecryptAlgorithm());
+    if (const auto status = Crypto::GetInstance().LoadSecretKey(flags_.GetResourcePath()); status.IsError()) {
+        YRLOG_ERROR("failed to load secret key, reason: {}", status.ToString());
+        return Status(StatusCode::FAILED, "failed to load secret key, reason: " + status.ToString());
     }
 
     ScalerParams params{ .k8sNamespace = flags_.GetK8sNamespace(),

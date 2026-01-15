@@ -66,16 +66,6 @@ public:
         return tokenExpiredTimeSpan_;
     }
 
-    const std::string &GetDecryptAlgorithm() const
-    {
-        return decryptAlgorithm_;
-    }
-
-    const std::string &GetResourcePath() const
-    {
-        return resourcePath_;
-    }
-
     const std::string &GetK8sBasePath() const
     {
         return k8sBasePath_;
@@ -127,8 +117,6 @@ private:
     std::string libPath_;
     bool enableIAM_ = false;
     uint32_t tokenExpiredTimeSpan_;
-    std::string resourcePath_;
-    std::string decryptAlgorithm_;
     std::string k8sBasePath_;
     std::string k8sNamespace_;
     uint32_t electLeaseTTL_;

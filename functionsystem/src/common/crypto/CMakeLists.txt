@@ -12,17 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-project(aksk)
+project(crypto)
 
-message(STATUS "Begin to configure aksk")
-
-aux_source_directory(${CMAKE_CURRENT_LIST_DIR} AKSK_SRCS)
-add_library(${PROJECT_NAME} STATIC ${AKSK_SRCS})
+aux_source_directory(${CMAKE_CURRENT_LIST_DIR} CRYPTO_SRCS)
+add_library(crypto STATIC ${CRYPTO_SRCS})
 
 target_include_directories(${PROJECT_NAME}
-    PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<INSTALL_INTERFACE:include>
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:include>
 )
-
-target_link_libraries(aksk PUBLIC crypto hex http ${litebus_ALL_LIB})
+target_link_libraries(${PROJECT_NAME} PUBLIC status ${litebus_ALL_LIB})

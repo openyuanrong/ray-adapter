@@ -18,8 +18,6 @@
 #define IAM_SERVER_INTERNAL_IAM_IAM_TOKEN_CONTENT_H
 
 #include "common/status/status.h"
-#include "securec.h"
-#include "common/logs/logging.h"
 #include "common/utils/token_transfer.h"
 
 namespace functionsystem::iamserver {

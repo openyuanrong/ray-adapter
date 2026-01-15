@@ -23,11 +23,12 @@
 #include "common/hex/hex.h"
 #include "common/http/http_util.h"
 #include "common/proto/pb/posix_pb.h"
-#include "utils/time_utils.h"
 #include "openssl/sha.h"
 #include "sign_request.h"
 #include "utils/os_utils.hpp"
 #include "utils/string_utils.hpp"
+#include "utils/time_util.hpp"
+#include "utils/time_utils.h"
 
 namespace functionsystem {
 const double TIMESTAMP_EXPIRE_DURATION_SECONDS = 60;
@@ -202,13 +203,8 @@ bool ParseAuthToken(const std::string &str, std::string &alg, std::string &times
     return true;
 }
 
-Status InitLitebusAKSKEnv(const CommonFlags &flags)
+Status InitLitebusAKSKEnv(const CommonFlags &)
 {
-    if (flags.GetSystemAuthMode() != SYSTEM_AUTH_MODE_AK_SK) {
-        litebus::os::SetEnv(litebus::os::LITEBUS_AKSK_ENABLED, "0");
-        return Status::OK();
-    }
-    YRLOG_WARN("AK/SK is currently not supported.");
     return Status::OK();
 }
 

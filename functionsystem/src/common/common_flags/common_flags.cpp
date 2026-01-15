@@ -81,6 +81,9 @@ CommonFlags::CommonFlags()
             WhiteListCheck({ "no_aggregate", "strictly", "relaxed" }));
     AddFlag(&CommonFlags::clusterId_, "cluster_id", "cluster id", "");
     AddFlag(&CommonFlags::systemAuthMode_, "system_auth_mode", "authentication mode between yuanrong components", "");
+    AddFlag(&CommonFlags::decryptAlgorithm_, "decrypt_algorithm", "decrypt algorithm, eg: GCM, CBC, STS",
+            std::string("NO_CRYPTO"), WhiteListCheck({ "NO_CRYPTO", "CBC", "GCM", "STS" }));
+    AddFlag(&CommonFlags::resourcePath_, "resource_path", "resource path to read secret key files", "/");
     AddFlag(&CommonFlags::scheduleRelaxed_, "schedule_relaxed",
             "enable the relaxed scheduling policy. When the relaxed number of available nodes or pods is selected, the "
             "scheduling progress exits without traversing all nodes or pods.(default -1)",

@@ -21,11 +21,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <async/async.hpp>
 #include <nlohmann/json.hpp>
 
 #include "async/future.hpp"
-#include "async/option.hpp"
 #include "common/logs/logging.h"
 #include "common/utils/token_transfer.h"
 #include "function_proxy/common/iam/internal_iam.h"

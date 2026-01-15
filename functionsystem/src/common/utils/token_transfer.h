@@ -17,9 +17,7 @@
 #ifndef COMMON_UTILS_TOKEN_TRANSFER_H
 #define COMMON_UTILS_TOKEN_TRANSFER_H
 
-#include <nlohmann/json.hpp>
-
-#include "common/logs/logging.h"
+#include "common/status/status.h"
 
 namespace functionsystem {
 const std::string TOKEN_STR = "token";
@@ -35,66 +33,13 @@ struct TokenSalt {
     Status status = Status::OK();
 };
 
-[[maybe_unused]] static std::string TransToJsonFromTokenSalt(const TokenSalt &tokenSalt)
-{
-    nlohmann::json val = nlohmann::json::object();
-    val[TOKEN_STR] = tokenSalt.token;
-    val[SALT_STR] = tokenSalt.salt;
-    return val.dump();
-}
+std::string TransToJsonFromTokenSalt(const TokenSalt &tokenSalt);
 
-[[maybe_unused]] static std::shared_ptr<TokenSalt> TransTokenSaltFromJson(const std::string &json)
-{
-    auto tokenSalt = std::make_shared<TokenSalt>();
-    nlohmann::json j;
-    try {
-        j = nlohmann::json::parse(json);
-    } catch (std::exception &error) {
-        YRLOG_WARN("failed to parse token and salt, error: {}", error.what());
-        return tokenSalt;
-    }
-    if (j.find(TOKEN_STR) != j.end()) {
-        tokenSalt->token = j.at(TOKEN_STR).get<std::string>();
-    }
-    if (j.find(SALT_STR) != j.end()) {
-        tokenSalt->salt = j.at(SALT_STR).get<std::string>();
-    }
-    return tokenSalt;
-}
+std::shared_ptr<TokenSalt> TransTokenSaltFromJson(const std::string &json);
 
-[[maybe_unused]] static void CleanSensitiveStrMemory(std::string &sensitiveStr, const std::string &msg)
-{
-    auto ret = memset_s(&sensitiveStr[0], sensitiveStr.length(), 0, sensitiveStr.length());
-    if (ret != 0) {
-        YRLOG_WARN("token clean memory failed when {}.", msg);
-    }
-}
+void CleanSensitiveStrMemory(std::string &sensitiveStr, const std::string &msg);
 
-[[maybe_unused]] static Status DecryptTokenSaltFromStorage(const std::string &tokenStrFromStorage,
-                                                           const std::shared_ptr<TokenSalt> &tokenSalt)
-{
-    auto pos = tokenStrFromStorage.find('_');
-    if (pos == std::string::npos) {
-        return Status(StatusCode::FAILED, "decrypt token from storage error!");
-    }
-    std::string key = tokenStrFromStorage.substr(0, pos);
-    std::string info = tokenStrFromStorage.substr(pos + 1);
-    std::string tokenStr(info);
-    // token in storage format is: Encrypt(encryptToken+timestamp)
-    pos = tokenStr.rfind(SPLIT_SYMBOL_TOKEN);
-    if (pos == std::string::npos) {
-        return Status(StatusCode::FAILED, "get token from decrypt storage token failed!");
-    }
-    tokenSalt->token = tokenStr.substr(0, pos);
-    try {
-        std::string expiredTimeStr = tokenStr.substr(pos + 1);
-        tokenSalt->expiredTimeStamp = std::stoull(expiredTimeStr);
-    } catch (std::exception &e) {
-        return Status(StatusCode::FAILED, "transform time stamp type failed, err:" + std::string(e.what()));
-    }
-    CleanSensitiveStrMemory(tokenStr, "decrypt token from storage");
-    return Status::OK();
-}
+Status DecryptTokenSaltFromStorage(const std::string &tokenStrFromStorage, const std::shared_ptr<TokenSalt> &tokenSalt);
 }  // namespace functionsystem
 
 #endif  // COMMON_UTILS_TOKEN_TRANSFER_H

@@ -109,10 +109,6 @@ const std::string &GetAccessKey() const
     {
         return credentialType;
     }
-    const std::string &GetDecryptAlgorithm() const
-    {
-        return decryptAlgorithm;
-    }
 
     const bool &GetEnableMergeProcess() const
     {

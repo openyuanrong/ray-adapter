@@ -14,32 +14,31 @@
  * limitations under the License.
  */
 
-#include <csignal>
 #include <algorithm>
 #include <atomic>
+#include <csignal>
 #include <iostream>
 #include <memory>
 #include <string>
-#include <vector>
 
+#include "async/future.hpp"
+#include "async/option.hpp"
+#include "common/aksk/aksk_util.h"
+#include "common/constants/constants.h"
+#include "common/crypto/crypto.h"
+#include "common/logs/logging.h"
+#include "common/proto/pb/message_pb.h"
+#include "common/status/status.h"
 #include "common/utils/exec_utils.h"
 #include "common/utils/module_switcher.h"
+#include "common/utils/param_check.h"
+#include "common/utils/s3_config.h"
 #include "common/utils/ssl_config.h"
 #include "common/utils/version.h"
-#include "common/aksk/aksk_util.h"
 #include "function_agent/driver/function_agent_driver.h"
 #include "function_agent/flags/function_agent_flags.h"
 #include "runtime_manager/config/flags.h"
 #include "runtime_manager/driver/runtime_manager_driver.h"
-#include "async/future.hpp"
-#include "async/option.hpp"
-#include "common/constants/constants.h"
-#include "common/logs/logging.h"
-#include "common/proto/pb/message_pb.h"
-#include "common/status/status.h"
-#include "common/utils/param_check.h"
-#include "common/utils/s3_config.h"
-#include "common/utils/sensitive_value.h"
 
 using namespace functionsystem;
 
@@ -72,10 +71,18 @@ S3Config GetS3Config(const function_agent::FunctionAgentFlags &flags)
         YRLOG_INFO("S3 auth type({}) enabled", s3Config.credentialType);
     }
     if (!flags.GetAccessKey().empty()) {
-    	s3Config.accessKey = flags.GetAccessKey();
+        if (const auto decrypt = Crypto::GetInstance().Decrypt(flags.GetAccessKey()); decrypt.IsSome()) {
+            s3Config.accessKey = decrypt.Get().GetData();
+        } else {
+            YRLOG_ERROR("failed to decrypt access key");
+        }
     }
     if (!flags.GetSecretKey().empty()) {
-    	s3Config.secretKey = flags.GetSecretKey();
+        if (const auto decrypt = Crypto::GetInstance().Decrypt(flags.GetSecretKey()); decrypt.IsSome()) {
+            s3Config.secretKey = decrypt.Get();
+        } else {
+            YRLOG_ERROR("failed to decrypt secret key");
+        }
     }
     s3Config.endpoint = flags.GetS3Endpoint();
     s3Config.protocol = flags.GetS3Protocol();
@@ -272,7 +279,12 @@ int main(int argc, char **argv)
         g_functionAgentSwitcher->SetStop();
         return EXIT_ABNORMAL;
     }
-
+    Crypto::GetInstance().SetAlgorithm(flags.GetDecryptAlgorithm());
+    if (const auto status = Crypto::GetInstance().LoadSecretKey(flags.GetResourcePath()); status.IsError()) {
+        YRLOG_ERROR("failed to load secret key, reason: {}", status.ToString());
+        g_functionAgentSwitcher->SetStop();
+        return EXIT_ABNORMAL;
+    }
     YRLOG_DEBUG("function_agent GetEnableDisConvCallStack = {}", flags.GetEnableDisConvCallStack());
     if (!g_functionAgentSwitcher->InitLiteBus(address, flags.GetLitebusThreadNum())) {
         g_functionAgentSwitcher->SetStop();

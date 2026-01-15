@@ -29,6 +29,7 @@
 #include "common/logs/logging.h"
 #include "common/metadata/metadata.h"
 #include "common/metrics/metrics_adapter.h"
+#include "common/posix_client/control_plane_client/control_interface_posix_client.h"
 #include "common/posix_service/posix_service.h"
 #include "common/proto/pb/posix/common.pb.h"
 #include "common/proto/pb/posix_pb.h"
@@ -42,7 +43,6 @@
 #include "common/utils/random_number.h"
 #include "common/utils/struct_transfer.h"
 #include "instance_ctrl_message.h"
-#include "common/posix_client/control_plane_client/control_interface_posix_client.h"
 #include "local_scheduler/grpc_server/bus_service/bus_service.h"
 #include "local_scheduler_service/local_sched_srv.h"
 

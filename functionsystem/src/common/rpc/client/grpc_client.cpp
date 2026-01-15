@@ -17,10 +17,10 @@
 #include "grpc_client.h"
 
 #include "async/option.hpp"
+#include "common/crypto/crypto.h"
 #include "common/logs/logging.h"
 #include "common/utils/files.h"
 #include "common/utils/sensitive_value.h"
-
 
 namespace functionsystem {
 litebus::Option<SensitiveValue> GetCertContent(const std::string &filePath, const std::string &decryptTool)
@@ -28,7 +28,12 @@ litebus::Option<SensitiveValue> GetCertContent(const std::string &filePath, cons
     if (!FileExists(filePath)) {
         return litebus::None();
     }
-    return SensitiveValue(Read(filePath));
+
+    if (decryptTool.empty()) {
+        return SensitiveValue(Read(filePath));
+    } else {
+        return Crypto::GetInstance().Decrypt("", Read(filePath), decryptTool);
+    }
 }
 
 TLSConfig GetGrpcTLSConfigFromFiles(const CommonFlags &flags)

@@ -20,10 +20,10 @@
 #include <string>
 
 #include "async/future.hpp"
+#include "common/aksk/aksk_util.h"
 #include "common/status/status.h"
 #include "common/utils/aksk_content.h"
 #include "common/utils/token_transfer.h"
-#include "common/aksk/aksk_util.h"
 #include "httpd/http.hpp"
 
 namespace functionsystem::function_proxy {

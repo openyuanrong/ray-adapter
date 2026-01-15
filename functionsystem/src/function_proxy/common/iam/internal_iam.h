@@ -19,13 +19,13 @@
 
 #include "async/future.hpp"
 #include "authorize_proxy.h"
-#include "meta_storage_accessor/meta_storage_accessor.h"
 #include "common/status/status.h"
 #include "common/utils/aksk_content.h"
 #include "common/utils/token_transfer.h"
 #include "iam_client.h"
-#include "internal_token_manager_actor.h"
 #include "internal_credential_manager_actor.h"
+#include "internal_token_manager_actor.h"
+#include "meta_storage_accessor/meta_storage_accessor.h"
 
 namespace functionsystem::function_proxy {
 class VerifiedInstance;

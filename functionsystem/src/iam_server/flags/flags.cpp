@@ -37,9 +37,6 @@ Flags::Flags()
     AddFlag(&Flags::enableIAM_, "enable_iam", "enable verify and authorize token of internal request", false);
     AddFlag(&Flags::tokenExpiredTimeSpan_, "token_expired_time_span", "token alive period of internal request",
             DEFAULT_TOKEN_EXPIRED_TIME_SPAN, NumCheck(MIN_TOKEN_EXPIRED_TIME_SPAN, MAX_TOKEN_EXPIRED_TIME_SPAN));
-    AddFlag(&Flags::decryptAlgorithm_, "decrypt_algorithm", "decrypt algorithm",
-            std::string("NO_CRYPTO"), WhiteListCheck({ "NO_CRYPTO" }));
-    AddFlag(&Flags::resourcePath_, "resource_path", "resource path to read secret key files", "/");
     AddFlag(&Flags::k8sBasePath_, "k8s_base_path", "For k8s service discovery.", "");
     AddFlag(&Flags::k8sNamespace_, "k8s_namespace", "k8s cluster namespace", "default");
     AddFlag(&Flags::electionMode_, "election_mode", "selection mode, eg: standalone,etcd,txn,k8s",
