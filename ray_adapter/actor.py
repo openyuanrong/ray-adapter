@@ -113,7 +113,9 @@ class RemoteFunction:
         """remote"""
         if self.__opts_wrapper is None:
             return self.__function_proxy.invoke(*args, **kwargs)
-        return self.__opts_wrapper.invoke(*args, **kwargs)
+        result = self.__opts_wrapper.invoke(*args, **kwargs)
+        self.__opts_wrapper = None
+        return result
 
 
 class ActorMethod:
@@ -240,4 +242,6 @@ class ActorClass:
         """remote"""
         if self.__option_wrapper is None:
             return ActorHandle(self.__instance_creator.invoke(*args, **kwargs))
-        return ActorHandle(self.__option_wrapper.invoke(*args, **kwargs))
+        result = ActorHandle(self.__option_wrapper.invoke(*args, **kwargs))
+        self.__option_wrapper = None
+        return result
