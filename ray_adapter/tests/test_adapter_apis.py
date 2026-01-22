@@ -237,7 +237,7 @@ class TestInit(unittest.TestCase):
     def test_init_with_custom_num_cpus(self, mock_yr_init):
         worker.init(num_cpus=4)
         conf_arg = mock_yr_init.call_args[0][0]
-        self.assertEqual(conf_arg.num_cpus, 4000)
+        self.assertEqual(conf_arg.num_cpus, 4)
 
     @patch('yr.init')
     def test_init_with_runtime_env(self, mock_yr_init):

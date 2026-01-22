@@ -626,7 +626,7 @@ def init(
         raise ValueError("logging_level must be one of the logging constants")
 
     conf = Config()
-    conf.num_cpus = int(num_cpus * 1000) if num_cpus is not None else 0
+    conf.num_cpus = num_cpus if num_cpus is not None else 0
     conf.runtime_env = runtime_env if runtime_env is not None else {}
     conf.log_level = logging.getLevelName(logging_level)
     conf.working_dir = os.getcwd()
