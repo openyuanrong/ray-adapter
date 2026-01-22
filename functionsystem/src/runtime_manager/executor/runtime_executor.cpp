@@ -93,8 +93,11 @@ const std::string JAVA_SYSTEM_PROPERTY_FILE = "-Dlog4j2.configurationFile=file:"
 const std::string JAVA_SYSTEM_LIBRARY_PATH = "-Djava.library.path=";
 const std::string JAVA_LOG_LEVEL = "-DlogLevel=";
 const std::string JAVA_JOB_ID = "-DjobId=job-";
+
 const std::string JAVA_MAIN_CLASS = "org.yuanrong.runtime.server.RuntimeServer";
-const std::string PYTHON_NEW_SERVER_PATH = "/python/yr/main/yr_runtime_main.py";
+const std::string PYTHON_SERVER_PATH = "/python/yr/main/yr_runtime_main.py";
+const std::string PYTHON_SERVER_PATH_IN_WHEEL = "/../../main/yr_runtime_main.py";
+
 const std::string YR_JAVA_RUNTIME_PATH = "/java/yr-runtime-1.0.0.jar";
 const std::string POST_START_EXEC_REGEX = R"(^(uv )?pip3.[0-9]* install [a-zA-Z0-9\-\s:/\.=_]* && pip3.[0-9]* check$)";
 // should be read from deploy request in the future
@@ -188,6 +191,18 @@ std::function<void()> CondaActivate(const std::string &condaPrefix, const std::s
     };
 }
 
+std::string GetInstallationType()
+{
+    char result[PATH_MAX];
+    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+    std::string exePath(result, (count > 0) ? count : 0);
+
+    if (exePath.find("site-packages") != std::string::npos || exePath.find("venv") != std::string::npos) {
+        return PKG_TYPE_WHEEL;
+    }
+    return PKG_TYPE_TARBALL;
+}
+
 RuntimeExecutor::RuntimeExecutor(const std::string &name, const litebus::AID &functionAgentAID) : Executor(name)
 {
     mounter_ = std::make_shared<VolumeMount>();
@@ -204,6 +219,8 @@ RuntimeExecutor::RuntimeExecutor(const std::string &name, const litebus::AID &fu
 
 void RuntimeExecutor::Init()
 {
+    pkgType_ = GetInstallationType();
+    YRLOG_INFO("RuntimeManager installation type: {}", pkgType_);
 }
 
 void RuntimeExecutor::Finalize()
@@ -382,7 +399,9 @@ litebus::Future<messages::StartInstanceResponse> RuntimeExecutor::StartInstance(
             return GenFailStartInstanceResponse(request, RUNTIME_MANAGER_CONDA_PARAMS_INVALID,
                                                 "CONDA_DEFAULT_ENV must be set");
         }
-        if (auto it = deployOptions.find(CONDA_COMMAND); it != deployOptions.end() && (!CheckIllegalChars(it->second)
+        if (auto it = deployOptions.find(CONDA_COMMAND);
+            it != deployOptions.end()
+            && (!CheckIllegalChars(it->second)
                 || !litebus::strings::StartsWithPrefix(it->second, CONDA_PROGRAM_NAME))) {
             YRLOG_ERROR("{}|{}|conda command({}) is not valid", info.traceid(), info.requestid(), it->second);
             return GenFailStartInstanceResponse(request, RUNTIME_MANAGER_CONDA_PARAMS_INVALID,
@@ -946,7 +965,10 @@ std::map<std::string, std::string> RuntimeExecutor::CombineEnvs(const Envs &envs
     combineEnvs[MAX_LOG_FILE_NUM_ENV] = std::to_string(config_.runtimeMaxLogFileNum);
     // set distributed convergent call stack enable environment variable
     combineEnvs[ENABLE_DIS_CONV_CALL_STACK] = config_.enableDisConvCallStack ? "true" : "false";
-    std::string pythonPath = config_.runtimePath;
+    std::string pythonPath = "";
+    if (pkgType_ == PKG_TYPE_WHEEL) {
+        pythonPath = config_.runtimePath + "/../../../";
+    }
     if (!config_.pythonDependencyPath.empty()) {
         (void)pythonPath.append(":" + config_.pythonDependencyPath);
     }
@@ -1373,10 +1395,14 @@ std::pair<Status, std::vector<std::string>> RuntimeExecutor::PythonBuildFinalArg
 {
     std::string jobID = PYTHON_JOB_ID_PREFIX + Utils::GetJobIDFromTraceID(info.traceid());
     std::string address = config_.ip + ":" + port;
+    std::string pythonServerPath = PYTHON_SERVER_PATH;
+    if (pkgType_ == PKG_TYPE_WHEEL) {
+        pythonServerPath = PYTHON_SERVER_PATH_IN_WHEEL;
+    }
 
     return { Status::OK(),
-             { execPath, "-u", config_.runtimePath + PYTHON_NEW_SERVER_PATH, "--rt_server_address", address,
-               "--deploy_dir", deployDir, "--runtime_id", info.runtimeid(), "--job_id", jobID, "--log_level",
+             { execPath, "-u", config_.runtimePath + pythonServerPath, "--rt_server_address", address, "--deploy_dir",
+               deployDir, "--runtime_id", info.runtimeid(), "--job_id", jobID, "--log_level",
                config_.runtimeLogLevel } };
 }
 
@@ -1776,9 +1802,13 @@ std::vector<std::string> RuntimeExecutor::GetPythonBuildArgsForPrestart(const st
     YRLOG_DEBUG("GetPythonBuildArgs start {}", language);
     std::string execPath = GetExecPath(language);
     std::string address = config_.ip + ":" + port;
+    std::string pythonServerPath = PYTHON_SERVER_PATH;
+    if (pkgType_ == PKG_TYPE_WHEEL) {
+        pythonServerPath = PYTHON_SERVER_PATH_IN_WHEEL;
+    }
     return { execPath,
              "-u",
-             config_.runtimePath + PYTHON_NEW_SERVER_PATH,
+             config_.runtimePath + pythonServerPath,
              "--rt_server_address",
              address,
              "--deploy_dir",
