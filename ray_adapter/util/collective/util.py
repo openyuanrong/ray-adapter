@@ -6,6 +6,7 @@ import ray_adapter as ray
 
 logger = logging.getLogger(__name__)
 
+
 @ray.remote
 class NCCLUniqueIDStore:
     """NCCLUniqueID Store as a named actor class.
@@ -49,6 +50,7 @@ class NCCLUniqueIDStore:
                 "The NCCL ID has not been set yet for store {}.".format(self.name)
             )
         return self.nccl_id
+
 
 @ray.remote
 class Info:
