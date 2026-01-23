@@ -14,8 +14,10 @@ try:
         groupEnd,  # noqa: F401
         groupStart,  # noqa: F401
     )
-except ImportError:
-    raise ImportError("NCCL in Ray requires Cupy being available!")
+except ImportError as e:
+    raise ImportError(
+        f"NCCL in Ray requires CuPy being available! Error msg: {e}"
+    ) from e
 
 from ray_adapter.util.collective.types import ReduceOp, torch_available
 

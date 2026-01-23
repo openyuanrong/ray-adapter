@@ -51,10 +51,5 @@ class BaseGroup(metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def barrier(self, barrier_options=BarrierOptions()):
-        raise NotImplementedError()
-
-    @abstractmethod
     def broadcast(self, tensor, broadcast_options=BroadcastOptions()):
         raise NotImplementedError()
-

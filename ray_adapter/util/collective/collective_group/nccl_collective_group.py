@@ -76,19 +76,15 @@ class Rendezvous:
         while elapsed < timeout_delta:
             try:
                 logger.debug(
-                    "Trying to meet at the store '{}'".format(self._store_name)
+                    "Trying to meet at the store '%s'",self._store_name,
                 )
-                print(
-                    f"Trying to meet at the store {self._store_name}"
-                )
-
-                import time
+                # Prevent the actor from being accessed before it is created.
                 time.sleep(5)
                 self._store = get_actor(self._store_name)
             except ValueError:
                 logger.debug(
-                    "Failed to meet at the store '{}'."
-                    "Trying again...".format(self._store_name)
+                    "Failed to meet at the store '%s'. Trying again...",
+                    self._store_name,
                 )
                 time.sleep(1)
                 elapsed = datetime.datetime.now() - start_time
@@ -207,7 +203,7 @@ class NCCLGroup(BaseGroup):
         Returns:
             None
         """
-        print("nccl send begin")
+
         def p2p_fn(tensor, comm, stream, peer):
             comm.send(
                 nccl_util.get_tensor_ptr(tensor),
@@ -222,7 +218,6 @@ class NCCLGroup(BaseGroup):
         self._point2point(
             tensors, p2p_fn, send_options.dst_rank, send_options.dst_gpu_index
         )
-        print("send done")
 
     def recv(self, tensors, recv_options=RecvOptions()):
         """Receive a tensor from a source gpu in the group.
@@ -234,7 +229,7 @@ class NCCLGroup(BaseGroup):
         Returns:
             None
         """
-        print("nccl recv begin")
+
         def p2p_fn(tensor, comm, stream, peer):
             comm.recv(
                 nccl_util.get_tensor_ptr(tensor),
@@ -249,7 +244,6 @@ class NCCLGroup(BaseGroup):
         self._point2point(
             tensors, p2p_fn, recv_options.src_rank, recv_options.src_gpu_index
         )
-        print("recv done")
 
     def _get_nccl_collective_communicator(self, comm_key, device_list):
         """Create or retrieve an NCCL communicator from cache.
@@ -309,7 +303,6 @@ class NCCLGroup(BaseGroup):
         """Let NCCL streams wait for current streams for every device."""
         if ENV.NCCL_USE_MULTISTREAM.val:
             for i, device in enumerate(device_list):
-                print(f"device id: {device}")
                 with nccl_util.Device(device):
                     events[i].record(cupy.cuda.get_current_stream())
                     streams[i].wait_event(events[i])
@@ -490,7 +483,6 @@ class NCCLGroup(BaseGroup):
                 "Got '{}'.".format(nccl_util.get_nccl_runtime_version())
             )
         _check_gpu_tensors(tensors)
-        print("check gpu tensors done")
 
         # we currently only support single device to single device send/recv.
         assert len(tensors) == 1
@@ -501,13 +493,10 @@ class NCCLGroup(BaseGroup):
         comms = self._get_nccl_p2p_communicator(
             comm_key, my_gpu_idx, peer_rank, peer_gpu_idx
         )
-        print("get communicator done")
         streams = self._dev_streams_map[comm_key]
         events = self._dev_event_map[comm_key]
 
-        print("before sync stream")
         self._sync_streams([my_gpu_idx], events, streams)
-        print("sync stream done")
 
         # We have made sure that self.rank != peer_rank during API check.
         peer_p2p_rank = 0 if self.rank > peer_rank else 1
@@ -516,49 +505,6 @@ class NCCLGroup(BaseGroup):
             # Record the stream to avoid tensor being freed before the send/recv is completed.
             torch_stream = torch.cuda.ExternalStream(streams[i].ptr)
             tensor.record_stream(torch_stream)
-
-
-def _flatten_for_scatter_gather(tensor_list, copy=False):
-    """Flatten the tensor for gather/scatter operations.
-
-    Args:
-        tensor_list: the list of tensors to be scattered/gathered.
-        copy: whether the copy the tensors in tensor_list into the buffer.
-
-    Returns:
-        The flattened tensor buffer.
-    """
-    if not tensor_list:
-        raise RuntimeError("Received an empty list.")
-    t = tensor_list[0]
-    buffer_shape = [len(tensor_list)] + nccl_util.get_tensor_shape(t)
-
-    # once it is supported, we can eliminate this if statement.
-    #
-    # Allocate using the same backend as the tensors in `tensor_list`.
-    # Use torch only when the tensors are torch.Tensor; otherwise fall back to CuPy.
-    use_torch = False
-    if torch_available():
-        try:
-            import torch
-
-            use_torch = isinstance(t, torch.Tensor)
-        except ImportError:
-            use_torch = False
-
-    if use_torch:
-        buffer = torch.empty(tuple(buffer_shape), dtype=t.dtype, device=t.device)
-    else:
-        # note we need a cupy dtype here.
-        dtype = nccl_util.get_cupy_tensor_dtype(t)
-        device = nccl_util.get_tensor_device(t)
-        with nccl_util.Device(device):
-            buffer = cupy.empty(buffer_shape, dtype=dtype)
-
-    if copy:
-        for i, tensor in enumerate(tensor_list):
-            nccl_util.copy_tensor(buffer[i], tensor)
-    return buffer
 
 
 def _check_inputs_compatibility_for_scatter_gather(tensors, tensor_lists):

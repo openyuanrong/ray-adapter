@@ -5,8 +5,7 @@ from typing import List
 
 import numpy as np
 
-from . import types
-
+from ray_adapter.util.collective import types
 from ray_adapter.worker import get_actor, get_gpu_ids
 
 logger = logging.getLogger(__name__)
@@ -56,14 +55,8 @@ class GroupManager(object):
 
         if backend == types.Backend.NCCL:
             _check_backend_availability(backend)
-            logger.debug("Creating NCCL group: '{}'...".format(group_name))
+            logger.debug("Creating NCCL group: '%s'...", group_name)
             g = NCCLGroup(world_size, rank, group_name)
-
-        elif backend == types.Backend.HCCL:
-            _check_backend_availability(backend)
-            logger.debug("Creating HCCL group: '{}'...".format(group_name))
-            g = HCCLGroup(world_size, rank, group_name)
-
         else:
             raise RuntimeError(f"Unexpected backend: {backend}")
 
@@ -204,6 +197,7 @@ def _check_backend_availability(backend: types.Backend):
         if not nccl_available():
             raise RuntimeError("NCCL is not available.")
 
+
 def broadcast(tensor, src_rank: int = 0, group_name: str = "default"):
     """Broadcast the tensor from a source process to all others.
 
@@ -238,6 +232,7 @@ def barrier(group_name: str = "default"):
     g = get_group_handle(group_name)
     g.barrier()
 
+
 def send(tensor, dst_rank: int, group_name: str = "default"):
     """Send a tensor to a remote process synchronously.
 
@@ -257,6 +252,7 @@ def send(tensor, dst_rank: int, group_name: str = "default"):
     opts = types.SendOptions()
     opts.dst_rank = dst_rank
     g.send([tensor], opts)
+
 
 def recv(tensor, src_rank: int, group_name: str = "default"):
     """Receive a tensor from a remote process synchronously.
@@ -345,6 +341,7 @@ def _check_single_tensor_input(tensor):
         "Unrecognized tensor type '{}'. Supported types are: "
         "np.ndarray, torch.Tensor, cupy.ndarray.".format(type(tensor))
     )
+
 
 def _check_rank_valid(g, rank: int):
     """Check the rank: 0 <= rank < world_size."""
