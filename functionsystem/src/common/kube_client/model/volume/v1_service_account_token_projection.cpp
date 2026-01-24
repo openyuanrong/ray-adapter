@@ -38,7 +38,7 @@ nlohmann::json V1ServiceAccountTokenProjection::ToJson() const
         val["expirationSeconds"] = ModelUtils::ToJson(m_expirationSeconds);
     }
     if (PathIsSet()) {
-        val["path"] = ModelUtils::ToJson(m_Path);
+        val["path"] = ModelUtils::ToJson(m_path);
     }
 
     return val;
@@ -98,7 +98,7 @@ void V1ServiceAccountTokenProjection::UnsetAudience()
 
 int64_t V1ServiceAccountTokenProjection::GetExpirationSeconds() const
 {
-    return m_expirationSeconds
+    return m_expirationSeconds;
 }
 
 void V1ServiceAccountTokenProjection::SetExpirationSeconds(int64_t value)
