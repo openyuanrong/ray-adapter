@@ -55,7 +55,7 @@ protected:
     int64_t m_expirationSeconds;
     bool m_expirationSecondsIsSet;
     std::string m_path;
-    bool m_pathIsSet
+    bool m_pathIsSet;
 };
 
 }  // namespace model
