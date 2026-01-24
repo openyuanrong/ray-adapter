@@ -26,7 +26,7 @@ namespace model {
 
 const std::string MODEL_NAME_V1_SERVICE_ACCOUNT_TOKEN_PROJECTION = "V1ServiceAccountTokenProjection";
 
-class ServiceAccountTokenProjection : public ModelBase {
+class V1ServiceAccountTokenProjection : public ModelBase {
 public:
     V1ServiceAccountTokenProjection();
     ~V1ServiceAccountTokenProjection() override;
