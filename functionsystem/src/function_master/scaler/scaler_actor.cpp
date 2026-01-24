@@ -738,6 +738,9 @@ std::shared_ptr<V1PodTemplateSpec> ScalerActor::GeneratePodTemplateSpec(
         UpdateContainerResource(delegateContainer, pool);
         rt->GetSpec()->GetContainers().emplace(rt->GetSpec()->GetContainers().begin(), delegateContainer);
         rt->GetSpec()->SetTerminationGracePeriodSeconds(pool.terminationGracePeriodSeconds);
+        If (delegateContainer->ServiceAccountNameIsSet()) {
+            rt->GetSpec()->SetServiceAccountName(delegateContainer->GetServiceAccountName());
+        }
     }
 
     AddDelegateConfig(pool, rt);

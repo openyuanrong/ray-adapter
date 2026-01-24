@@ -3543,4 +3543,30 @@ TEST_F(ScalerTest, SystemFunctionPodManager)
     actor_->member_->frontendManager->CheckSystemFunctionNeedScale();
     ASSERT_AWAIT_READY(deletePodCalledArg);
 }
+
+TEST_F(ScalerTest, ParseContainerInfoForServiceAccountNameTest)
+{
+    std::string delegateContainerStrForServiceAccountName = R"(
+    {
+         "image": "image",
+         "serviceAccountName": "sa-test",
+         "env": [],
+         "command": {},
+         "volumeMounts": [],
+         "livenessProbe": {},
+         "readinessProbe": {}
+    }
+    )";
+    ::resources::InstanceInfo instanceInfo;
+    instanceInfo.mutable_createoptions()->operator[](DELEGATE_CONTAINER) = delegateContainerStrForServiceAccountName;
+
+    litebus::Option<std::shared_ptr<V1Container>> delegateContainerOp;
+    ParseDelegateContainer(instanceInfo, delegateContainerOp);
+    EXPECT_TRUE(delegateContainerOp.IsSome());
+
+    auto delegateContainer = delegateContainerOp.Get();
+
+    EXPECT_TRUE(delegateContainer->ServiceAccountNameIsSet());
+    EXPECT_EQ(delegateContainer->GetServiceAccountName(), "sa-test");
+}
 }  // namespace functionsystem::scaler::test

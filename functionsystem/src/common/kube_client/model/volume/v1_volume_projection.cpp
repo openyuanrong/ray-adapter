@@ -24,6 +24,7 @@ REGISTER_MODEL_OBJECT(V1VolumeProjection);
 V1VolumeProjection::V1VolumeProjection()
 {
     m_downwardAPIIsSet = false;
+    m_ServiceAccountTokenIsSet = false;
 }
 
 V1VolumeProjection::~V1VolumeProjection()
@@ -36,6 +37,9 @@ nlohmann::json V1VolumeProjection::ToJson() const
 
     if (m_downwardAPIIsSet) {
         val["downwardAPI"] = ModelUtils::ToJson(m_downwardAPI);
+    }
+    if (m_ServiceAccountTokenIsSet) {
+        val["serviceAccountToken"] = ModelUtils::ToJson(m_ServiceAccountToken);
     }
 
     return val;
@@ -51,6 +55,14 @@ bool V1VolumeProjection::FromJson(const nlohmann::json &val)
             std::shared_ptr<V1DownwardAPIProjection> refValSetDownwardAPI;
             ok &= ModelUtils::FromJson(fieldValue, refValSetDownwardAPI);
             SetDownwardAPI(refValSetDownwardAPI);
+        }
+    }
+    if (val.contains("serviceAccountToken")) {
+        const nlohmann::json &fieldValue = val.at("serviceAccountToken");
+        if (!fieldValue.is_null()) {
+            std::shared_ptr<V1ServiceAccountTokenProjection> refVal_setServiceAccountToken;
+            ok &= ModelUtils::FromJson(fieldValue, refVal_setServiceAccountToken);
+            SetServiceAccountToken(refVal_setServiceAccountToken);
         }
     }
     return ok;
@@ -75,6 +87,27 @@ bool V1VolumeProjection::DownwardAPIIsSet() const
 void V1VolumeProjection::UnsetDownwardAPI()
 {
     m_downwardAPIIsSet = false;
+}
+
+std::shared_ptr<V1ServiceAccountTokenProjection> V1VolumeProjection::GetServiceAccountToken() const
+{
+    return m_ServiceAccountToken;
+}
+
+void V1VolumeProjection::SetServiceAccountToken(const std::shared_ptr<V1ServiceAccountTokenProjection> &value)
+{
+    m_ServiceAccountToken = value;
+    m_ServiceAccountTokenIsSet = true;
+}
+
+bool V1VolumeProjection::ServiceAccountTokenIsSet() const
+{
+    return m_ServiceAccountTokenIsSet;
+}
+
+void V1VolumeProjection::UnsetServiceAccountToken()
+{
+    m_ServiceAccountTokenIsSet = false;
 }
 
 }  // namespace model

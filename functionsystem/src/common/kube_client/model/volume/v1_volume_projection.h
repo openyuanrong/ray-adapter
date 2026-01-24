@@ -19,6 +19,7 @@
 
 #include "common/kube_client/model/common/model_base.h"
 #include "v1_downward_api_projection.h"
+#include "v1_service_account_token_projection.h"
 
 namespace functionsystem::kube_client {
 namespace model {
@@ -38,9 +39,16 @@ public:
     void UnsetDownwardAPI();
     void SetDownwardAPI(const std::shared_ptr<V1DownwardAPIProjection> &value);
 
+    std::shared_ptr<V1ServiceAccountTokenProjection> GetServiceAccountToken() const;
+    bool ServiceAccountTokenIsSet() const;
+    void UnsetServiceAccountToken();
+    void SetServiceAccountToken(const std::shared_ptr<V1ServiceAccountTokenProjection> &value);
+
 protected:
     std::shared_ptr<V1DownwardAPIProjection> m_downwardAPI;
     bool m_downwardAPIIsSet;
+    std::shared_ptr<V1ServiceAccountTokenProjection> m_ServiceAccountToken;
+    bool m_ServiceAccountTokenIsSet;
 };
 }  // namespace model
 }  // namespace functionsystem::kube_client

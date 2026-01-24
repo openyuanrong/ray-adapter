@@ -133,6 +133,11 @@ public:
     void UnsetTerminationMessagePolicy();
     void SetTerminationMessagePolicy(const std::string &value);
 
+    std::string GetServiceAccountName() const;
+    bool ServiceAccountNameIsSet() const;
+    void UnsetServiceAccountName();
+    void SetServiceAccountName(const std::string &value);
+
 protected:
     std::vector<std::string> m_args;
     bool m_argsIsSet;
@@ -166,6 +171,8 @@ protected:
     bool m_terminationMessagePathIsSet;
     std::string m_terminationMessagePolicy;
     bool m_terminationMessagePolicyIsSet;
+    std::string m_serviceAccountName;
+    bool m_serviceAccountNameIsSet;
 };
 
 }  // namespace model
