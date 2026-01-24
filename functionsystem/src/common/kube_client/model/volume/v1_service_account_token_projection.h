@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef ORG_OPENAPITOOLS_CLIENT_MODEL_V1_ServiceAccountTokenProjection_H_
-#define ORG_OPENAPITOOLS_CLIENT_MODEL_V1_ServiceAccountTokenProjection_H_
+#ifndef ORG_OPENAPITOOLS_CLIENT_MODEL_V1_SERVICE_ACCOUNT_TOKEN_PROJECTION_H_
+#define ORG_OPENAPITOOLS_CLIENT_MODEL_V1_SERVICE_ACCOUNT_TOKEN_PROJECTION_H_
 
 #include <vector>
 
@@ -24,12 +24,12 @@
 namespace functionsystem::kube_client {
 namespace model {
 
-const std::string MODEL_NAME_V1_ServiceAccountTokenProjection = "V1ServiceAccountTokenProjection";
+const std::string MODEL_NAME_V1_SERVICE_ACCOUNT_TOKEN_PROJECTION = "V1ServiceAccountTokenProjection";
 
 class ServiceAccountTokenProjection : public ModelBase {
 public:
     V1ServiceAccountTokenProjection();
-    virtual ~V1ServiceAccountTokenProjection();
+    ~V1ServiceAccountTokenProjection() override;
 
     nlohmann::json ToJson() const override;
     bool FromJson(const nlohmann::json &json) override;
@@ -50,12 +50,12 @@ public:
     void SetPath(const std::string &value);
 
 protected:
-    std::string m_Audience;
-    bool m_AudienceIsSet;
-    int64_t m_ExpirationSeconds;
-    bool m_ExpirationSecondsIsSet;
-    std::string m_Path;
-    bool m_PathIsSet
+    std::string m_audience;
+    bool m_audienceIsSet;
+    int64_t m_expirationSeconds;
+    bool m_expirationSecondsIsSet;
+    std::string m_path;
+    bool m_pathIsSet
 };
 
 }  // namespace model

@@ -21,7 +21,7 @@ namespace model {
 REGISTER_MODEL_OBJECT(V1ServiceAccountTokenProjection);
 
 V1ServiceAccountTokenProjection::V1ServiceAccountTokenProjection()
-    : m_AudienceIsSet(false), m_ExpirationSeconds(0L), m_ExpirationSecondsIsSet(false), m_PathIsSet(false)
+    : m_audienceIsSet(false), m_expirationSeconds(0L), m_expirationSecondsIsSet(false), m_pathIsSet(false)
 {
 }
 
@@ -32,10 +32,10 @@ nlohmann::json V1ServiceAccountTokenProjection::ToJson() const
 {
     nlohmann::json val = nlohmann::json::object();
     if (AudienceIsSet()) {
-        val["audience"] = ModelUtils::ToJson(m_Audience);
+        val["audience"] = ModelUtils::ToJson(m_audience);
     }
     if (ExpirationSecondsIsSet()) {
-        val["expirationSeconds"] = ModelUtils::ToJson(m_ExpirationSeconds);
+        val["expirationSeconds"] = ModelUtils::ToJson(m_expirationSeconds);
     }
     if (PathIsSet()) {
         val["path"] = ModelUtils::ToJson(m_Path);
@@ -50,7 +50,7 @@ bool V1ServiceAccountTokenProjection::FromJson(const nlohmann::json &val)
 
     if (val.contains("audience")) {
         const nlohmann::json &fieldValue = val.at("audience");
-        if (!fieldValue.is_null()){
+        if (!fieldValue.is_null()) {
             std::string refVal_setAudience;
             ok &= ModelUtils::FromJson(fieldValue, refVal_setAudience);
             SetAudience(refVal_setAudience);
@@ -58,7 +58,7 @@ bool V1ServiceAccountTokenProjection::FromJson(const nlohmann::json &val)
     }
     if (val.contains("expirationSeconds")) {
         const nlohmann::json &fieldValue = val.at("expirationSeconds");
-        if (!fieldValue.is_null()){
+        if (!fieldValue.is_null()) {
             int64_t refVal_setExpirationSeconds;
             ok &= ModelUtils::FromJson(fieldValue, refVal_setExpirationSeconds);
             SetExpirationSeconds(refVal_setExpirationSeconds);
@@ -66,7 +66,7 @@ bool V1ServiceAccountTokenProjection::FromJson(const nlohmann::json &val)
     }
     if (val.contains("path")) {
         const nlohmann::json &fieldValue = val.at("path");
-        if (!fieldValue.is_null()){
+        if (!fieldValue.is_null()) {
             std::string refVal_setPath;
             ok &= ModelUtils::FromJson(fieldValue, refVal_setPath);
             SetPath(refVal_setPath);
@@ -77,65 +77,65 @@ bool V1ServiceAccountTokenProjection::FromJson(const nlohmann::json &val)
 
 std::string V1ServiceAccountTokenProjection::GetAudience() const
 {
-    return m_Audience;
+    return m_audience;
 }
 
 void V1ServiceAccountTokenProjection::SetAudience(const std::string &value)
 {
-    m_Audience = value;
-    m_AudienceIsSet = true;
+    m_audience = value;
+    m_audienceIsSet = true;
 }
 
 bool V1ServiceAccountTokenProjection::AudienceIsSet() const
 {
-    return m_AudienceIsSet;
+    return m_audienceIsSet;
 }
 
 void V1ServiceAccountTokenProjection::UnsetAudience()
 {
-    m_AudienceIsSet = false;
+    m_audienceIsSet = false;
 }
 
 int64_t V1ServiceAccountTokenProjection::GetExpirationSeconds() const
 {
-    return m_ExpirationSeconds
+    return m_expirationSeconds
 }
 
 void V1ServiceAccountTokenProjection::SetExpirationSeconds(int64_t value)
 {
-    m_ExpirationSeconds = value;
-    m_ExpirationSecondsIsSet = true;
+    m_expirationSeconds = value;
+    m_expirationSecondsIsSet = true;
 }
 
 bool V1ServiceAccountTokenProjection::ExpirationSecondsIsSet() const
 {
-    return m_ExpirationSecondsIsSet;
+    return m_expirationSecondsIsSet;
 }
 
 void V1ServiceAccountTokenProjection::UnsetExpirationSeconds()
 {
-    m_ExpirationSecondsIsSet = false;
+    m_expirationSecondsIsSet = false;
 }
 
 std::string V1ServiceAccountTokenProjection::GetPath() const
 {
-    return m_Path;
+    return m_path;
 }
 
 void V1ServiceAccountTokenProjection::SetPath(const std::string &value)
 {
-    m_Path = value;
-    m_PathIsSet = true;
+    m_path = value;
+    m_pathIsSet = true;
 }
 
 bool V1ServiceAccountTokenProjection::PathIsSet() const
 {
-    return m_PathIsSet;
+    return m_pathIsSet;
 }
 
 void V1ServiceAccountTokenProjection::UnsetPath()
 {
-    m_PathIsSet = false;
+    m_pathIsSet = false;
 }
 }  // namespace model
 }  // namespace functionsystem::kube_client

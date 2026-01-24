@@ -48,7 +48,7 @@ protected:
     std::shared_ptr<V1DownwardAPIProjection> m_downwardAPI;
     bool m_downwardAPIIsSet;
     std::shared_ptr<V1ServiceAccountTokenProjection> m_ServiceAccountToken;
-    bool m_ServiceAccountTokenIsSet;
+    bool m_serviceAccountTokenIsSet;
 };
 }  // namespace model
 }  // namespace functionsystem::kube_client
