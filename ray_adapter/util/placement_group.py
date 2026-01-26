@@ -132,10 +132,6 @@ def _validate_bundles(bundles: List[Dict[str, float]]):
                 "Bundles cannot be an empty dictionary or "
                 f"resources with only 0 values. Bundles: {bundles}"
             )
-        if "NPU" in bundle:
-            bundle["NPU/.+/count"] = bundle.pop("NPU")
-        if "GPU" in bundle:
-            bundle["GPU/.+/count"] = bundle.pop("GPU")
         if "memory" in bundle:
             bundle["Memory"] = bundle.pop("memory")
         if "CPU" in bundle:

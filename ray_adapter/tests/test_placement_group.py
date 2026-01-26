@@ -100,8 +100,8 @@ class TestPlacementGroup(unittest.TestCase):
         bundles = [{"NPU": 2, "GPU": 1, "memory": 1024, "CPU": 2}]
         pg_mod._validate_bundles(bundles)
         expected = {
-            "NPU/.+/count": 2,
-            "GPU/.+/count": 1,
+            "NPU": 2,
+            "GPU": 1,
             "Memory": 1024,
             "CPU": 2000
         }
