@@ -141,7 +141,7 @@ def _make_remote(function_or_class, options):
         if lifecycle != "detached":
             raise ValueError(f"lifetime is only support detached")
         options.custom_extensions["lifecycle"] = lifecycle
-
+    opts.group_name = options.get("group_name", "")
     num_cpus = options.get("num_cpus", 1)
     if not isinstance(num_cpus, (int, float)):
         raise TypeError("Parameter 'num_cpus' must be a number.")
