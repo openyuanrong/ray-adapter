@@ -21,7 +21,7 @@ __all__ = [
     "WriteMode", "CacheType", "SetParam", "MSetParam", "CreateParam",
     "AlarmSeverity", "AlarmInfo", "ConsistencyType", "GetParams", "GetParam", "put",
     "get_runtime_context", "ObjectRef", "GetTimeoutError", "RayTaskError",
-    "JobSubmissionClient", "cancel"
+    "JobSubmissionClient", "cancel", "cloudpickle"
 ]
 
 from yr.object_ref import ObjectRef
@@ -36,6 +36,7 @@ from ray_adapter.job_submission.sdk import JobSubmissionClient
 from ray_adapter.runtime_context import get_runtime_context
 from ray_adapter.exceptions import GetTimeoutError, RayTaskError
 from ray_adapter._private import state
+from ray_adapter import cloudpickle
 
 from yr.apis import (
     finalize, put, resources
