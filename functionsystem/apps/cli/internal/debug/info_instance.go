@@ -49,7 +49,7 @@ var httpClient *http.Client
 
 var pageSize = 5
 
-var printedFields = []string{"InstanceID", "Status"}
+var printedFields = []string{"InstanceID", "Status", "Language"}
 
 func init() {
 	httpClient = &http.Client{
@@ -130,6 +130,7 @@ func pbToInstanceInfos(pbInfos []*pb.DebugInstanceInfo) {
 			PID:         pbInfo.Pid,
 			DebugServer: pbInfo.DebugServer,
 			Status:      pbInfo.Status,
+			Language:    pbInfo.Language,
 		}
 		debugInstanceInfosMap[instId] = info
 	}
