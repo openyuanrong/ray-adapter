@@ -80,6 +80,55 @@ litebus::Future<::grpc::Status> PutInstance(
     return status;
 }
 
+static ::grpc::Status ValidateDiscoverDriverRequest(
+    const ::bus_service::DiscoverDriverRequest *request,
+    const std::shared_ptr<LocalSchedSrv> &localSchedSrv, uint64_t waitRegisteredTimeout)
+{
+    if (!IsIPValid(request->driverip()) || !IsPortValid(request->driverport())) {
+        YRLOG_ERROR("discover driver, address is invalid string");
+        return {::grpc::StatusCode::INVALID_ARGUMENT, "start grpc server failed."};
+    }
+    ASSERT_IF_NULL(localSchedSrv);
+    if (!localSchedSrv->IsRegisteredToGlobal().WaitFor(waitRegisteredTimeout).IsOK()) {
+        YRLOG_ERROR("function_proxy is not ready for driver register");
+        return {::grpc::StatusCode::DEADLINE_EXCEEDED,
+                "function_proxy is not ready for driver register"};
+    }
+    return ::grpc::Status::OK;
+}
+
+static void InitializeDiscoverDriverResponse(::bus_service::DiscoverDriverResponse *response,
+                                             const std::string &nodeID,
+                                             const std::string &hostIP)
+{
+    *response = ::bus_service::DiscoverDriverResponse();
+    response->set_serverversion(BUILD_VERSION);
+    response->set_nodeid(nodeID);
+    response->set_hostip(hostIP);
+}
+
+static resources::InstanceInfo BuildInstanceInfoFromRequest(
+    const ::bus_service::DiscoverDriverRequest *request, const std::string &nodeID,
+    const std::shared_ptr<InstanceCtrl> &instanceCtrl)
+{
+    std::string dstID = request->instanceid().empty()
+                            ? DRIVER_DSTID + "-" + request->jobid()
+                            : request->instanceid();
+    std::string addr = request->driverip() + ":" + request->driverport();
+    auto instanceInfo = GenInstanceInfo(dstID, nodeID, addr, request->jobid());
+    if (!request->functionname().empty()) {
+        instanceInfo.set_function(request->functionname());
+        auto funcNameArr = litebus::strings::Split(request->functionname(), "/");
+        if (!funcNameArr.empty()) {
+            instanceInfo.set_tenantid(funcNameArr[0]);
+        }
+        if (instanceCtrl->IsSystemTenant(instanceInfo.tenantid()).Get()) {
+            instanceInfo.set_issystemfunc(true);
+        }
+    }
+    return instanceInfo;
+}
+
 BusService::BusService(BusServiceParam &&param)
 {
     param_ = param;
@@ -94,53 +143,29 @@ BusService::~BusService()
                                           ::bus_service::DiscoverDriverResponse *response)
 {
     if (!request || !response) {
-        return { ::grpc::StatusCode::INVALID_ARGUMENT, "invalid args nullptr" };
+        return {::grpc::StatusCode::INVALID_ARGUMENT, "invalid args nullptr"};
     }
-    *response = ::bus_service::DiscoverDriverResponse();
-    response->set_serverversion(BUILD_VERSION);
-    response->set_nodeid(param_.nodeID);
-    response->set_hostip(param_.hostIP);
-    // check if request parameters are valid.
-    if (!IsIPValid(request->driverip()) || !IsPortValid(request->driverport())) {
-        YRLOG_ERROR("discover driver, address is invalid string");
-        return { ::grpc::StatusCode::INVALID_ARGUMENT, "start grpc server failed." };
+    InitializeDiscoverDriverResponse(response, param_.nodeID, param_.hostIP);
+    auto validateStatus = ValidateDiscoverDriverRequest(request, param_.localSchedSrv, waitRegisteredTimeout_);
+    if (!validateStatus.ok()) {
+        return validateStatus;
     }
-    ASSERT_IF_NULL(param_.localSchedSrv);
-    if (!param_.localSchedSrv->IsRegisteredToGlobal().WaitFor(waitRegisteredTimeout_).IsOK()) {
-        YRLOG_ERROR("function_proxy is not ready for driver register");
-        return  { ::grpc::StatusCode::DEADLINE_EXCEEDED, "function_proxy is not ready for driver register" };
-    }
-    std::string dstID = DRIVER_DSTID + "-" + request->jobid();
-    std::string addr = request->driverip() + ":" + request->driverport();
-    std::string jobID = request->jobid();
-    if (!request->instanceid().empty()) {
-        dstID = request->instanceid();
-    }
-    YRLOG_INFO("discover driver, address: {}:{}, jobID:{} instanceID:{} function:{}", request->driverip(),
-               request->driverport(), request->jobid(), dstID, request->functionname());
-    // create posix client
     ASSERT_IF_NULL(param_.instanceCtrl);
     ASSERT_IF_NULL(param_.controlPlaneObserver);
-    auto instanceInfo = GenInstanceInfo(dstID, param_.nodeID, addr, jobID);
-    if (!request->functionname().empty()) {
-        instanceInfo.set_function(request->functionname());
-        auto funcNameArr = litebus::strings::Split(request->functionname(), "/");
-        if (!funcNameArr.empty()) {
-            instanceInfo.set_tenantid(funcNameArr[0]);
-        }
-        if (param_.instanceCtrl->IsSystemTenant(instanceInfo.tenantid()).Get()) {
-            instanceInfo.set_issystemfunc(true);
-        }
+    auto instanceInfo = BuildInstanceInfoFromRequest(request, param_.nodeID, param_.instanceCtrl);
+    std::string dstID = instanceInfo.instanceid();
+    YRLOG_INFO("discover driver, address: {}:{}, jobID:{} instanceID:{} function:{}", request->driverip(),
+               request->driverport(), request->jobid(), dstID, request->functionname());
+    auto res = PutInstance(param_.controlPlaneObserver, instanceInfo)
+                   .Get(OBSERVER_TIMEOUT_MS + WAIT_REGISTERED_TIMEOUT);
+    if (!res.IsSome()) {
+        YRLOG_ERROR("Put instance error, no return value, dstID = {}", dstID);
+        return ::grpc::Status(::grpc::StatusCode::INTERNAL, "put instance error");
     }
-    // function-proxy is available if any of the following conditions is met:
-    // 1.function-proxy router info is successfully written into etcd.
-    // 2.function proxy is successfully registered into the global.
-    // here, function-proxy router info has been written into the ETCD.
-    if (auto status = PutInstance(param_.controlPlaneObserver, instanceInfo).Get(); !status.ok()) {
-        // to make sure routeInfo published
+    auto status = res.Get();
+    if (!status.ok()) {
         return status;
     }
-    // posix connection would be built on route published
     return ::grpc::Status::OK;
 }
 }  // namespace functionsystem::local_scheduler
