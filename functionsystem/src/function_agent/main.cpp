@@ -101,6 +101,7 @@ functionsystem::function_agent::FunctionAgentStartParam BuildStartParam(const fu
         .localNodeID = flags.GetLocalNodeID(),
         .enableSignatureValidation = flags.GetEnableSignatureValidation(),
         .componentName = COMPONENT_NAME,
+        .pluginConfigs = flags.GetPluginConfigs(),
     };
     return startParam;
 }

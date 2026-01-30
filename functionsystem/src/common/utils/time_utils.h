@@ -18,6 +18,7 @@
 #ifndef COMMON_UTILS_TIME_H
 #define COMMON_UTILS_TIME_H
 
+#include <chrono>
 #include <ctime>
 #include <iomanip>
 #include <iostream>
@@ -35,6 +36,14 @@ inline std::tm ParseTimestamp(const std::string &timestamp)
     }
     return tm;
 }
+
+inline int64_t GetCurrentTimestampMs()
+{
+    auto now = std::chrono::system_clock::now();
+    auto duration = now.time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+}
+
 // bool IsLaterThan(const std::string &timestamp1, const std::string &timestamp2, double seconds);
 inline bool IsLaterThan(const std::string &timestamp1, const std::string &timestamp2, double seconds)
 {

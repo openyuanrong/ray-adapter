@@ -18,6 +18,7 @@
 #define COMMON_CONSTANTS_CONSTANTS_H
 
 #include <string>
+#include <vector>
 
 namespace functionsystem {
 
@@ -275,5 +276,16 @@ const std::string IDLE_TO_SUSPEND = "idleToSuspend";
 // system function
 const std::string FRONTEND_FUNCTION_NAME = "0-system-faasfrontend";
 
+// virtual env
+const std::string VIRTUALENV_KIND = "VIRTUALENV_KIND";
+const std::string VIRTUALENV_NAME = "VIRTUALENV_NAME";
+const std::string VIRTUALENV_COMMAND = "VIRTUALENV_COMMAND";
+const std::string VIRTUALENV_PATH = "VIRTUALENV_PATH";
+
+const std::vector<std::string> VIRTUALENV_KEYS = {VIRTUALENV_KIND, VIRTUALENV_NAME, VIRTUALENV_COMMAND,
+                                                  VIRTUALENV_PATH};
+
+// deploy options
+const std::string EXEC_PATH = "exec_path";
 }  // namespace functionsystem
 #endif  // COMMON_CONSTANTS_CONSTANTS_H

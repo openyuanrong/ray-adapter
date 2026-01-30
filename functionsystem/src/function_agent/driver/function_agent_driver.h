@@ -40,11 +40,13 @@ struct FunctionAgentStartParam {
     std::string localNodeID;
     bool enableSignatureValidation;
     std::string componentName;
+    std::string pluginConfigs;
 };
 
 class FunctionAgentDriver : public ModuleDriver {
 public:
     FunctionAgentDriver(const std::string &nodeID, const FunctionAgentStartParam &param);
+    Status PostStartFunctionAgent();
     ~FunctionAgentDriver() override = default;
 
     Status Start() override;

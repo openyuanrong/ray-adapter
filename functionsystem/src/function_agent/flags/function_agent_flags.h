@@ -139,6 +139,11 @@ const std::string &GetAccessKey() const
         return enableSignatureValidation_;
     }
 
+    const std::string &GetPluginConfigs() const
+    {
+        return pluginConfigs_;
+    }
+
 protected:
     std::string logConfig;
     std::string nodeID;
@@ -166,6 +171,8 @@ protected:
     bool enableDisConvCallStack = false;
     std::string agentUID = "";
     bool enableSignatureValidation_ = false;
+
+    std::string pluginConfigs_ = "";
 };
 }  // namespace functionsystem::function_agent
 
