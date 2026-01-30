@@ -906,14 +906,11 @@ litebus::Future<Status> GroupManagerActor::OnGetInstanceFromMetaStore(
     return Status::OK();
 }
 
-void GroupManagerActor::MasterBusiness::CheckGroupInstanceConsistency(std::shared_ptr<messages::GroupInfo> &groupInfo)
+void GroupManagerActor::MasterBusiness::CheckAndFetchMissingInstances(const std::string &groupID,
+    const std::set<std::string> &cachedInstanceIDs,
+    const google::protobuf::RepeatedPtrField<messages::ScheduleRequest> &requests)
 {
-    std::set<std::string> cachedInstanceIDs;
-    const auto &cachedGroupInstanceInfoMap = member_->groupCaches->GetGroupInstances(groupInfo->groupid());
-    for (const auto &pair: cachedGroupInstanceInfoMap) {
-        cachedInstanceIDs.insert(pair.second->instanceid());
-    }
-    for (const auto &req : groupInfo->requests()) {
+    for (const auto &req : requests) {
         const auto &instanceID = req.instance().instanceid();
         if (cachedInstanceIDs.count(instanceID) == 0) {
             auto actor = actor_.lock();
@@ -926,9 +923,29 @@ void GroupManagerActor::MasterBusiness::CheckGroupInstanceConsistency(std::share
                 continue;
             }
             member_->metaClient->Get(instanceKey.Get(), {})
-                .Then(litebus::Defer(actor->GetAID(), &GroupManagerActor::OnGetInstanceFromMetaStore,
-                                     std::placeholders::_1, instanceID, groupInfo->groupid()));
+                    .Then(litebus::Defer(actor->GetAID(), &GroupManagerActor::OnGetInstanceFromMetaStore,
+                                         std::placeholders::_1, instanceID, groupID));
         }
+    }
+}
+
+void GroupManagerActor::MasterBusiness::CheckGroupInstanceConsistency(std::shared_ptr<messages::GroupInfo> &groupInfo)
+{
+    std::set<std::string> cachedInstanceIDs;
+    const auto &cachedGroupInstanceInfoMap = member_->groupCaches->GetGroupInstances(groupInfo->groupid());
+    for (const auto &pair: cachedGroupInstanceInfoMap) {
+        cachedInstanceIDs.insert(pair.second->instanceid());
+    }
+    /**
+     * GroupInfo in ETCD or range instances
+     * "requests":[{"instance":{"instanceID":"676f43f5-18fe-432f-9300-000000000080"....]",
+     * "rangeRequests":[{"instance":{"instanceID":"676f43f5-18fe-432f-9300-000000000080-r-0"...]"
+     * when insRangeScheduler==true, use rangeRequests instead of requests
+     */
+    if (groupInfo->insrangescheduler()) {
+        CheckAndFetchMissingInstances(groupInfo->groupid(), cachedInstanceIDs, groupInfo->rangerequests());
+    } else {
+        CheckAndFetchMissingInstances(groupInfo->groupid(), cachedInstanceIDs, groupInfo->requests());
     }
 }
 
