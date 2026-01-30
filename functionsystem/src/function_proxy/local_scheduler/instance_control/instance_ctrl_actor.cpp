@@ -1539,6 +1539,11 @@ litebus::Future<ScheduleResponse> InstanceCtrlActor::DoDispatchSchedule(
                 && scheduleReq->instance().instancestatus().code() == static_cast<uint32_t>(InstanceState::NEW)) {
                 return runtimePromise->GetFuture();
             }
+            if (static_cast<InstanceState>(result.savedInfo.instancestatus().code()) == InstanceState::RUNNING) {
+                YRLOG_INFO("{}|{}|{}|{}", scheduleReq->traceid(), scheduleReq->requestid(),
+                           scheduleReq->instance().instanceid(), "instance is running, just return instance state");
+                return runtimePromise->GetFuture();
+            }
             const std::string msg = "instance has been scheduled on other node";
             YRLOG_WARN("{}|{}|{}", scheduleReq->traceid(), scheduleReq->requestid(),
                        "instance has been scheduled on other node");
