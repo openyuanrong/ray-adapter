@@ -472,7 +472,7 @@ public:
         MetaStoreClient::Create({ .etcdAddress = metaStoreServerHost_ }), scheduler);                      \
     auto groupMgr = std::make_shared<GroupManager>(groupMgrActor);                                         \
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(                                        \
-        MetaStoreClient::Create({ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,             \
+        MetaStoreClient::Create({ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr, nullptr,    \
         InstanceManagerStartParam{ .runtimeRecoverEnable = (recoverEnable), .isMetaStoreEnable = false }); \
     auto instanceMgr = std::make_shared<InstanceManager>(instanceMgrActor);                                \
     groupMgrActor->BindInstanceManager(instanceMgr);                                                       \
@@ -658,7 +658,8 @@ TEST_P(LocalAbnormalNotRecoverableTest, LocalAbnormal_NotRecoverable)
     auto groupMgr = std::make_shared<GroupManager>(groupMgrActor);
     auto instanceMgrActor =
         std::make_shared<InstanceManagerActor>(MetaStoreClient::Create({ .etcdAddress = metaStoreServerHost_ }),
-                                               mockGlobalScheduler, groupMgr, InstanceManagerStartParam{});
+                                               mockGlobalScheduler, groupMgr, nullptr,
+                                               InstanceManagerStartParam{});
     auto mockInstanceMgr = std::make_shared<MockInstanceManager>();
     EXPECT_CALL(*mockInstanceMgr, GetInstanceInfoByInstanceID)
         .WillRepeatedly(testing::Invoke([](const std::string &instanceID) {
@@ -801,7 +802,8 @@ TEST_F(GroupManagerTest, KillGroup)
     auto groupMgr = std::make_shared<GroupManager>(groupMgrActor);
     auto instanceMgrActor =
         std::make_shared<InstanceManagerActor>(MetaStoreClient::Create({ .etcdAddress = metaStoreServerHost_ }),
-                                               mockGlobalScheduler, groupMgr, InstanceManagerStartParam{});
+                                               mockGlobalScheduler, groupMgr, nullptr, 
+                                               InstanceManagerStartParam{});
 
     auto mockInstanceMgr = std::make_shared<MockInstanceManager>();
     EXPECT_CALL(*mockInstanceMgr, GetInstanceInfoByInstanceID)
@@ -957,7 +959,8 @@ TEST_F(GroupManagerTest, GroupExitWithParentInstance)
     auto groupMgr = std::make_shared<GroupManager>(groupMgrActor);
     auto instanceMgrActor =
         std::make_shared<InstanceManagerActor>(MetaStoreClient::Create({ .etcdAddress = metaStoreServerHost_ }),
-                                               mockGlobalScheduler, groupMgr, InstanceManagerStartParam{});
+                                               mockGlobalScheduler, groupMgr, nullptr,
+                                               InstanceManagerStartParam{});
     auto mockInstanceMgr = std::make_shared<MockInstanceManager>();
     EXPECT_CALL(*mockInstanceMgr, GetInstanceInfoByInstanceID)
         .WillRepeatedly(testing::Invoke([](const std::string &instanceID) {
@@ -1044,7 +1047,8 @@ TEST_F(GroupManagerTest, GroupPutWithParentAbnormal)
     auto groupMgr = std::make_shared<GroupManager>(groupMgrActor);
     auto instanceMgrActor =
         std::make_shared<InstanceManagerActor>(MetaStoreClient::Create({ .etcdAddress = metaStoreServerHost_ }),
-                                               mockGlobalScheduler, groupMgr, InstanceManagerStartParam{});
+                                               mockGlobalScheduler, groupMgr, nullptr,
+                                               InstanceManagerStartParam{});
     auto mockInstanceMgr = std::make_shared<MockInstanceManager>();
     groupMgrActor->BindInstanceManager(mockInstanceMgr);
 
@@ -1144,7 +1148,8 @@ TEST_F(GroupManagerTest, GroupInfoSyncerTest)
     auto groupMgr = std::make_shared<GroupManager>(groupMgrActor);
     auto instanceMgrActor =
         std::make_shared<InstanceManagerActor>(MetaStoreClient::Create({ .etcdAddress = metaStoreServerHost_ }),
-                                               mockGlobalScheduler, groupMgr, InstanceManagerStartParam{});
+                                               mockGlobalScheduler, groupMgr, nullptr,
+                                               InstanceManagerStartParam{});
     auto mockInstanceMgr = std::make_shared<MockInstanceManager>();
     EXPECT_CALL(*mockInstanceMgr, GetInstanceInfoByInstanceID)
         .WillRepeatedly(testing::Invoke([](const std::string &instanceID) {

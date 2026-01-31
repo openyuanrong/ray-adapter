@@ -353,8 +353,10 @@ bool InitInstanceManagerDriver(const functionmaster::Flags &flags, const std::sh
 {
     auto groupMgrActor = std::make_shared<::instance_manager::GroupManagerActor>(metaClient, globalSched);
     auto groupManager = std::make_shared<::instance_manager::GroupManager>(groupMgrActor);
+    auto resourceGroupManager = std::make_shared<::resource_group_manager::ResourceGroupManager>(
+        g_resourceGroupManagerDriver->GetResourceGroupManagerActor());
     auto instanceMgrActor = std::make_shared<::instance_manager::InstanceManagerActor>(
-        metaClient, globalSched, groupManager,
+        metaClient, globalSched, groupManager, resourceGroupManager,
         instance_manager::InstanceManagerStartParam{ .runtimeRecoverEnable = GetRuntimeRecoverEnableFlag(flags),
                                                      .isMetaStoreEnable = flags.GetEnableMetaStore(),
                                                      .servicesPath = flags.GetServicesPath(),
@@ -533,10 +535,10 @@ void OnCreate(const functionmaster::Flags &flags)
         return;
     }
 
-    if (!InitInstanceManagerDriver(flags, metaClient, globalSched, metaStoreMonitor)) {
+    if (!InitResourceGroupManager(metaClient, globalSched)) {
         return;
     }
-    if (!InitResourceGroupManager(metaClient, globalSched)) {
+    if (!InitInstanceManagerDriver(flags, metaClient, globalSched, metaStoreMonitor)) {
         return;
     }
 

@@ -16,6 +16,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <ctime>
 
 
 #include "common/types/common_state.h"
@@ -736,5 +737,45 @@ TEST_F(ResourceGroupManagerActorTest, SyncTest)
     rgManagerActor_->Sync();
     ASSERT_AWAIT_TRUE([=]() -> bool { return rgManagerActor_->GetResourceGroupInfo("rg001", "tenant001") == nullptr; });
     ASSERT_AWAIT_TRUE([=]() -> bool { return rgManagerActor_->GetResourceGroupInfo("rg003", "tenant003") == nullptr; });
+}
+
+TEST_F(ResourceGroupManagerActorTest, FreeResourceGroup)
+{
+    rgManagerActor_->UpdateLeaderInfo(GetLeaderInfo(rgManagerActor_->GetAID()));
+    ASSERT_AWAIT_TRUE([=]() -> bool { return rgManagerActor_->GetResourceGroupInfo("defaultRG", "defaultTenant") != nullptr; });
+    
+    // 1. driver exits and resource group is not detached -> free resource group
+    EXPECT_CALL(*scheduler_, GetLocalAddress).Times(1).WillRepeatedly(
+        testing::Return(litebus::Option<std::string>(localAddress_)));
+    EXPECT_CALL(*localBundleMgr_, MockRemoveBundle).Times(1).WillRepeatedly(testing::Return(0));
+    auto rgInfo = MakeClusterInfo("rg001", "tenant001", 1);
+    rgInfo->set_appid("job001");
+    rgInfo->mutable_status()->set_code(static_cast<int32_t>(BundleState::CREATED));
+    rgInfo->mutable_bundles(0)->set_functionproxyid("node0001");
+    rgInfo->mutable_bundles(0)->mutable_status()->set_code(static_cast<int32_t>(BundleState::CREATED));
+    rgManagerActor_->AddResourceGroupInfo(rgInfo);
+    auto ins = std::make_shared<resource_view::InstanceInfo>();
+    ins->set_instanceid("driver-xxx");
+    ins->set_jobid("job001");
+    rgManagerActor_->OnDeleteInstance(ins);
+    ASSERT_AWAIT_TRUE([=]() { return rgManagerActor_->GetResourceGroupInfo("rg001", "tenant001") == nullptr; });
+
+    // 2. driver exits and resource group is detached -> do not free resource group
+    EXPECT_CALL(*scheduler_, GetLocalAddress).Times(0);
+    EXPECT_CALL(*localBundleMgr_, MockRemoveBundle).Times(0);
+    (*rgInfo->mutable_opt()->mutable_extension())["lifetime"] = "detached";
+    rgManagerActor_->AddResourceGroupInfo(rgInfo);
+    rgManagerActor_->OnDeleteInstance(ins);
+    ASSERT_AWAIT_TRUE([=]() { return rgManagerActor_->GetResourceGroupInfo("rg001", "tenant001") != nullptr; });
+
+    // 3. detached instance which creates rg exits -> free resource group
+    EXPECT_CALL(*scheduler_, GetLocalAddress).Times(1).WillRepeatedly(
+        testing::Return(litebus::Option<std::string>(localAddress_)));
+    EXPECT_CALL(*localBundleMgr_, MockRemoveBundle).Times(1).WillRepeatedly(testing::Return(0));
+    rgInfo->set_parentid("instance001");
+    ins->set_instanceid("instance001");
+    ins->set_detached(true);
+    rgManagerActor_->OnDeleteInstance(ins);
+    ASSERT_AWAIT_TRUE([=]() { return rgManagerActor_->GetResourceGroupInfo("rg001", "tenant001") == nullptr; });
 }
 }
