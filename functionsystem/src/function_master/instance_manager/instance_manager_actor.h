@@ -30,6 +30,7 @@
 #include "meta_store_client/meta_store_struct.h"
 #include "common/resource_view/resource_type.h"
 #include "function_master/global_scheduler/global_sched.h"
+#include "function_master/resource_group_manager/resource_group_manager.h"
 #include "group_manager.h"
 #include "instance_family_caches.h"
 
@@ -38,6 +39,7 @@ using InstanceManagerMap = std::unordered_map<std::string, std::shared_ptr<resou
 using InstanceKeyInfoPair = std::pair<std::string, std::shared_ptr<resource_view::InstanceInfo>>;
 
 using GlobalScheduler = functionsystem::global_scheduler::GlobalSched;
+using ResourceGroupManager = functionsystem::resource_group_manager::ResourceGroupManager;
 
 struct InstanceManagerStartParam {
     bool runtimeRecoverEnable{ false };
@@ -54,7 +56,9 @@ public:
 
     InstanceManagerActor(const std::shared_ptr<MetaStoreClient> &metaClient,
                          const std::shared_ptr<GlobalScheduler> &scheduler,
-                         const std::shared_ptr<GroupManager> &groupManager, const InstanceManagerStartParam &param);
+                         const std::shared_ptr<GroupManager> &groupManager,
+                         const std::shared_ptr<ResourceGroupManager> &resourceGroupManager,
+                         const InstanceManagerStartParam &param);
 
     ~InstanceManagerActor() override = default;
 
@@ -301,6 +305,7 @@ private:
         std::unordered_map<std::string, std::shared_ptr<messages::DebugInstanceInfo>> debugInstInfoMap;
         bool isUpgrading{ false };
         std::shared_ptr<GroupManager> groupManager{ nullptr };
+        std::shared_ptr<ResourceGroupManager> resourceGroupManager{ nullptr };
         std::shared_ptr<InstanceFamilyCaches> family{ nullptr };
         std::set<std::string> exitingInstances;
         // instanceID: promise

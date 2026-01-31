@@ -210,6 +210,7 @@ litebus::Future<std::shared_ptr<runtime_rpc::StreamingMessage>> PosixAPIHandler:
     const std::string &from, const std::shared_ptr<runtime_rpc::StreamingMessage> &request)
 {
     auto rgReq = std::make_shared<CreateResourceGroupRequest>(std::move(*request->mutable_rgroupreq()));
+    (*rgReq->mutable_rgroupspec()->mutable_opt()->mutable_extension())["parentId"] = from;
     const auto &requestID = rgReq->requestid();
     const auto &traceID = rgReq->traceid();
     auto response = std::make_shared<runtime_rpc::StreamingMessage>();
