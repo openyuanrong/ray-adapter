@@ -42,6 +42,8 @@ V1Container::V1Container()
     m_workingDirIsSet = false;
     m_terminationMessagePathIsSet = false;
     m_terminationMessagePolicyIsSet = false;
+    m_serviceAccountName = std::string("default");
+    m_serviceAccountNameIsSet = false;
 }
 
 V1Container::~V1Container()
@@ -84,6 +86,9 @@ nlohmann::json V1Container::ToJson() const
     }
     if (m_resourcesIsSet) {
         val["resources"] = ModelUtils::ToJson(m_resources);
+    }
+    if (m_serviceAccountNameIsSet) {
+        val["serviceAccountName"] = ModelUtils::ToJson(m_serviceAccountName);
     }
     if (m_securityContextIsSet) {
         val["securityContext"] = ModelUtils::ToJson(m_securityContext);
@@ -207,6 +212,14 @@ bool V1Container::ParseBaseFromJson(const nlohmann::json &val)
             std::vector<std::shared_ptr<V1ContainerPort>> refValSetPorts;
             ok &= ModelUtils::FromJson(fieldValue, refValSetPorts);
             SetPorts(refValSetPorts);
+        }
+    }
+    if (val.contains("serviceAccountName")) {
+        const nlohmann::json &fieldValue = val.at("serviceAccountName");
+        if (!fieldValue.is_null()) {
+            std::string refValSetServiceAccountName;
+            ok &= ModelUtils::FromJson(fieldValue, refValSetServiceAccountName);
+            SetServiceAccountName(refValSetServiceAccountName);
         }
     }
     return ok;
@@ -353,6 +366,27 @@ bool V1Container::ImageIsSet() const
 void V1Container::UnsetImage()
 {
     m_imageIsSet = false;
+}
+
+std::string V1Container::GetServiceAccountName() const
+{
+    return m_serviceAccountName;
+}
+
+bool V1Container::ServiceAccountNameIsSet() const
+{
+    return m_serviceAccountNameIsSet;
+}
+
+void V1Container::UnsetServiceAccountName()
+{
+    m_serviceAccountNameIsSet = false;
+}
+
+void V1Container::SetServiceAccountName(const std::string &value)
+{
+    m_serviceAccountName = value;
+    m_serviceAccountNameIsSet = true;
 }
 
 std::shared_ptr<V1Lifecycle> V1Container::GetLifecycle() const

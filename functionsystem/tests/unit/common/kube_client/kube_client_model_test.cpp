@@ -1420,8 +1420,14 @@ TEST_F(KubeClientModelTest, V1VolumeTest)
     downwardAPIVolumeFiles.emplace_back(v1DownwardApiVolumeFile);
     std::shared_ptr<V1DownwardAPIProjection> downwardApiProjection = std::make_shared<V1DownwardAPIProjection>();
     downwardApiProjection->SetItems(downwardAPIVolumeFiles);
+    // service account token
+    std::shared_ptr<V1ServiceAccountTokenProjection> serviceAccountTokenProjection = std::make_shared<V1ServiceAccountTokenProjection>();
+    serviceAccountTokenProjection->SetAudience("test");
+    serviceAccountTokenProjection->SetExpirationSeconds(7200);
+    serviceAccountTokenProjection->SetPath("/var/test");
     std::shared_ptr<V1VolumeProjection> projectionVol = std::make_shared<V1VolumeProjection>();
     projectionVol->SetDownwardAPI(downwardApiProjection);
+    projectionVol->SetServiceAccountToken(serviceAccountTokenProjection);
     projectionVolumes.emplace_back(projectionVol);
     std::shared_ptr<V1ProjectedVolumeSource> projectedVolumeSource = std::make_shared<V1ProjectedVolumeSource>();
     projectedVolumeSource->SetSources(projectionVolumes);

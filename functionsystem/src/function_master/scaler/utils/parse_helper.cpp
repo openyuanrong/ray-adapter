@@ -401,6 +401,10 @@ void ParseContainerInfo(const nlohmann::json &parser, const std::shared_ptr<V1Co
         container->SetImage(iter.value());
     }
 
+    if (auto iter = parser.find("serviceAccountName"); iter != parser.end()) {
+        container->SetServiceAccountName(iter.value());
+    }
+
     if (parser.find("command") != parser.end()) {
         std::vector<std::string> command;
         for (auto &item : parser.at("command")) {
