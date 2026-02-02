@@ -316,6 +316,9 @@ protected:
             const std::string &instanceKey, const std::shared_ptr<resource_view::InstanceInfo> &instanceInfo);
         litebus::Future<Status> ProcessDeleteInstanceChildrenGroup(
             const std::string &instanceKey, const std::shared_ptr<resource_view::InstanceInfo> &instanceInfo);
+        void CheckAndFetchMissingInstances(const std::string &groupID,
+                    const std::set<std::string> &cachedInstanceIDs,
+                    const google::protobuf::RepeatedPtrField<messages::ScheduleRequest> &requests);
         void CheckGroupInstanceConsistency(std::shared_ptr<messages::GroupInfo> &groupInfo);
 
         litebus::Future<Status> BroadCastSignalForGroup(const std::string &groupID, const std::string &srcInstanceID,

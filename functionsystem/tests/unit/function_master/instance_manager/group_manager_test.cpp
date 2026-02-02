@@ -87,6 +87,7 @@ const std::string NODE_ID_1 = "/sn/proxy/001";  // NOLINT
 const std::string NODE_ID_2 = "/sn/proxy/002";  // NOLINT
 const std::string NODE_ID_3 = "/sn/proxy/003";  // NOLINT
 
+const std::string INSTANCE_ID = "0";
 const std::string INSTANCE_ID_0 = "000";
 const std::string INSTANCE_ID_1 = "001";
 const std::string INSTANCE_ID_2 = "002";
@@ -402,6 +403,20 @@ protected:
             request->mutable_instance()->set_function(DEFAULT_FUNCTION_NAME);
             request->mutable_instance()->set_requestid(DEFAULT_REQUEST_ID);
         }
+        groupInfo->set_insrangescheduler(false);
+    }
+
+    void AddRangeRequestsToGroup(std::shared_ptr<messages::GroupInfo> &groupInfo,
+                        const std::vector<std::string>& instanceIds) {
+        for (const auto& id : instanceIds) {
+            auto rangeRequest = groupInfo->add_rangerequests();
+            rangeRequest->mutable_instance()->set_instanceid(id);
+            rangeRequest->mutable_instance()->set_function(DEFAULT_FUNCTION_NAME);
+            rangeRequest->mutable_instance()->set_requestid(DEFAULT_REQUEST_ID);
+            auto request = groupInfo->add_requests();
+            request->mutable_instance()->set_instanceid(INSTANCE_ID);
+        }
+        groupInfo->set_insrangescheduler(true);
     }
 
     void PutDefaultGroupsAndInstances()
@@ -420,7 +435,7 @@ protected:
         PutGroup(groupInfo1);
 
         auto groupInfo2 = MakeGroupInfo(GROUP_ID_2, NODE_ID_2, GroupState::RUNNING, "");
-        AddRequestsToGroup(groupInfo2, {INSTANCE_ID_2, INSTANCE_ID_5});
+        AddRangeRequestsToGroup(groupInfo2, {INSTANCE_ID_2, INSTANCE_ID_5});
         PutGroup(groupInfo2);
 
         PutInstance(INSTANCE_ID_1, GROUP_ID_1, NODE_ID_1, InstanceState::RUNNING);
