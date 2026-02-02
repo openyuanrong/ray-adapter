@@ -249,3 +249,9 @@ message NotificationPayload {
     FunctionMasterEvent functionMasterEvent = 2; // function-master election changed event
   }
 }
+
+message EventPayload {
+  string   serverIp         = 1;
+  int32    serverPort       = 2;
+  string   serverInstanceId = 3;
+}

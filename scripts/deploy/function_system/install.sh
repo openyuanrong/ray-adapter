@@ -250,6 +250,7 @@ function install_faas_frontend() {
   -functionName='0/0-system-faasfrontend/$latest' \
   -logLevel=${FS_LOG_LEVEL} \
   -logPath=${FS_LOG_PATH} \
+  -enableEvent=${ENABLE_EVENT} \
   -enableMTLS=${ENABLE_MTLS} \
   -privateKeyPath=${PRIVATE_KEY_PATH} \
   -certificateFilePath=${CERTIFICATE_FILE_PATH} \
