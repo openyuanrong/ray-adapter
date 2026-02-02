@@ -92,6 +92,18 @@ protected:
         litebus::Terminate(observerActor_->GetAID());
         litebus::Await(observerActor_);
 
+        InstanceInfo instanceInfo;
+        // if block, this test will time out
+        auto result = controlPlaneObserver_->PutInstance(instanceInfo).Get(5000);
+        auto status = Status::OK();
+        bool isGet = false;
+        if (result.IsSome()) {
+            status = result.Get();
+            isGet = true;
+        }
+        EXPECT_FALSE(isGet);
+        EXPECT_TRUE(status.IsOk());
+
         litebus::Terminate(sharedClientMgr_->GetAID());
         litebus::Await(sharedClientMgr_);
 
