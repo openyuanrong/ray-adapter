@@ -496,7 +496,27 @@ void InstanceCtrlActor::OnKill(const std::shared_ptr<KillRequest> &killReq, cons
     if (iter == killingRequest_.end()) {
         return;
     }
-    iter->second->Associate(rsp);
+    const int &signal = killReq->signal();
+    auto response = rsp.Get();
+    if (response.code() == common::ErrorCode::ERR_INSTANCE_NOT_FOUND) {
+        auto errorMsg = response.message();
+        switch (signal) {
+            case SHUT_DOWN_SIGNAL:
+                [[fallthrough]];
+            case SHUT_DOWN_SIGNAL_SYNC:
+                [[fallthrough]];
+            case APP_STOP_SIGNAL: {
+                YRLOG_INFO("{}|Kill {} response ERR_INSTANCE_NOT_FOUND, ignore it and return OK",
+                    killReq->requestid(), killReq->instanceid());
+                iter->second->Associate(GenKillResponse(common::ErrorCode::ERR_NONE, ""));
+                break;
+            }
+            default:
+                iter->second->Associate(GenKillResponse(response.code(), response.message()));
+        }
+    } else {
+        iter->second->Associate(rsp);
+    }
     killingRequest_.erase(iter);
 }
 
