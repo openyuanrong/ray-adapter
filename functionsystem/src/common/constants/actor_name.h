@@ -54,6 +54,7 @@ const std::string RUNTIME_MANAGER_HEALTH_CHECK_ACTOR_NAME = "HealthCheckActor";
 const std::string RUNTIME_MANAGER_LOG_MANAGER_ACTOR_NAME = "LogManagerActor";
 const std::string RUNTIME_MANAGER_DEBUG_SERVER_MGR_ACTOR_NAME = "DebugServerMgrActor";
 const std::string RUNTIME_MANAGER_VIRTUAL_ENV_MGR_ACTOR_NAME = "VirtualEnvMgrActor";
+const std::string FUNCTION_AGENT_VIRTUAL_ENV_MGR_ACTOR_NAME = "AgentVirtualEnvMgrActor";
 
 // FunctionAccessor
 const std::string FUNCTION_ACCESSOR_HTTP_SERVER = "FunctionAccessorHttpServer";

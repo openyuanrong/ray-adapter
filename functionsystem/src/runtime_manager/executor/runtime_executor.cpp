@@ -1228,6 +1228,13 @@ std::pair<Status, std::string> RuntimeExecutor::GetPythonExecPath(
     const google::protobuf::Map<std::string, std::string> &deployOptions,
     const messages::RuntimeInstanceInfo &info) const
 {
+    // 插件返回的execPath不局限于python，后续可以统一处理execPath，不需要再分语言了
+    auto execPathIter = deployOptions.find(EXEC_PATH);
+    if (execPathIter != deployOptions.end()) {
+        YRLOG_INFO("{}|{}|python execPath: {}", info.traceid(), info.requestid(), execPathIter->second);
+        return { Status::OK(), execPathIter->second };
+    }
+
     if (!IsEnableConda(deployOptions)) {
         return { Status::OK(), GetExecPath(info.runtimeconfig().language()) };
     }

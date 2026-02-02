@@ -54,8 +54,8 @@ FunctionAgentDriver::FunctionAgentDriver(const std::string &nodeID, const Functi
     function_agent::AgentServiceActor::Config config{ localSchedFuncAgentMgrAID,         startParam_.s3Config,
                                                       startParam_.codePackageThresholds, receivedPingTimeoutMs,
                                                       TENANT_PODIP_IPSET_NAME,           nodeID };
-    actor_ = std::make_shared<function_agent::AgentServiceActor>(
-        FUNCTION_AGENT_AGENT_SERVICE_ACTOR_NAME, agentID, config, startParam_.alias, param.componentName);
+    actor_ = std::make_shared<function_agent::AgentServiceActor>(FUNCTION_AGENT_AGENT_SERVICE_ACTOR_NAME, agentID,
+                                                                 config, startParam_.alias, param.componentName);
     httpServer_ = std::make_shared<HttpServer>(FUNCTION_AGENT);
     apiRouteRegister_ = std::make_shared<HealthyApiRouter>(startParam_.nodeID, TIMEOUTMS);
     apiRouteRegister_->AddProbe([aid(actor_->GetAID())]() -> litebus::Future<Status> {
@@ -65,6 +65,14 @@ FunctionAgentDriver::FunctionAgentDriver(const std::string &nodeID, const Functi
     if (auto registerStatus(httpServer_->RegisterRoute(apiRouteRegister_)); registerStatus != StatusCode::SUCCESS) {
         YRLOG_ERROR("register health check api router failed.");
     }
+}
+
+Status FunctionAgentDriver::PostStartFunctionAgent()
+{
+    (void)litebus::Spawn(actor_);
+    (void)litebus::Spawn(httpServer_);
+    YRLOG_INFO("success to start FunctionAgent");
+    return Status::OK();
 }
 
 Status FunctionAgentDriver::Start()
@@ -91,10 +99,22 @@ Status FunctionAgentDriver::Start()
     auto sharedDirDeployer = std::make_shared<function_agent::SharedDirDeployer>();
     (void)actor_->SetDeployers(SHARED_DIR_STORAGE_TYPE, sharedDirDeployer);
 
-    (void)litebus::Spawn(actor_);
-    (void)litebus::Spawn(httpServer_);
-    YRLOG_INFO("success to start FunctionAgent");
-    return Status::OK();
+    if (!startParam_.pluginConfigs.empty()) {
+        return actor_->LoadPlugins(startParam_.pluginConfigs)
+            .OnComplete([this](const litebus::Future<Status> &fut) -> litebus::Future<Status> {
+                if (fut.IsError()) {
+                    return Status(StatusCode::FAILED, "failed to load plugins");
+                }
+                auto status = fut.Get();
+                if (status.IsError()) {
+                    YRLOG_ERROR("failed to load plugins, reason: {}", status.ToString());
+                    return status;
+                }
+                return PostStartFunctionAgent();
+            })
+            .Get();
+    }
+    return PostStartFunctionAgent();
 }
 
 void FunctionAgentDriver::GracefulShutdown()

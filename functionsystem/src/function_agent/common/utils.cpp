@@ -39,7 +39,8 @@ const int DEFAULT_QUOTA = 512;
 const int QUOTA_NO_MONITOR = -1;
 const std::unordered_set<std::string> DECRYPT_IGNORE_SET = { CRYPTO_ALGORITHM_STR, ENV_KEY };
 
-const std::vector<std::string> DEPLOY_OPTION_KEYS = { CONDA_CONFIG, CONDA_COMMAND, CONDA_PREFIX, CONDA_DEFAULT_ENV };
+const std::vector<std::string> DEPLOY_OPTION_KEYS = { CONDA_CONFIG, CONDA_COMMAND, CONDA_PREFIX, CONDA_DEFAULT_ENV,
+                                                      EXEC_PATH };
 const std::vector<std::string> POSIX_ENV_KEYS = { YR_APP_MODE,
                                                   YR_WORKING_DIR,
                                                   UNZIPPED_WORKING_DIR,
@@ -354,6 +355,12 @@ void SetDeploymentConfig(messages::DeploymentConfig *deploymentConf,
 
     // Get the specific value from createOptions to deployOptions.
     for (const std::string &str : DEPLOY_OPTION_KEYS) {
+        if (auto iter(req->createoptions().find(str)); iter != req->createoptions().end()) {
+            (*deploymentConf->mutable_deployoptions())[str] = iter->second;
+        }
+    }
+
+    for (const std::string &str : VIRTUALENV_KEYS) {
         if (auto iter(req->createoptions().find(str)); iter != req->createoptions().end()) {
             (*deploymentConf->mutable_deployoptions())[str] = iter->second;
         }

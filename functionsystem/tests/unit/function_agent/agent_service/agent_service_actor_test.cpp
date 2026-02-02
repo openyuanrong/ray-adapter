@@ -2531,6 +2531,15 @@ TEST_F(DISABLED_AgentServiceActorTest, PythonRuntime_Support_WorkingDirFileZip_W
     std::string testCondaDefaultEnv = "env_name_copy";
     deployInstanceReq->mutable_createoptions()->insert({ CONDA_PREFIX, testCondaPrefix });
     deployInstanceReq->mutable_createoptions()->insert({ CONDA_DEFAULT_ENV, testCondaDefaultEnv });
+    std::string testVirtualenvKind = "venv";
+    std::string testVirtualenvName = "testVenv";
+    std::string testVirtualenvCommand = "pip install \"matplotlib\" \"msgpack-python==1.0.5\"";
+    std::string testVirtualenvPath = "{\"site_package_path\":\"obs://mini-kernel/site-package.zip\"}";
+    deployInstanceReq->mutable_createoptions()->insert({ VIRTUALENV_NAME, testVirtualenvName });
+    deployInstanceReq->mutable_createoptions()->insert({ VIRTUALENV_COMMAND, testVirtualenvCommand });
+    deployInstanceReq->mutable_createoptions()->insert({ VIRTUALENV_PATH, testVirtualenvPath });
+    std::string testExecPath = "/home/sn/.yr/venv/testVenv/bin/python";
+    deployInstanceReq->mutable_createoptions()->insert({ EXEC_PATH, testExecPath });
     deployInstanceReq->set_tenantid(TEST_TENANT_ID);
     messages::StartInstanceResponse startInstanceResponse;
     startInstanceResponse.set_code(StatusCode::SUCCESS);
@@ -2570,6 +2579,22 @@ TEST_F(DISABLED_AgentServiceActorTest, PythonRuntime_Support_WorkingDirFileZip_W
               testCondaPrefix);
     EXPECT_EQ(startInstanceRequest->runtimeinstanceinfo().runtimeconfig().posixenvs().find(CONDA_DEFAULT_ENV)->second,
               testCondaDefaultEnv);
+    EXPECT_TRUE(startInstanceRequest->runtimeinstanceinfo().deploymentconfig().deployoptions().find(VIRTUALENV_NAME)
+                != iter);
+    EXPECT_TRUE(startInstanceRequest->runtimeinstanceinfo().deploymentconfig().deployoptions().find(VIRTUALENV_COMMAND)
+                != iter);
+    EXPECT_TRUE(startInstanceRequest->runtimeinstanceinfo().deploymentconfig().deployoptions().find(VIRTUALENV_PATH)
+                != iter);
+    EXPECT_EQ(startInstanceRequest->runtimeinstanceinfo().deploymentconfig().deployoptions().find(VIRTUALENV_NAME)->second,
+              testVirtualenvName);
+    EXPECT_EQ(startInstanceRequest->runtimeinstanceinfo().deploymentconfig().deployoptions().find(VIRTUALENV_COMMAND)->second,
+              testVirtualenvCommand);
+    EXPECT_EQ(startInstanceRequest->runtimeinstanceinfo().deploymentconfig().deployoptions().find(VIRTUALENV_PATH)->second,
+              testVirtualenvPath);
+    EXPECT_TRUE(startInstanceRequest->runtimeinstanceinfo().deploymentconfig().deployoptions().find(EXEC_PATH)
+                != iter);
+    EXPECT_EQ(startInstanceRequest->runtimeinstanceinfo().deploymentconfig().deployoptions().find(EXEC_PATH)->second,
+              testExecPath);
 
     DestroyWorkingDir("/tmp/working_dir-tmp");
 }
