@@ -51,11 +51,6 @@ public:
         return metaStoreAddress;
     }
 
-    bool GetEnableTrace() const
-    {
-        return enableTrace;
-    }
-
     bool GetIsEnableIAM() const
     {
         return enableIAM_;
@@ -112,7 +107,6 @@ private:
     std::string ip;
     std::string httpListenPort;
     std::string metaStoreAddress;
-    bool enableTrace = false;
     std::string servicesPath_;
     std::string libPath_;
     bool enableIAM_ = false;

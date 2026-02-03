@@ -268,7 +268,7 @@ void SetUserEnv(const std::shared_ptr<messages::DeployInstanceRequest> &req, mes
                 { "func-RUNTIME_USERDATA",
                   std::string(decryptUserData.Get().GetData(), decryptUserData.Get().GetSize()) });
         } else {
-            YRLOG_ERROR("failed to decrypt user env");
+            YRLOG_ERROR("failed to decrypt user data");
         }
     }
 }

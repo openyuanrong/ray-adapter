@@ -18,6 +18,7 @@
 
 #include <async/defer.hpp>
 
+#include "common/crypto/crypto.h"
 #include "common/utils/meta_store_kv_operation.h"
 
 namespace functionsystem::iamserver {
@@ -364,12 +365,16 @@ Status TokenManagerActor::DecryptToken(const std::string &tokenStr, const std::s
         return Status(StatusCode::PARAMETER_ERROR,
                       "decrypt token string to TokenContent failed, split symbol not found");
     }
-    std::string key = tokenStr.substr(0, pos);
-    std::string info = tokenStr.substr(pos + 1);
-    auto tokenDecrypt =  SensitiveValue(info);
+    const std::string key = tokenStr.substr(0, pos);
+    const std::string ciphertext = tokenStr.substr(pos + 1);
+    const auto plaintext = Crypto::GetInstance().Decrypt(ciphertext, key);
+    if (plaintext.IsNone() || plaintext.Get().GetSize() > INTERNAL_IAM_TOKEN_MAX_SIZE) {
+        YRLOG_ERROR("failed to decrypt token");
+        return Status(StatusCode::PARAMETER_ERROR, "failed to decrypt token");
+    }
     char decryptedToken[INTERNAL_IAM_TOKEN_MAX_SIZE + 1] = { 0 };
-    auto ret = memcpy_s(decryptedToken, INTERNAL_IAM_TOKEN_MAX_SIZE, tokenDecrypt.GetData(),
-                        tokenDecrypt.GetSize());
+    auto ret =
+        memcpy_s(decryptedToken, INTERNAL_IAM_TOKEN_MAX_SIZE, plaintext.Get().GetData(), plaintext.Get().GetSize());
     if (ret != 0) {
         YRLOG_ERROR("decrypted token copy failed! err:{}", std::to_string(ret));
         return Status(StatusCode::PARAMETER_ERROR, "decrypted token copy failed! err: " + std::to_string(ret));
@@ -386,8 +391,12 @@ Status TokenManagerActor::EncryptToken(const std::shared_ptr<TokenContent> &toke
     if (status.IsError()) {
         return Status(StatusCode::PARAMETER_ERROR, "serialize token failed, err: " + status.ToString());
     }
-    SensitiveValue tokenSensitiveValue(serializeToken, tokenSize);
-    tokenContent->encryptToken = serializeToken;
+    const SensitiveValue plaintext(serializeToken, tokenSize);
+    const auto ciphertext = Crypto::GetInstance().Encrypt(plaintext);
+    if (ciphertext.IsNone()) {
+        return Status(StatusCode::PARAMETER_ERROR, "encrypt token failed");
+    }
+    tokenContent->encryptToken = ciphertext.Get().first + SPLIT_SYMBOL + ciphertext.Get().second;
     return Status::OK();
 }
 
@@ -396,15 +405,32 @@ litebus::Option<std::string> TokenManagerActor::EncryptTokenForStorage(
 {
     // 1. encrypt token string for storage, token string is sensitive value
     // token in storage format is: Encrypt(encryptToken+timestamp)
-    return tokenContent->encryptToken + SPLIT_SYMBOL_TIMESTAMP + std::to_string(tokenContent->expiredTimeStamp);
+    const SensitiveValue plaintext(tokenContent->encryptToken + SPLIT_SYMBOL_TIMESTAMP +
+                                   std::to_string(tokenContent->expiredTimeStamp));
+    const auto ciphertext = Crypto::GetInstance().Encrypt(plaintext);
+    if (ciphertext.IsNone()) {
+        YRLOG_ERROR("{}|encrypt token for storage returns empty", tokenContent->tenantID);
+        return litebus::None();
+    }
+    return ciphertext.Get().first + SPLIT_SYMBOL + ciphertext.Get().second;
 }
 
 Status TokenManagerActor::DecryptTokenFromStorage(const std::string &encryptTokenFromStorage,
                                                   const std::shared_ptr<TokenContent> &tokenContent)
 {
+    auto pos = encryptTokenFromStorage.find(SPLIT_SYMBOL);
+    if (pos == std::string::npos) {
+        return Status(StatusCode::PARAMETER_ERROR, "decrypt token from storage: SPLIT_SYMBOL not found");
+    }
+    const std::string key = encryptTokenFromStorage.substr(0, pos);
+    const std::string cipher = encryptTokenFromStorage.substr(pos + 1);
+    const auto plaintext = Crypto::GetInstance().Decrypt(cipher, key);
+    if (plaintext.IsNone()) {
+        return Status(StatusCode::PARAMETER_ERROR, "decrypt token from storage failed");
+    }
     // token in storage format is: Encrypt(encryptToken+timestamp)
-    std::string tokenFromStorageStr(encryptTokenFromStorage);
-    auto pos = tokenFromStorageStr.rfind(SPLIT_SYMBOL_TIMESTAMP);
+    std::string tokenFromStorageStr(plaintext.Get().GetData());
+    pos = tokenFromStorageStr.rfind(SPLIT_SYMBOL_TIMESTAMP);
     if (pos == std::string::npos) {
         return Status(StatusCode::PARAMETER_ERROR, "get token from decrypt storage token failed!");
     }

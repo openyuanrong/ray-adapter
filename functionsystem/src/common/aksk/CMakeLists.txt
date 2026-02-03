@@ -25,4 +25,4 @@ target_include_directories(${PROJECT_NAME}
     $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(aksk PUBLIC crypto hex http ${litebus_ALL_LIB})
+target_link_libraries(${PROJECT_NAME} PUBLIC crypto hex http ${litebus_ALL_LIB})

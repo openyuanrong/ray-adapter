@@ -17,13 +17,13 @@
 #ifndef COMMON_CRYPTO_H
 #define COMMON_CRYPTO_H
 
-#include <async/option.hpp>
-
 #include "common/status/status.h"
 #include "common/utils/sensitive_value.h"
 #include "common/utils/singleton.h"
 
 namespace functionsystem {
+constexpr uint32_t BYTE_PRE_HEX = 2;
+
 class Crypto : public Singleton<Crypto> {
 public:
     Crypto() = default;

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include <async/future.hpp>
 #include <atomic>
 #include <csignal>
 #include <iostream>
@@ -23,6 +22,7 @@
 #include <utility>
 #include <vector>
 
+#include "async/future.hpp"
 #include "async/option.hpp"
 #include "busproxy/startup/busproxy_startup.h"
 #include "common/aksk/aksk_util.h"
@@ -103,8 +103,7 @@ std::shared_ptr<::grpc::ServerCredentials> InitPosixGrpcServerSecureOption(const
     litebus::Option<SensitiveValue> password;
     const std::string caPath = litebus::os::Join(basePath, flags.GetSslRootFile());
     const std::string keyFilePath = litebus::os::Join(basePath, flags.GetSslKeyFile());
-    SensitiveValue serverKey =
-        GetSensitivePrivateKeyFromFile(keyFilePath, SensitiveValue());
+    SensitiveValue serverKey = GetSensitivePrivateKeyFromFile(keyFilePath, SensitiveValue());
     std::string serverCert = Read(litebus::os::Join(basePath, flags.GetSslCertFile()));
     std::string caCert = Read(caPath);
     if (serverKey.Empty() || serverCert.empty() || caCert.empty()) {
@@ -114,8 +113,7 @@ std::shared_ptr<::grpc::ServerCredentials> InitPosixGrpcServerSecureOption(const
     ::grpc::SslServerCredentialsOptions::PemKeyCertPair pemKeyCertPair;
     pemKeyCertPair.private_key = serverKey.GetData();
     pemKeyCertPair.cert_chain = serverCert;
-    ::grpc::SslServerCredentialsOptions
-        sslServerCredentialsOptions(GRPC_SSL_REQUEST_CLIENT_CERTIFICATE_AND_VERIFY);
+    ::grpc::SslServerCredentialsOptions sslServerCredentialsOptions(GRPC_SSL_REQUEST_CLIENT_CERTIFICATE_AND_VERIFY);
     sslServerCredentialsOptions.pem_key_cert_pairs.push_back(std::move(pemKeyCertPair));
     sslServerCredentialsOptions.pem_root_certs = caCert;
     return ::grpc::SslServerCredentials(sslServerCredentialsOptions);
@@ -227,14 +225,14 @@ std::shared_ptr<DSAuthConfig> InitDsAuthConfig(const function_proxy::Flags &flag
     std::string clientPrivateKeyPath = litebus::os::Join(flags.GetCurveKeyPath(), flags.GetRuntimeDsClientPrivateKey());
     std::string serverPublicKeyPath = litebus::os::Join(flags.GetCurveKeyPath(), flags.GetRuntimeDsServerPublicKey());
     auto clientPublicKey = litebus::SensitiveValue(Read(clientPublicKeyPath));
-    auto clientPrivateKey = litebus::SensitiveValue(Read(clientPrivateKeyPath));
-    auto serverPublicKey = litebus::SensitiveValue(Read(serverPublicKeyPath));
     if (!clientPublicKey.Empty()) {
         dsConfig->clientPublicKey = clientPublicKey;
     }
+    auto clientPrivateKey = litebus::SensitiveValue(Read(clientPrivateKeyPath));
     if (!clientPrivateKey.Empty()) {
         dsConfig->clientPrivateKey = clientPrivateKey;
     }
+    auto serverPublicKey = litebus::SensitiveValue(Read(serverPublicKeyPath));
     if (!serverPublicKey.Empty()) {
         dsConfig->serverPublicKey = serverPublicKey;
     }

@@ -16,23 +16,25 @@
 
 #include "aksk_util.h"
 
+#include <openssl/sha.h>
+
 #include <iomanip>
 #include <set>
 
 #include "common/constants/constants.h"
+#include "common/crypto/crypto.h"
 #include "common/hex/hex.h"
 #include "common/http/http_util.h"
 #include "common/proto/pb/posix_pb.h"
-#include "openssl/sha.h"
+#include "common/utils/raii.h"
+#include "common/utils/time_utils.h"
 #include "sign_request.h"
 #include "utils/os_utils.hpp"
 #include "utils/string_utils.hpp"
 #include "utils/time_util.hpp"
-#include "utils/time_utils.h"
 
 namespace functionsystem {
-const double TIMESTAMP_EXPIRE_DURATION_SECONDS = 60;
-const uint32_t BYTE_PRE_HEX = 2;
+constexpr double TIMESTAMP_EXPIRE_DURATION_SECONDS = 60;
 
 std::map<std::string, std::string> SignHttpRequest(const SignRequest &request, const KeyForAKSK &key)
 {
@@ -226,7 +228,7 @@ SensitiveValue GetComponentDataKey()
     char dataKey[size];
     // convert upper hex string to char string
     HexStringToCharStringCap(dataKeyStr.Get().c_str(), dataKeyStr.Get().size(), dataKey, size);
-    return {dataKey, size};
+    return { dataKey, size };
 }
 
 litebus::Option<std::string> SerializeBodyToString(const runtime_rpc::StreamingMessage &message)
