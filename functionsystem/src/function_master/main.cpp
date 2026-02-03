@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include <cstdint>
 #include <exception>
 #include <iostream>
 #include <memory>
@@ -41,7 +40,6 @@
 #include "common/utils/param_check.h"
 #include "common/utils/ssl_config.h"
 #include "common/utils/version.h"
-#include "flags/flags.h"
 #include "global_scheduler/global_sched.h"
 #include "global_scheduler/global_sched_driver.h"
 #include "group_manager.h"

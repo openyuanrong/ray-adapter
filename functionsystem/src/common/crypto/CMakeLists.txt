@@ -15,7 +15,7 @@
 project(crypto)
 
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR} CRYPTO_SRCS)
-add_library(crypto STATIC ${CRYPTO_SRCS})
+add_library(${PROJECT_NAME} STATIC ${CRYPTO_SRCS})
 
 target_include_directories(${PROJECT_NAME}
         PUBLIC

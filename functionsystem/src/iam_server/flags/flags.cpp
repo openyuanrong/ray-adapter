@@ -15,6 +15,7 @@
  */
 
 #include "flags.h"
+
 #include "common/constants/constants.h"
 #include "common/utils/param_check.h"
 
@@ -33,7 +34,6 @@ Flags::Flags()
     AddFlag(&Flags::httpListenPort, "http_listen_port", "For posix server listening. example: 8080",
             true, FlagCheckWrraper(IsPortValid));
     AddFlag(&Flags::metaStoreAddress, "meta_store_address", "For MetaStorage service discover", "");
-    AddFlag(&Flags::enableTrace, "enable_trace", "For trace enable, example: false", false);
     AddFlag(&Flags::enableIAM_, "enable_iam", "enable verify and authorize token of internal request", false);
     AddFlag(&Flags::tokenExpiredTimeSpan_, "token_expired_time_span", "token alive period of internal request",
             DEFAULT_TOKEN_EXPIRED_TIME_SPAN, NumCheck(MIN_TOKEN_EXPIRED_TIME_SPAN, MAX_TOKEN_EXPIRED_TIME_SPAN));

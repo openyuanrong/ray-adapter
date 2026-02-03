@@ -133,7 +133,6 @@ Flags::Flags()
             "observability agent's grpc port, default is 4317", DEFAULT_OBSERVABILITY_AGENT_GRPC_PORT);
     AddFlag(&Flags::observabilityPrometheusPort_, "observability_prometheus_port",
             "observability prometheus port, default is 9392", DEFAULT_OBSERVABILITY_PROMETHEUS_PORT);
-    AddFlag(&Flags::enableTrace_, "enable_trace", "for trace enable, example: false", false);
     AddFlag(&Flags::isPseudoDataPlane_, "pseudo_data_plane",
             "set the function proxy is Pseudo Data Plane, example: false", false);
     AddFlag(&Flags::enablePrintResourceView_, "enable_print_resource_view",

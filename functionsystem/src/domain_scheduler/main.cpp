@@ -14,31 +14,30 @@
  * limitations under the License.
  */
 
-#include <cstdint>
 #include <iostream>
 #include <memory>
 #include <string>
 
-#include "common/constants/constants.h"
-#include "common/explorer/explorer.h"
-#include "common/logs/logging.h"
-#include "common/rpc/client/grpc_client.h"
-#include "common/utils/module_switcher.h"
-#include "common/utils/version.h"
-#include "domain_scheduler/flags/flags.h"
-#include "include/domain_scheduler_launcher.h"
-#include "utils/os_utils.hpp"
 #include "async/future.hpp"
 #include "async/option.hpp"
-#include "common/explorer/explorer_actor.h"
-#include "common/kube_client/kube_client.h"
-#include "meta_store_client/meta_store_client.h"
-#include "common/status/status.h"
-#include "common/utils/ssl_config.h"
-#include "domain_scheduler/include/structure.h"
-#include "meta_store_client/meta_store_struct.h"
 #include "common/aksk/aksk_util.h"
 #include "common/constants/actor_name.h"
+#include "common/constants/constants.h"
+#include "common/explorer/explorer.h"
+#include "common/explorer/explorer_actor.h"
+#include "common/kube_client/kube_client.h"
+#include "common/logs/logging.h"
+#include "common/rpc/client/grpc_client.h"
+#include "common/status/status.h"
+#include "common/utils/module_switcher.h"
+#include "common/utils/ssl_config.h"
+#include "common/utils/version.h"
+#include "domain_scheduler/flags/flags.h"
+#include "domain_scheduler/include/structure.h"
+#include "include/domain_scheduler_launcher.h"
+#include "meta_store_client/meta_store_client.h"
+#include "meta_store_client/meta_store_struct.h"
+#include "utils/os_utils.hpp"
 
 using namespace functionsystem;
 namespace {
