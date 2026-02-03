@@ -19,6 +19,7 @@
 #include "common/aksk/aksk_util.h"
 #include "common/constants/constants.h"
 #include "common/etcd_service/etcd_service_driver.h"
+#include "common/hex/hex.h"
 #include "common/utils/aksk_content.h"
 #include "common/utils/sensitive_value.h"
 #include "function_proxy/common/iam/internal_credential_manager_actor.h"

@@ -17,6 +17,7 @@
 #include "parse_helper.h"
 
 #include "common/constants/constants.h"
+#include "common/crypto/crypto.h"
 #include "common/status/status.h"
 #include "common/types/instance_state.h"
 #include "utils/string_utils.hpp"
@@ -543,9 +544,16 @@ void ParseDelegateDecryptEnv(const ::resources::InstanceInfo &instanceInfo,
             continue;
         }
 
+        auto decrypted = Crypto::GetInstance().Decrypt(item.value());
+        if (decrypted.IsNone()) {
+            YRLOG_ERROR("failed to decrypt delegate environment");
+            break;
+        }
+
         nlohmann::json envsParser;
         try {
-            envsParser = nlohmann::json::parse(std::string(item.value()));  // litebus::option::Get()
+            envsParser = nlohmann::json::parse(
+                std::string(decrypted.Get().GetData(), decrypted.Get().GetSize()));  // litebus::option::Get()
         } catch (nlohmann::json::parse_error &error) {
             YRLOG_ERROR("failed to decrypt delegate env, parse invalid env json error: ", error.what());
             break;

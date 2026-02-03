@@ -243,6 +243,16 @@ public:
         return systemAuthMode_;
     }
 
+    const std::string &GetDecryptAlgorithm() const
+    {
+        return decryptAlgorithm_;
+    }
+
+    const std::string &GetResourcePath() const
+    {
+        return resourcePath_;
+    }
+
     int32_t GetScheduleRelaxed() const
     {
         return scheduleRelaxed_;
@@ -304,6 +314,8 @@ protected:
     std::string clusterId_;
 
     std::string systemAuthMode_;
+    std::string decryptAlgorithm_;
+    std::string resourcePath_;
     int32_t scheduleRelaxed_;
     bool enablePreemption_;
 };

@@ -15,7 +15,6 @@
  */
 
 #include <async/future.hpp>
-#include <cstdint>
 #include <exception>
 #include <iostream>
 #include <litebus.hpp>
@@ -25,6 +24,7 @@
 #include "async/async.hpp"
 #include "common/aksk/aksk_util.h"
 #include "common/constants/constants.h"
+#include "common/crypto/crypto.h"
 #include "common/explorer/explorer.h"
 #include "common/explorer/explorer_actor.h"
 #include "common/kube_client/kube_client.h"
@@ -33,16 +33,15 @@
 #include "common/leader/leader_actor.h"
 #include "common/leader/txn_leader_actor.h"
 #include "common/logs/logging.h"
-#include "meta_store_monitor/meta_store_monitor_factory.h"
-#include "meta_store_client/meta_store_client.h"
-#include "meta_store_client/meta_store_struct.h"
 #include "common/rpc/client/grpc_client.h"
 #include "common/utils/module_switcher.h"
 #include "common/utils/ssl_config.h"
 #include "common/utils/version.h"
 #include "iam_server/driver/iam_driver.h"
 #include "iam_server/flags/flags.h"
-
+#include "meta_store_client/meta_store_client.h"
+#include "meta_store_client/meta_store_struct.h"
+#include "meta_store_monitor/meta_store_monitor_factory.h"
 
 using namespace functionsystem;
 using namespace functionsystem::iamserver;
@@ -165,7 +164,12 @@ void OnCreate(const Flags &flags)
         g_iamServerSwitcher->SetStop();
         return;
     }
-
+    Crypto::GetInstance().SetAlgorithm(flags.GetDecryptAlgorithm());
+    if (const auto status = Crypto::GetInstance().LoadSecretKey(flags.GetResourcePath()); status.IsError()) {
+        YRLOG_ERROR("failed to load secret key, reason: {}", status.ToString());
+        g_iamServerSwitcher->SetStop();
+        return;
+    }
     auto metastoreClient = GetMetaStoreClient(flags);
     auto metaStoreMonitor = MetaStoreMonitorFactory::GetInstance().GetMonitor(flags.GetMetaStoreAddress());
     if (metastoreClient == nullptr || metaStoreMonitor == nullptr

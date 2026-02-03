@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-
-#ifndef COMMON_AKSK_UTIL_H
-#define COMMON_AKSK_UTIL_H
+#ifndef COMMON_AKSK_AKSK_UTIL_H
+#define COMMON_AKSK_AKSK_UTIL_H
 
 #include <map>
 #include <memory>
@@ -26,9 +25,7 @@
 #include "common/status/status.h"
 #include "common/utils/key_for_aksk.h"
 #include "common/utils/raii.h"
-#include "litebus.h"
 #include "sign_request.h"
-#include "utils/time_util.hpp"
 
 namespace functionsystem {
 const std::string HEADER_TOKEN_KEY = "X-Signature";              // key for token
@@ -70,4 +67,4 @@ bool VerifyTimestamp(const std::string &accessKey, const SensitiveValue &secretK
 std::map<std::string, std::string> SignHttpRequestX(const SignRequest &request, const KeyForAKSK &key);
 }  // namespace functionsystem
 
-#endif  // COMMON_AKSK_UTIL_H
+#endif  // COMMON_AKSK_AKSK_UTIL_H

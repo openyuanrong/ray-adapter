@@ -136,8 +136,6 @@ Flags::Flags()
     AddFlag(&Flags::enableTrace_, "enable_trace", "for trace enable, example: false", false);
     AddFlag(&Flags::isPseudoDataPlane_, "pseudo_data_plane",
             "set the function proxy is Pseudo Data Plane, example: false", false);
-    AddFlag(&Flags::decryptAlgorithm_, "decrypt_algorithm", "decrypt algorithm, eg: GCM, CBC, STS",
-            std::string("NO_CRYPTO"), WhiteListCheck({ "NO_CRYPTO", "CBC", "GCM", "STS" }));
     AddFlag(&Flags::enablePrintResourceView_, "enable_print_resource_view",
             "whether enable print resource view, which will affect performance in big scale", false);
     AddFlag(&Flags::schedulePlugins_, "schedule_plugins", "schedule plugins need to be registered",

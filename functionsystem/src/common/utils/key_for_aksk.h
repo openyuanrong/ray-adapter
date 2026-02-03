@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-
-#ifndef COMMON_KEY_FOR_AKSK_H
-#define COMMON_KEY_FOR_AKSK_H
+#ifndef COMMON_UTILS_KEY_FOR_AKSK_H
+#define COMMON_UTILS_KEY_FOR_AKSK_H
 
 #include <string>
+
 #include "common/utils/sensitive_value.h"
 
 namespace functionsystem {
 
 class KeyForAKSK {
 public:
-    KeyForAKSK()
-    = default;
+    KeyForAKSK() = default;
 
     KeyForAKSK(std::string accessKeyId, SensitiveValue secretKey, SensitiveValue dataKey)
-        : accessKeyId_(std::move(accessKeyId)), secretKey_(std::move(secretKey)), dataKey_(std::move(dataKey)) {}
+        : accessKeyId_(std::move(accessKeyId)), secretKey_(std::move(secretKey)), dataKey_(std::move(dataKey))
+    {
+    }
 
     const std::string &GetAccessKeyId() const
     {
@@ -45,11 +46,12 @@ public:
     {
         return dataKey_;
     }
+
 private:
     std::string accessKeyId_;
     SensitiveValue secretKey_;
     SensitiveValue dataKey_;
 };
 
-}
-#endif // COMMON_KEY_FOR_AKSK_H
+}  // namespace functionsystem
+#endif  // COMMON_UTILS_KEY_FOR_AKSK_H

@@ -59,8 +59,6 @@ public:
 
     [[nodiscard]] bool GetIsScheduleTolerateAbnormal() const;
 
-    [[nodiscard]] const std::string &GetDecryptAlgorithm() const;
-
     [[nodiscard]] const std::string &GetK8sNamespace() const;
 
     const std::string &GetElectionMode() const
@@ -268,8 +266,6 @@ protected:
 
     bool runtimeRecoverEnable_;
     bool isScheduleTolerateAbnormal_;
-
-    std::string decryptAlgorithm_;
 
     std::string electionMode_;
     bool enablePrintResourceView_;

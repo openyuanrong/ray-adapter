@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <utils/time_util.hpp>
+
 #include "common/aksk/aksk_util.h"
 #include "gtest/gtest.h"
 

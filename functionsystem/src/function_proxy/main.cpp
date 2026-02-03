@@ -17,7 +17,6 @@
 #include <async/future.hpp>
 #include <atomic>
 #include <csignal>
-#include <cstdint>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -28,12 +27,12 @@
 #include "busproxy/startup/busproxy_startup.h"
 #include "common/aksk/aksk_util.h"
 #include "common/constants/constants.h"
+#include "common/crypto/crypto.h"
 #include "common/explorer/explorer.h"
 #include "common/explorer/explorer_actor.h"
 #include "common/flags/flags.h"
 #include "common/kube_client/kube_client.h"
 #include "common/logs/logging.h"
-#include "meta_store_client/meta_store_client.h"
 #include "common/proto/pb/posix_pb.h"
 #include "common/rpc/server/common_grpc_server.h"
 #include "common/status/status.h"
@@ -58,6 +57,7 @@
 #include "local_scheduler/instance_control/posix_api_handler/posix_api_handler.h"
 #include "local_scheduler/local_sched_driver.h"
 #include "memory_monitor/memory_monitor.h"
+#include "meta_store_client/meta_store_client.h"
 #include "openssl/safestack.h"
 #include "openssl/x509.h"
 #include "utils/os_utils.hpp"
@@ -438,7 +438,12 @@ void OnCreate(const Flags &flags)
         g_functionProxySwitcher->SetStop();
         return;
     }
-
+    Crypto::GetInstance().SetAlgorithm(flags.GetDecryptAlgorithm());
+    if (const auto status = Crypto::GetInstance().LoadSecretKey(flags.GetResourcePath()); status.IsError()) {
+        YRLOG_ERROR("failed to load secret key, reason: {}", status.ToString());
+        g_functionProxySwitcher->SetStop();
+        return;
+    }
     InvocationHandler::RegisterCreateCallResultReceiver(PosixAPIHandler::CallResult);
     const auto dsAuthConfig = InitDsAuthConfig(flags);
     if (const auto status = InitCommonDriver(flags, dsAuthConfig); status.IsError()) {
