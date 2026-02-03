@@ -24,6 +24,8 @@ __all__ = [
     "JobSubmissionClient", "cancel", "cloudpickle"
 ]
 
+import sys
+
 from yr.object_ref import ObjectRef
 from ray_adapter.worker import (
     _make_remote, remote, get_actor, nodes, available_resources, cluster_resources, get,
@@ -41,3 +43,6 @@ from ray_adapter import cloudpickle
 from yr.apis import (
     finalize, put, resources
 )
+
+import ray_adapter as _ray_module
+sys.modules["ray"] = _ray_module
