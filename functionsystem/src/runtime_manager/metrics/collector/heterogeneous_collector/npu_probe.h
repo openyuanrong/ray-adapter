@@ -89,7 +89,6 @@ private:
     Status BuildTopoConfigMap(const nlohmann::json &config);
     void AddLdLibraryPathForNpuCmd(const std::string &ldLibraryPath);
     bool IsNpuTopoCommandValid(std::vector<std::string> lines);
-    size_t npuNum_ = 0;
     std::string nodeID;
     bool init = false;
     std::shared_ptr<ProcFSTools> procFSTools_;

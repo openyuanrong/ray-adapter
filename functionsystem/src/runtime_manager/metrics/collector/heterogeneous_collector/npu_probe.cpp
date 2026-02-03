@@ -127,6 +127,7 @@ NpuProbe::NpuProbe(std::string node, const std::shared_ptr<ProcFSTools> &procFST
     npuDeviceInfoPath_ = params->deviceInfoPath;
     InitDevInfo();
     AddLdLibraryPathForNpuCmd(params_->ldLibraryPath);
+    ExtractVisibleDevicesFromEnvVar(ASCEND_RT_VISIBLE_DEVICES_ENV_VAR);
 }
 
 NpuProbe::~NpuProbe()
@@ -144,7 +145,7 @@ NpuProbe::~NpuProbe()
 
 void NpuProbe::InitDevInfo()
 {
-    npuNum_ = 0;
+    deviceCnt_ = 0;
     devInfo_ = std::make_shared<DevCluster>();
     devInfo_->devType = DEV_TYPE_NPU;
     devInfo_->devVendor = DEV_VENDOR_HUAWEI;
@@ -152,12 +153,12 @@ void NpuProbe::InitDevInfo()
 
 size_t NpuProbe::GetLimit() const
 {
-    return npuNum_;
+    return deviceCnt_;
 }
 
 size_t NpuProbe::GetUsage() const
 {
-    return npuNum_;
+    return deviceCnt_;
 }
 
 Status NpuProbe::NPUCollectCount()
@@ -234,10 +235,12 @@ Status NpuProbe::RefreshTopo()
     if (it != collectFuncMap_.end()) {
         NPUCollectFunc func = it->second;
         auto status = (this->*(func))();
+        FilterDevicesEnvVar();
         refreshThread_ = std::make_unique<std::thread>([this, func]() { // a new refresh thread is initiated.
             while (refreshFlag_) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(UPDATE_METRICS_DURATION));
                 (this->*(func))(); // Refresh the HBM or memory of the NPU
+                FilterDevicesEnvVar();
             }
         });
         return status;
@@ -261,7 +264,7 @@ Status NpuProbe::GetNPUCountInfo()
                 devInfo_->devIDs.push_back(std::stoi(match[1]));
             } catch (const std::exception &e) {
                 YRLOG_ERROR("parse {} info failed, error is {}", re, e.what());
-                npuNum_ = 0;
+                deviceCnt_ = 0;
                 return Status{ StatusCode::FAILED, "parse npu count info failed, from /dev" };
             }
             devInfo_->devLimitHBMs.push_back(DEFAULT_HBM_LIMITS);
@@ -269,12 +272,12 @@ Status NpuProbe::GetNPUCountInfo()
             devInfo_->devTotalMemory.push_back(0);
             devInfo_->devUsedHBM.push_back(0);
             devInfo_->health.push_back(0);
-            npuNum_ += 1;
+            deviceCnt_ += 1;
             continue;
         }
         YRLOG_DEBUG("parse /dev/{} failed.", re);
     }
-    if (npuNum_ == 0) {
+    if (deviceCnt_ == 0) {
         YRLOG_ERROR("can not read dev from /dev");
         return Status{ StatusCode::FAILED, "can not read dev from /dev" };
     }
@@ -327,7 +330,7 @@ Status NpuProbe::ParseNPU910B()
             YRLOG_ERROR("parse npu910B chip info failed, error is {}", e.what());
             return Status{ StatusCode::FAILED, "parse npu info failed" };
         }
-        npuNum_++;  // success parse
+        deviceCnt_++;  // success parse
     }
     return Status::OK();
 }
@@ -361,7 +364,7 @@ Status NpuProbe::ParseNPU910C()
             YRLOG_ERROR("parse npu910C chip info failed, error is {}", e.what());
             return Status{ StatusCode::FAILED, "parse npu info failed" };
         }
-        npuNum_++;  // success parse
+        deviceCnt_++;  // success parse
     }
     return Status::OK();
 }
@@ -396,7 +399,7 @@ Status NpuProbe::ParseNPU310P3()
             YRLOG_ERROR("parse npu310 chip info failed, error is {}", e.what());
             return Status{ StatusCode::FAILED, "parse npu info failed" };
         }
-        npuNum_++;  // success parse
+        deviceCnt_++;  // success parse
     }
     return Status::OK();
 }
@@ -423,7 +426,7 @@ Status NpuProbe::GetNPUSmiInfo()
     if (status.IsError()) {
         return status;
     }
-    if (npuNum_ == 0) {
+    if (deviceCnt_ == 0) {
         YRLOG_WARN("can not get npu info from npu-smi info");
         return Status{ StatusCode::FAILED, "can not get npu info from npu-smi info" };
     }
@@ -432,7 +435,7 @@ Status NpuProbe::GetNPUSmiInfo()
 
 Status NpuProbe::GetNPUIPInfo()
 {
-    // here must make sure devInfo_->devIDs.size is equal to npuNum_
+    // here must make sure devInfo_->devIDs.size is equal to deviceCnt_
     if (procFSTools_ == nullptr) {
         YRLOG_ERROR("can not read content, procFSTool is nullptr.");
         return Status(StatusCode::FAILED, "can not read content, procFSTool is nullptr");
@@ -454,9 +457,9 @@ Status NpuProbe::GetNPUIPInfo()
         IpMap[match[NPU_IP_DEVICE_INDEX].str()] = match[NPU_IP_ADDRESS_INDEX].str();
         searchStart = match.suffix().first;
     }
-    if (IpMap.size() < npuNum_) {
+    if (IpMap.size() < deviceCnt_) {
         YRLOG_WARN("failed to get ip from {}, npu size({}) is less than NPU num({}), try to get from hccn_tool",
-                   NPU_VDEVICE_CONF_PATH, devInfo_->devIPs.size(), npuNum_);
+                   NPU_VDEVICE_CONF_PATH, devInfo_->devIPs.size(), deviceCnt_);
         return GetDeviceIPsFromHccnTool();
     }
     for (auto deviceID : devInfo_->devIDs) {
@@ -464,9 +467,9 @@ Status NpuProbe::GetNPUIPInfo()
             devInfo_->devIPs.emplace_back(it->second);
         }
     }
-    if (devInfo_->devIPs.size() != npuNum_) {
+    if (devInfo_->devIPs.size() != deviceCnt_) {
         YRLOG_WARN("failed to get ip from {}, npu size({}) isn't equal to NPU num({})/device size({}), try to get "
-            "from hccn_tool",  NPU_VDEVICE_CONF_PATH, devInfo_->devIPs.size(), npuNum_, devInfo_->devIDs.size());
+            "from hccn_tool",  NPU_VDEVICE_CONF_PATH, devInfo_->devIPs.size(), deviceCnt_, devInfo_->devIDs.size());
         devInfo_->devIPs.clear();
         return GetDeviceIPsFromHccnTool();
     }
@@ -476,15 +479,15 @@ Status NpuProbe::GetNPUIPInfo()
 Status NpuProbe::GetNPUTopoInfo()
 {
     std::vector<std::string> topoResult = cmdTool_->GetCmdResultWithError(getNpuTopoInfoCmd_);  // npu-smi info -t topo
-    if (topoResult.empty() || npuNum_ == 0 || !IsNpuTopoCommandValid(topoResult)) {
+    if (topoResult.empty() || deviceCnt_ == 0 || !IsNpuTopoCommandValid(topoResult)) {
         YRLOG_ERROR("please check command: (npu-smi info -t topo) ");
         return Status{ StatusCode::FAILED, "node does not install npu driver" };
     }
     std::lock_guard<std::mutex> lock(refreshNpuInfoMtx_);
     // If you go here, an NPU device must exist.
-    devInfo_->devTopo = GetTopoInfo(topoResult, npuNum_);
+    devInfo_->devTopo = GetTopoInfo(topoResult, deviceCnt_);
     // make sure that devInfo_->devTopo is N x N matrix
-    bool isCollectMatrix = devInfo_->devTopo.size() != npuNum_;
+    bool isCollectMatrix = devInfo_->devTopo.size() != deviceCnt_;
     for (const auto& topo: devInfo_->devTopo) {
         isCollectMatrix = isCollectMatrix || devInfo_->devTopo.size() != topo.size();
     }
@@ -541,7 +544,7 @@ Status NpuProbe::BuildTopoConfigMap(const nlohmann::json &config)
         }
     }
     if (config.find("number") != config.end()) {
-        npuNum_ = config["number"];
+        deviceCnt_ = config["number"];
     }
     if (config.find("vDeviceIDs") != config.end()) {
         nlohmann::json vDeviceIDs = config.at("vDeviceIDs");
@@ -555,7 +558,7 @@ Status NpuProbe::BuildTopoConfigMap(const nlohmann::json &config)
             devInfo_->devPartition.push_back(i);
         }
     }
-    if (npuNum_ == 0 || npuNum_ != devInfo_->devIDs.size() || npuNum_ != devInfo_->devPartition.size()) {
+    if (deviceCnt_ == 0 || deviceCnt_ != devInfo_->devIDs.size() || deviceCnt_ != devInfo_->devPartition.size()) {
         return Status{ StatusCode::FAILED, "failed to parse node npu info from json." };
     }
     return Status::OK();
@@ -584,7 +587,7 @@ void NpuProbe::UpdateHealth()
             index++;
         }
     }
-    if (newHealth.size() != npuNum_) {
+    if (newHealth.size() != deviceCnt_) {
         YRLOG_ERROR(
             "parse npu basic info failed, failed to update NPU health because npuNum is not equal to health size");
         return;
@@ -626,7 +629,7 @@ void NpuProbe::UpdateDevTopo()
     }
 
     // If you go here, an NPU device must exist.
-    devInfo_->devTopo = GetTopoInfo(topoResult, npuNum_);
+    devInfo_->devTopo = GetTopoInfo(topoResult, deviceCnt_);
     UpdateTopoPartition();
 }
 
@@ -668,11 +671,11 @@ void NpuProbe::UpdateDeviceIPs()
 Status NpuProbe::GetDeviceIPsFromHccnTool()
 {
     bool isSuccess = true;
-    if (devInfo_->devIDs.size() != npuNum_) {
+    if (devInfo_->devIDs.size() != deviceCnt_) {
         YRLOG_ERROR("get ip failed because device ids size is not equal to npu number");
         return Status{ StatusCode::FAILED, "device ids size is not equal to npu number" };
     }
-    for (size_t i = 0; i < npuNum_; i++) {
+    for (size_t i = 0; i < deviceCnt_; i++) {
         auto devID = devInfo_->devIDs[i];
         std::string getRankTableCmd = getNpuIPInfoCmd_ + std::to_string(devID) + GET_RANK_TABLE_CMD_SUFFIX;
         std::vector<std::string> ipaddr = cmdTool_->GetCmdResult(getRankTableCmd);  // hccn_tool -i

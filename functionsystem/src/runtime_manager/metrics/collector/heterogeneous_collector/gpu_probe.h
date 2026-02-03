@@ -39,7 +39,6 @@ protected:
 
 private:
     void AddLdLibraryPathForGpuCmd(const std::string &ldLibraryPath);
-    size_t gpuNum_ = 0;
     bool init = false;
     std::string getGpuNumCmd;
     std::string getGpuTopoInfoCmd;

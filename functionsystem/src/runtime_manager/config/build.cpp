@@ -254,10 +254,10 @@ std::map<std::string, std::string> GenerateUserEnvs(const ::messages::RuntimeIns
             if (key == "NPU-DEVICE-IDS" || key == "GPU-DEVICE-IDS") {
                 auto realIDs = SelectRealIDs(envIter.second, cardsIDs);
                 auto visibleDevicesEnvKey = key == "NPU-DEVICE-IDS" ? ASCEND_RT_VISIBLE_DEVICES : CUDA_VISIBLE_DEVICES;
-                (void)envs.emplace(std::make_pair(key, realIDs));
+                (void)envs.emplace(std::make_pair(key, envIter.second));
                 // XXX_VISIBLE_DEVICES need to set logic id, not physical id, so we used sorted schedule result
-                (void)envs.emplace(std::make_pair(visibleDevicesEnvKey, envIter.second));
-                YRLOG_DEBUG("select {} realIDs, mappingIDS: [{}], [{}]", key, realIDs, envIter.second);
+                (void)envs.emplace(std::make_pair(visibleDevicesEnvKey, realIDs));
+                YRLOG_DEBUG("select {} realIDs, mappingIDS: physical[{}], logical[{}]", key, realIDs, envIter.second);
                 continue;
             }
             if (IsPreconfiguredEnv(key)) {

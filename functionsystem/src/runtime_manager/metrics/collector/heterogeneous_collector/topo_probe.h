@@ -26,6 +26,20 @@ namespace functionsystem::runtime_manager {
 const std::string LIMIT_INIT = "limit_init";
 const std::string USAGE_INIT = "usage_init";
 
+template<typename T>
+std::vector<T> FilterByEnvVar(const std::vector<T> &original, const std::vector<int> &visibleIds)
+{
+    std::vector<T> result;
+    for (int id : visibleIds) {
+        if (id < 0 || id >= static_cast<int>(original.size())) {
+            YRLOG_WARN("invalid id {} in env var, use detected xpu result", id);
+            return original;
+        }
+        result.push_back(original[id]);
+    }
+    return result;
+}
+
 class TopoProbe {
 public:
     explicit TopoProbe(std::shared_ptr<CmdTool> cmdTool);
@@ -66,11 +80,15 @@ protected:
     std::vector<std::vector<std::string>> GetTopoInfo(const std::vector<std::string> &topoStr, size_t gpuNum);
     std::vector<std::vector<int>> ConvertPartition(std::vector<std::vector<std::string>> topologyInfo) const;
     void UpdateTopoDevClusterIDs(const std::string &topoStr);
+    void ExtractVisibleDevicesFromEnvVar(const std::string &envVar);
+    void FilterDevicesEnvVar();
 
     std::shared_ptr<DevCluster> devInfo_;
     bool hasXPU_ = false;
+    size_t deviceCnt_ = 0;
     std::shared_ptr<CmdTool> cmdTool_;
     std::map<std::string, bool> initMap_ = {{LIMIT_INIT, false}, {USAGE_INIT, false}};
+    litebus::Option<std::vector<int>> visibleDevicesInEnvVar_{ litebus::None() };
 
     mutable std::mutex refreshNpuInfoMtx_{};
 };

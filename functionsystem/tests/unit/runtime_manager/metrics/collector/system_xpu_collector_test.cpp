@@ -27,6 +27,7 @@
 #include "runtime_manager/metrics/collector/heterogeneous_collector/npu_probe.h"
 #include "runtime_manager/metrics/collector/heterogeneous_collector/topo_info.h"
 #include "common/utils/path.h"
+#include "utils/os_utils.hpp"
 
 using ::testing::MatchesRegex;
 
@@ -1003,7 +1004,7 @@ TEST_F(XpuCollectorTest, TestGetNPUIPInfo)
     // case1: get ips from hccn_conf file successfully
     {
         EXPECT_CALL(*tool.get(), Read).WillOnce(testing::Return(litebus::Option<std::string>{hccnConf}));
-        probe->npuNum_ = hccnIps.size();
+        probe->deviceCnt_ = hccnIps.size();
         auto devInfo = probe->GetClusterInfo();
         devInfo->devIDs = {0,1,2,3};
         auto status = probe->GetNPUIPInfo();
@@ -1052,7 +1053,7 @@ TEST_F(XpuCollectorTest, TestGetNPUIPInfo)
             .WillOnce(testing::Return(std::vector<std::string>{"127.0.0.116"}));
         EXPECT_CALL(*cmdTools.get(), GetCmdResult("hccn_tool -i 3 -ip -g | grep ipaddr: | grep -o [0-9][0-9]*.[0-9][0-9]*.[0-9][0-9]*.[0-9][0-9]*"))
             .WillOnce(testing::Return(std::vector<std::string>{"127.0.0.117"}));
-        probe->npuNum_ = 2;
+        probe->deviceCnt_ = 2;
         auto devInfo = probe->GetClusterInfo();
         devInfo->devIDs = {2,3};
         auto status = probe->GetNPUIPInfo();
@@ -1065,7 +1066,7 @@ TEST_F(XpuCollectorTest, TestGetNPUIPInfo)
    // case5: get from hccn conf while id is start from 2, 3
    {
        EXPECT_CALL(*tool.get(), Read).WillOnce(testing::Return(litebus::Option<std::string>{hccn16NpuConf}));
-       probe->npuNum_ = 2;
+       probe->deviceCnt_ = 2;
        auto devInfo = probe->GetClusterInfo();
        devInfo->devIDs = {2,3};
        auto status = probe->GetNPUIPInfo();
@@ -1088,7 +1089,7 @@ TEST_F(XpuCollectorTest, TestGetNPUTopoInfo)
 
     // case1: get topo info successfully
     {
-        probe->npuNum_ = 8;
+        probe->deviceCnt_ = 8;
         auto devInfo = probe->GetClusterInfo();
         devInfo->devIDs = std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7};
         EXPECT_CALL(*cmdTools.get(), GetCmdResultWithError("npu-smi info -t topo")).WillOnce(testing::Return(stringToVector(npuSminTopoInfo)));
@@ -1102,7 +1103,7 @@ TEST_F(XpuCollectorTest, TestGetNPUTopoInfo)
     }
     // case2: get topo info failed
     {
-        probe->npuNum_ = 8;
+        probe->deviceCnt_ = 8;
         auto devInfo = probe->GetClusterInfo();
         devInfo->devIDs = std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7};
         EXPECT_CALL(*cmdTools.get(), GetCmdResultWithError("npu-smi info -t topo")).WillOnce(testing::Return(stringToVector("Failed to query \"topo\" info.")));
@@ -1113,7 +1114,7 @@ TEST_F(XpuCollectorTest, TestGetNPUTopoInfo)
 
     // case3: not support get topo info
     {
-        probe->npuNum_ = 1;
+        probe->deviceCnt_ = 1;
         auto devInfo = probe->GetClusterInfo();
         devInfo->devIDs = std::vector<int>{0};
         EXPECT_CALL(*cmdTools.get(), GetCmdResultWithError("npu-smi info -t topo")).WillOnce(testing::Return(stringToVector("This device does not support querying topo")));
@@ -1122,7 +1123,7 @@ TEST_F(XpuCollectorTest, TestGetNPUTopoInfo)
         EXPECT_EQ(status.RawMessage(), "node does not install npu driver");
 
         EXPECT_CALL(*cmdTools.get(), GetCmdResultWithError("npu-smi info -t topo")).WillOnce(testing::Return(stringToVector("NPU can not query topo")));
-        probe->npuNum_ = 2;
+        probe->deviceCnt_ = 2;
         devInfo->devIDs = std::vector<int>{0, 1};
         status = probe->GetNPUTopoInfo();
         EXPECT_TRUE(status.IsError());
@@ -1151,7 +1152,7 @@ TEST_F(XpuCollectorTest, TestGetNPUTopoInfo)
                                     boot-select, topo, hccs, sio-info, spod-info, tls-csr-get, tls-cert,
                                     tls-cert-period, rootkey, hccs-bw.
         )";
-        probe->npuNum_ = 4;
+        probe->deviceCnt_ = 4;
         auto devInfo = probe->GetClusterInfo();
         devInfo->devIDs = std::vector<int>{0,1,2,3};
         auto tmp = stringToVector(errorParam);
@@ -1239,6 +1240,24 @@ TEST_F(XpuCollectorTest, TestRefreshTopoInfo)
        status = probe->RefreshTopo();
        EXPECT_TRUE(status.IsError());
    }
+
+   // case7: ASCEND_RT_VISIBLE_DEVICES env var is set, success get
+   {
+       litebus::os::SetEnv("ASCEND_RT_VISIBLE_DEVICES", "5,6");
+       auto tool = std::make_shared<MockProcFSTools>();
+       auto cmdTool = std::make_shared<MockCmdTools>();
+       params->collectMode = runtime_manager::NPU_COLLECT_TOPO;
+       EXPECT_CALL(*cmdTool.get(), GetCmdResult("npu-smi info")).WillRepeatedly(testing::Return(stringToVector(npuSmiInfo910B)));
+       EXPECT_CALL(*cmdTool.get(), GetCmdResultWithError("npu-smi info -t topo")).WillRepeatedly(testing::Return(stringToVector(npuSminTopoInfo)));
+       auto probe = std::make_shared<runtime_manager::NpuProbe>(nodeID, tool, cmdTool, params);
+       auto status = probe->RefreshTopo();
+       EXPECT_TRUE(status.IsOk());
+       auto ids = probe->GetDevClusterIDs();
+       EXPECT_EQ(ids.size(), 2);
+       EXPECT_EQ(ids[0], 5);
+       EXPECT_EQ(ids[1], 6);
+       litebus::os::UnSetEnv("ASCEND_RT_VISIBLE_DEVICES");
+   }
 }
 
 TEST_F(XpuCollectorTest, TestRefreshTopoInfoAllMode)
@@ -1310,13 +1329,13 @@ TEST_F(XpuCollectorTest, TestUpdateInfo)
        EXPECT_TRUE(devInfo->health.empty());
 
        // mock get npu info, update healthy successfully
-       probe->npuNum_ = 8;
+       probe->deviceCnt_ = 8;
        probe->UpdateHealth();
        probe->UpdateHealth();
        EXPECT_EQ(devInfo->health.size(), 8);
 
        // mock get npu num not equal npu-smi info card num, update healthy failed
-       probe->npuNum_ = 4;
+       probe->deviceCnt_ = 4;
        probe->UpdateHealth();
        EXPECT_EQ(devInfo->health.size(), 8);
    }
@@ -1335,7 +1354,7 @@ TEST_F(XpuCollectorTest, TestUpdateInfo)
        probe->UpdateDeviceIPs();
        probe->UpdateHealth();
        auto devInfo = probe->GetClusterInfo();
-       EXPECT_EQ(probe->npuNum_, 8);
+       EXPECT_EQ(probe->deviceCnt_, 8);
        EXPECT_EQ(devInfo->health.size(), 8);
        EXPECT_EQ(devInfo->devIDs.size(), 8);
        EXPECT_EQ(devInfo->devUsedMemory.size(), 8);
@@ -1343,7 +1362,7 @@ TEST_F(XpuCollectorTest, TestUpdateInfo)
        EXPECT_EQ(devInfo->devUsedHBM.size(), 8);
        EXPECT_EQ(devInfo->devLimitHBMs.size(), 8);
        EXPECT_EQ(devInfo->devIPs.size(), 8);
-       probe->npuNum_ = 4;
+       probe->deviceCnt_ = 4;
        EXPECT_CALL(*cmdTool.get(), GetCmdResult("npu-smi info -t topo")).WillOnce(testing::Return(stringToVector(""))).WillRepeatedly(testing::Return(topoInfo));
        probe->UpdateDevTopo();
        probe->UpdateDevTopo();

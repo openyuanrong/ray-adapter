@@ -241,4 +241,48 @@ std::vector<int> TopoProbe::GetUsedMemory() const
     }
     return std::vector<int>{};
 }
+
+void TopoProbe::ExtractVisibleDevicesFromEnvVar(const std::string &envVar)
+{
+    auto visibleDevicesOpt = litebus::os::GetEnv(envVar);
+    if (visibleDevicesOpt.IsNone()) {
+        return;
+    }
+    auto visibleDevicesVal = visibleDevicesOpt.Get();
+    YRLOG_INFO("Env var {}={}", envVar, visibleDevicesVal);
+    std::vector<int> devices;
+    for (auto id : litebus::strings::Split(visibleDevicesVal, ",")) {
+        try {
+            devices.push_back(std::stoi(id));
+        } catch (const std::exception &e) {
+            YRLOG_WARN("Invalid id {} in {}", id, envVar);
+            return;
+        }
+    }
+    visibleDevicesInEnvVar_ = std::move(devices);
+}
+
+void TopoProbe::FilterDevicesEnvVar()
+{
+    if (visibleDevicesInEnvVar_.IsNone()) {
+        return;
+    }
+    auto visibleDevices = visibleDevicesInEnvVar_.Get();
+    auto [min, max] = std::minmax_element(visibleDevices.begin(), visibleDevices.end());
+    std::lock_guard<std::mutex> lock(refreshNpuInfoMtx_);
+    if (min != visibleDevices.end()) {
+        if (*min < 0 || *max > static_cast<int>(deviceCnt_) || visibleDevices.size() > deviceCnt_) {
+            return;
+        }
+    }
+    devInfo_->devPartition = FilterByEnvVar(devInfo_->devPartition, visibleDevices);
+    devInfo_->devIDs = FilterByEnvVar(devInfo_->devIDs, visibleDevices);
+    devInfo_->devLimitHBMs = FilterByEnvVar(devInfo_->devLimitHBMs, visibleDevices);
+    devInfo_->devIPs = FilterByEnvVar(devInfo_->devIPs, visibleDevices);
+    devInfo_->health = FilterByEnvVar(devInfo_->health, visibleDevices);
+    devInfo_->devTotalMemory = FilterByEnvVar(devInfo_->devTotalMemory, visibleDevices);
+    devInfo_->devUsedHBM = FilterByEnvVar(devInfo_->devUsedHBM, visibleDevices);
+    devInfo_->devUsedMemory = FilterByEnvVar(devInfo_->devUsedMemory, visibleDevices);
+    deviceCnt_ = visibleDevices.size();
+}
 }

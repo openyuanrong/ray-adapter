@@ -38,16 +38,17 @@ GpuProbe::GpuProbe(const std::string &ldLibraryPath, std::shared_ptr<CmdTool> cm
     devInfo_->devType = DEV_TYPE_GPU;
     devInfo_->devVendor = DEV_VENDOR_NVIDIA;
     AddLdLibraryPathForGpuCmd(ldLibraryPath);
+    ExtractVisibleDevicesFromEnvVar(CUDA_VISIBLE_DEVICES_ENV_VAR);
 }
 
 size_t GpuProbe::GetLimit() const
 {
-    return gpuNum_;
+    return deviceCnt_;
 }
 
 size_t GpuProbe::GetUsage() const
 {
-    return gpuNum_;
+    return deviceCnt_;
 }
 
 void GpuProbe::UpdateTopoPartition()
@@ -80,13 +81,13 @@ void GpuProbe::UpdateDevTopo()
         return;
     }
     UpdateTopoDevClusterIDs(topoResult[0]);
-    devInfo_->devTopo = GetTopoInfo(topoResult, gpuNum_);
+    devInfo_->devTopo = GetTopoInfo(topoResult, deviceCnt_);
 }
 
 void GpuProbe::UpdateHBM()
 {
     std::vector<std::string> hbmResult = cmdTool_->GetCmdResult(getGpuInfoCmd);
-    if (hbmResult.empty() || hbmResult.size() < BASE_TYPE_NUM + gpuNum_ * GPU_ROW_INTERVAL) {
+    if (hbmResult.empty() || hbmResult.size() < BASE_TYPE_NUM + deviceCnt_ * GPU_ROW_INTERVAL) {
         YRLOG_ERROR("using {} to get hbm is wrong", GET_GPU_INFO_CMD);
         return;
     }
@@ -94,10 +95,10 @@ void GpuProbe::UpdateHBM()
     if (columns.size() < MEMORY_KEY_INDEX + 1 || (columns[MEMORY_KEY_INDEX].find("Memory-Usage") == std::string::npos
         && columns[MEMORY_KEY_INDEX + 1].find("Memory-Usage") == std::string::npos)) {
         YRLOG_WARN("cannot use {} to get hbm, set default value 16384Mb", GET_GPU_INFO_CMD);
-        (void)devInfo_->devLimitHBMs.insert(devInfo_->devUsedHBM.begin(), gpuNum_, 0);
+        (void)devInfo_->devLimitHBMs.insert(devInfo_->devUsedHBM.begin(), deviceCnt_, 0);
         return;
     }
-    for (size_t i = 0; i < gpuNum_; i++) {
+    for (size_t i = 0; i < deviceCnt_; i++) {
         std::vector<std::string> hbms = GetColumnValue(hbmResult[BASE_TYPE_NUM - 1 + GPU_ROW_INTERVAL * (i + 1) - 1]);
         if (hbms.size() < TOTAL_MEMORY_VAL_INDEX + 1) {
             YRLOG_ERROR("failed to get hbm value");
@@ -116,15 +117,15 @@ void GpuProbe::UpdateHBM()
 
 void GpuProbe::UpdateMemory()
 {
-    if (gpuNum_ != 0) {
-        devInfo_->devTotalMemory.insert(devInfo_->devTotalMemory.begin(), gpuNum_, 0);
+    if (deviceCnt_ != 0) {
+        devInfo_->devTotalMemory.insert(devInfo_->devTotalMemory.begin(), deviceCnt_, 0);
     }
 }
 
 void GpuProbe::UpdateUsedMemory()
 {
-    if (gpuNum_ != 0) {
-        devInfo_->devUsedMemory.insert(devInfo_->devUsedMemory.begin(), gpuNum_, 0);
+    if (deviceCnt_ != 0) {
+        devInfo_->devUsedMemory.insert(devInfo_->devUsedMemory.begin(), deviceCnt_, 0);
     }
 }
 
@@ -132,7 +133,7 @@ void GpuProbe::UpdateHealth()
 {
     devInfo_->health.clear();
     // stub health ok
-    for (size_t i = 0; i < gpuNum_; ++i) {
+    for (size_t i = 0; i < deviceCnt_; ++i) {
         devInfo_->health.push_back(0);
     }
 }
@@ -148,7 +149,7 @@ Status GpuProbe::RefreshTopo()
         YRLOG_WARN("There seems to be no gpu device on this node.");
         return Status(StatusCode::RUNTIME_MANAGER_GPU_NOTFOUND, "The node does not have gpu device");
     }
-    gpuNum_ = gpuNumResult.size();
+    deviceCnt_ = gpuNumResult.size();
     hasXPU_ = true;
 
     UpdateProductModel();
@@ -159,6 +160,7 @@ Status GpuProbe::RefreshTopo()
     UpdateUsedMemory();
     UpdateUsedHBM();
     UpdateHealth();
+    FilterDevicesEnvVar();
 
     return Status(StatusCode::SUCCESS);
 }
