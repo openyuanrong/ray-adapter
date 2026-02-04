@@ -43,6 +43,8 @@
 namespace functionsystem::runtime_manager {
 
 const int CAP_LEN = 4;
+const std::string PKG_TYPE_WHEEL = "WHEEL";
+const std::string PKG_TYPE_TARBALL = "TARBALL";
 
 class RuntimeExecutor : public Executor {
 public:
@@ -180,7 +182,7 @@ private:
     void SendGracefulTermination(pid_t pid, std::string_view processType);
 
     std::function<std::pair<Status, std::vector<std::string>>(const std::string &,
-                                           const std::shared_ptr<messages::StartInstanceRequest> &)>
+                                                              const std::shared_ptr<messages::StartInstanceRequest> &)>
         getBuildArgs_;
 
     std::pair<Status, std::vector<std::string>> GetCppBuildArgs(
@@ -204,8 +206,9 @@ private:
     std::pair<Status, std::vector<std::string>> GetJavaBuildArgsForJava21(
         const std::string &port, const std::shared_ptr<messages::StartInstanceRequest> &request) const;
 
-    std::pair<Status, std::vector<std::string>> GetJavaBuildArgs(const std::string &port,
-        const std::vector<std::string> &jvmArgs, const std::shared_ptr<messages::StartInstanceRequest> &request) const;
+    std::pair<Status, std::vector<std::string>> GetJavaBuildArgs(
+        const std::string &port, const std::vector<std::string> &jvmArgs,
+        const std::shared_ptr<messages::StartInstanceRequest> &request) const;
 
     std::pair<Status, std::vector<std::string>> GetNodejsBuildArgs(
         const std::string &port, const std::shared_ptr<messages::StartInstanceRequest> &request) const;
@@ -224,22 +227,22 @@ private:
 
     std::map<const std::string, std::pair<Status, std::vector<std::string>> (RuntimeExecutor::*)(
                                     const std::string &, const std::shared_ptr<messages::StartInstanceRequest> &) const>
-        buildArgsFunc_ = {{CPP_LANGUAGE, &RuntimeExecutor::GetCppBuildArgs},
-            {GO_LANGUAGE, &RuntimeExecutor::GetGoBuildArgs},
-            {JAVA_LANGUAGE, &RuntimeExecutor::GetJavaBuildArgsDefault},
-            {JAVA11_LANGUAGE, &RuntimeExecutor::GetJavaBuildArgsForJava11},
-            {JAVA17_LANGUAGE, &RuntimeExecutor::GetJavaBuildArgsForJava17},
-            {JAVA21_LANGUAGE, &RuntimeExecutor::GetJavaBuildArgsForJava21},
-            {POSIX_CUSTOM_RUNTIME, &RuntimeExecutor::GetPosixCustomBuildArgs},
-            {NODE_JS, &RuntimeExecutor::GetNodejsBuildArgs},
-            {PYTHON_LANGUAGE, &RuntimeExecutor::GetPythonBuildArgs},
-            {PYTHON3_LANGUAGE, &RuntimeExecutor::GetPythonBuildArgs},
-            {PYTHON36_LANGUAGE, &RuntimeExecutor::GetPythonBuildArgs},
-            {PYTHON37_LANGUAGE, &RuntimeExecutor::GetPythonBuildArgs},
-            {PYTHON38_LANGUAGE, &RuntimeExecutor::GetPythonBuildArgs},
-            {PYTHON39_LANGUAGE, &RuntimeExecutor::GetPythonBuildArgs},
-            {PYTHON310_LANGUAGE, &RuntimeExecutor::GetPythonBuildArgs},
-            {PYTHON311_LANGUAGE, &RuntimeExecutor::GetPythonBuildArgs}};
+        buildArgsFunc_ = { { CPP_LANGUAGE, &RuntimeExecutor::GetCppBuildArgs },
+                           { GO_LANGUAGE, &RuntimeExecutor::GetGoBuildArgs },
+                           { JAVA_LANGUAGE, &RuntimeExecutor::GetJavaBuildArgsDefault },
+                           { JAVA11_LANGUAGE, &RuntimeExecutor::GetJavaBuildArgsForJava11 },
+                           { JAVA17_LANGUAGE, &RuntimeExecutor::GetJavaBuildArgsForJava17 },
+                           { JAVA21_LANGUAGE, &RuntimeExecutor::GetJavaBuildArgsForJava21 },
+                           { POSIX_CUSTOM_RUNTIME, &RuntimeExecutor::GetPosixCustomBuildArgs },
+                           { NODE_JS, &RuntimeExecutor::GetNodejsBuildArgs },
+                           { PYTHON_LANGUAGE, &RuntimeExecutor::GetPythonBuildArgs },
+                           { PYTHON3_LANGUAGE, &RuntimeExecutor::GetPythonBuildArgs },
+                           { PYTHON36_LANGUAGE, &RuntimeExecutor::GetPythonBuildArgs },
+                           { PYTHON37_LANGUAGE, &RuntimeExecutor::GetPythonBuildArgs },
+                           { PYTHON38_LANGUAGE, &RuntimeExecutor::GetPythonBuildArgs },
+                           { PYTHON39_LANGUAGE, &RuntimeExecutor::GetPythonBuildArgs },
+                           { PYTHON310_LANGUAGE, &RuntimeExecutor::GetPythonBuildArgs },
+                           { PYTHON311_LANGUAGE, &RuntimeExecutor::GetPythonBuildArgs } };
 
     void StartPrestartRuntimeByLanguage(const std::string &language, const int startCount);
 
@@ -302,9 +305,11 @@ private:
         const messages::RuntimeInstanceInfo &info);
 
     Status WriteProtoToRuntime(const std::string &requestID, const std::string &runtimeID,
-        const ::messages::TLSConfig &tlsConfig, const std::shared_ptr<litebus::Exec> execPtr) const;
+                               const ::messages::TLSConfig &tlsConfig,
+                               const std::shared_ptr<litebus::Exec> execPtr) const;
     Status WriteJsonToRuntime(const std::string &requestID, const std::string &runtimeID,
-        const ::messages::TLSConfig &tlsConfig, const std::shared_ptr<litebus::Exec> execPtr) const;
+                              const ::messages::TLSConfig &tlsConfig,
+                              const std::shared_ptr<litebus::Exec> execPtr) const;
 
     void ReportInfo(const std::string &instanceID, const std::string runtimeID, const pid_t &pid,
                     const functionsystem::metrics::MeterTitle &title);
@@ -345,11 +350,12 @@ private:
     std::shared_ptr<VirtualEnvManager> virtualEnvMgr_{ nullptr };
     std::shared_ptr<StdMonitor> stdMonitor_{ nullptr };
     StdRedirectParam stdRedirectParam_;
+    std::string pkgType_;
 };
 
 class RuntimeExecutorProxy : public ExecutorProxy {
 public:
-    explicit RuntimeExecutorProxy(const std::shared_ptr<RuntimeExecutor> &executor) : ExecutorProxy(executor){};
+    explicit RuntimeExecutorProxy(const std::shared_ptr<RuntimeExecutor> &executor) : ExecutorProxy(executor) {};
 
     ~RuntimeExecutorProxy() override = default;
 
