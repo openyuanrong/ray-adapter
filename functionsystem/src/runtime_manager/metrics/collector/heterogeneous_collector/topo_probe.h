@@ -27,12 +27,16 @@ const std::string LIMIT_INIT = "limit_init";
 const std::string USAGE_INIT = "usage_init";
 
 template<typename T>
-std::vector<T> FilterByEnvVar(const std::vector<T> &original, const std::vector<int> &visibleIds)
+std::vector<T> FilterByEnvVar(const std::vector<T> &original, const litebus::Option<std::vector<int>> &visibleDevices)
 {
+    if (visibleDevices.IsNone()) {
+        return original;
+    }
+    auto visibleDevicesVal = visibleDevices.Get();
     std::vector<T> result;
-    for (int id : visibleIds) {
+    for (int id : visibleDevicesVal) {
         if (id < 0 || id >= static_cast<int>(original.size())) {
-            YRLOG_WARN("invalid id {} in env var, use detected xpu result", id);
+            YRLOG_WARN("invalid device id {} in env var, use detected xpu result", id);
             return original;
         }
         result.push_back(original[id]);
@@ -58,9 +62,8 @@ public:
     std::vector<int> GetUsedMemory() const;
     std::vector<int> GetStream() const;
     std::vector<int> GetLatency() const;
-
-    virtual size_t GetLimit() const = 0;
-    virtual size_t GetUsage() const = 0;
+    size_t GetLimit() const;
+    size_t GetUsage() const;
 
 protected:
     virtual void UpdateTopoPartition() = 0;
@@ -79,16 +82,15 @@ protected:
     std::vector<std::string> GetLegend(const std::string &topoStr, size_t deviceNum);
     std::vector<std::vector<std::string>> GetTopoInfo(const std::vector<std::string> &topoStr, size_t gpuNum);
     std::vector<std::vector<int>> ConvertPartition(std::vector<std::vector<std::string>> topologyInfo) const;
-    void UpdateTopoDevClusterIDs(const std::string &topoStr);
     void ExtractVisibleDevicesFromEnvVar(const std::string &envVar);
     void FilterDevicesEnvVar();
 
     std::shared_ptr<DevCluster> devInfo_;
     bool hasXPU_ = false;
-    size_t deviceCnt_ = 0;
+    size_t detectedDeviceCnt_ = 0;
     std::shared_ptr<CmdTool> cmdTool_;
     std::map<std::string, bool> initMap_ = {{LIMIT_INIT, false}, {USAGE_INIT, false}};
-    litebus::Option<std::vector<int>> visibleDevicesInEnvVar_{ litebus::None() };
+    litebus::Option<std::vector<int>> visibleDevices_{ litebus::None() };
 
     mutable std::mutex refreshNpuInfoMtx_{};
 };

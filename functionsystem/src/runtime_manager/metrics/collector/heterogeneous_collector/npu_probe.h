@@ -39,8 +39,6 @@ public:
     ~NpuProbe() override;
 
     Status RefreshTopo() override;
-    size_t GetUsage() const override;
-    size_t GetLimit() const override;
 
     // for test
     std::shared_ptr<DevCluster> GetClusterInfo()

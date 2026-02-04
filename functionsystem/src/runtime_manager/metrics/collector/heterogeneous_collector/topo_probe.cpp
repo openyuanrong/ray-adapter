@@ -15,6 +15,7 @@
  */
 #include "topo_probe.h"
 #include <cstddef>
+#include "async/option.hpp"
 #include "partitioner.h"
 #include "common/logs/logging.h"
 
@@ -43,33 +44,6 @@ std::vector<std::string> TopoProbe::GetColumnValue(const std::string &columnStr)
         appendFlag = true;
     }
     return columns;
-}
-
-void TopoProbe::UpdateTopoDevClusterIDs(const std::string &topoStr)
-{
-    std::string legend;
-    for (size_t i = 0; i < topoStr.size(); i++) {
-        if (topoStr[i] == ' ' || topoStr[i] == '\t') {
-            if (legend.empty()) {
-                continue;
-            }
-            int num = 0;
-            try {
-                num = std::stoi(legend);
-            } catch (const std::exception &e) {
-                YRLOG_WARN("stoi fail, error:{}", e.what());
-            }
-            (void)devInfo_->devIDs.emplace_back(num);
-            legend = "";
-            continue;
-        }
-        if (topoStr[i] == 'C') {
-            break;
-        }
-        if (topoStr[i] >= '0' && topoStr[i] <= '9') {
-            legend += topoStr[i];
-        }
-    }
 }
 
 std::vector<std::string> TopoProbe::GetLegend(const std::string &topoStr, size_t deviceNum)
@@ -128,6 +102,16 @@ std::vector<std::vector<std::string>> TopoProbe::GetTopoInfo(const std::vector<s
         (void)gpuTopo.emplace_back(GetLegend(topoStr[i], gpuNum)); // legend-> "X" "PXI" ...
     }
     return gpuTopo;
+}
+
+size_t TopoProbe::GetLimit() const
+{
+    return visibleDevices_.IsSome() ? visibleDevices_.Get().size() : detectedDeviceCnt_;
+}
+
+size_t TopoProbe::GetUsage() const
+{
+    return visibleDevices_.IsSome() ? visibleDevices_.Get().size() : detectedDeviceCnt_;
 }
 
 std::vector<std::string> TopoProbe::GetPartition() const
@@ -210,6 +194,7 @@ std::vector<int> TopoProbe::GetHealth(const std::string &initType)
             return devInfo_->health;
         }
         UpdateHealth();
+        devInfo_->health = FilterByEnvVar(devInfo_->health, visibleDevices_);
         return devInfo_->health;
     }
     return std::vector<int>{};
@@ -259,30 +244,34 @@ void TopoProbe::ExtractVisibleDevicesFromEnvVar(const std::string &envVar)
             return;
         }
     }
-    visibleDevicesInEnvVar_ = std::move(devices);
+    visibleDevices_ = std::move(devices);
 }
 
 void TopoProbe::FilterDevicesEnvVar()
 {
-    if (visibleDevicesInEnvVar_.IsNone()) {
+    if (visibleDevices_.IsNone()) {
         return;
     }
-    auto visibleDevices = visibleDevicesInEnvVar_.Get();
+    // check visible devices is valid according to detectedDevices
+    // min and max should be in the range of detectedDevices
+    auto visibleDevices = visibleDevices_.Get();
     auto [min, max] = std::minmax_element(visibleDevices.begin(), visibleDevices.end());
     std::lock_guard<std::mutex> lock(refreshNpuInfoMtx_);
     if (min != visibleDevices.end()) {
-        if (*min < 0 || *max > static_cast<int>(deviceCnt_) || visibleDevices.size() > deviceCnt_) {
+        if (*min < 0 || *max > static_cast<int>(detectedDeviceCnt_)
+            || visibleDevices.size() > detectedDeviceCnt_) {
+            YRLOG_WARN("invalid visible devices in env var, use detected xpu result({})", detectedDeviceCnt_);
+            visibleDevices_ = litebus::None();
             return;
         }
     }
-    devInfo_->devPartition = FilterByEnvVar(devInfo_->devPartition, visibleDevices);
-    devInfo_->devIDs = FilterByEnvVar(devInfo_->devIDs, visibleDevices);
-    devInfo_->devLimitHBMs = FilterByEnvVar(devInfo_->devLimitHBMs, visibleDevices);
-    devInfo_->devIPs = FilterByEnvVar(devInfo_->devIPs, visibleDevices);
-    devInfo_->health = FilterByEnvVar(devInfo_->health, visibleDevices);
-    devInfo_->devTotalMemory = FilterByEnvVar(devInfo_->devTotalMemory, visibleDevices);
-    devInfo_->devUsedHBM = FilterByEnvVar(devInfo_->devUsedHBM, visibleDevices);
-    devInfo_->devUsedMemory = FilterByEnvVar(devInfo_->devUsedMemory, visibleDevices);
-    deviceCnt_ = visibleDevices.size();
+    devInfo_->devPartition = FilterByEnvVar(devInfo_->devPartition, visibleDevices_);
+    devInfo_->devIDs = FilterByEnvVar(devInfo_->devIDs, visibleDevices_);
+    devInfo_->devLimitHBMs = FilterByEnvVar(devInfo_->devLimitHBMs, visibleDevices_);
+    devInfo_->devIPs = FilterByEnvVar(devInfo_->devIPs, visibleDevices_);
+    devInfo_->health = FilterByEnvVar(devInfo_->health, visibleDevices_);
+    devInfo_->devTotalMemory = FilterByEnvVar(devInfo_->devTotalMemory, visibleDevices_);
+    devInfo_->devUsedHBM = FilterByEnvVar(devInfo_->devUsedHBM, visibleDevices_);
+    devInfo_->devUsedMemory = FilterByEnvVar(devInfo_->devUsedMemory, visibleDevices_);
 }
 }

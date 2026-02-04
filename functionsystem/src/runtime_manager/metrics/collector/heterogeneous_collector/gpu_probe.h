@@ -25,8 +25,6 @@ public:
     explicit GpuProbe(const std::string &ldLibraryPath, std::shared_ptr<CmdTool> cmdTool);
     ~GpuProbe() override = default;
     Status RefreshTopo() override;
-    size_t GetLimit() const override;
-    size_t GetUsage() const override;
 
 protected:
     void UpdateTopoPartition() override;
@@ -36,14 +34,15 @@ protected:
     void UpdateUsedMemory() override;
     void UpdateProductModel() override;
     void UpdateHealth() override;
+    Status HasGpu();
 
 private:
     void AddLdLibraryPathForGpuCmd(const std::string &ldLibraryPath);
     bool init = false;
-    std::string getGpuNumCmd;
     std::string getGpuTopoInfoCmd;
     std::string getGpuInfoCmd;
     std::string queryGpuOrUnitInfoCmd_;
+    std::string queryGpuIdCmd_;
 };
 }
 
