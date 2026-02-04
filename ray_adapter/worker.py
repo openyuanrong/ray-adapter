@@ -291,7 +291,7 @@ def get_actor(name: str, namespace: Optional[str] = None) -> ActorHandle:
         Calling `get_instance()` returns a Python named instance handle.
 
     Raises:
-        ValueError: If the name of the actor does not exist.
+        RuntimeError: If the name of the actor does not exist.
         TypeError: If the passed namespace is not of str type.
 
     Examples:
@@ -302,13 +302,13 @@ def get_actor(name: str, namespace: Optional[str] = None) -> ActorHandle:
         >>> ray.shutdown()
     """
     if not name:
-        raise ValueError("Please provide a valid name for the actor.")
+        raise RuntimeError("Please provide a valid name for the actor.")
 
     if namespace is not None:
         if not isinstance(namespace, str):
             raise TypeError("namespace must be None or a string.")
         if namespace == "":
-            raise ValueError('"" is not a valid namespace. '
+            raise RuntimeError('"" is not a valid namespace. '
                              "Pass None to not specify a namespace.")
     return ActorHandle(get_instance(name, namespace or ""))
 

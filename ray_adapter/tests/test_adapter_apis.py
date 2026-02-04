@@ -517,7 +517,7 @@ class TestMethod(unittest.TestCase):
 
 class TestGetActor(unittest.TestCase):
     def test_get_actor_empty_name_raises_value_error(self):
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(RuntimeError) as cm:
             get_actor("")
         self.assertIn("valid name", str(cm.exception))
 
@@ -527,7 +527,7 @@ class TestGetActor(unittest.TestCase):
         self.assertIn("namespace must be None or a string", str(cm.exception))
 
     def test_get_actor_empty_namespace_string_raises_value_error(self):
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(RuntimeError) as cm:
             get_actor("test_actor", namespace="")
         self.assertIn('"" is not a valid namespace', str(cm.exception))
 
