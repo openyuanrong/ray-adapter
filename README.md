@@ -21,15 +21,22 @@ openYuanrong 由多语言函数运行时、函数系统和数据系统组成，�
 openYuanrong 分为三个代码仓库：
 
 - [yuanrong](https://gitcode.com/openeuler/yuanrong)：对应多语言函数运行时。
-- yuanrong-functionsystem：对应函数系统，即当前仓。
+- [yuanrong-functionsystem](https://gitcode.com/openeuler/yuanrong-functionsystem)：对应函数系统，即当前仓。
 - [yuanrong-datasystem](https://atomgit.com/openeuler/yuanrong-datasystem)：对应数据系统。
 
 ## 入门
 
 查看 [openYuanrong 文档](https://pages.openeuler.openatom.cn/openyuanrong/docs/zh-cn/latest/index.html)了解如何使用 openYuanrong 开发分布式应用。
 
-- 安装：`pip install https://openyuanrong.obs.cn-southwest-2.myhuaweicloud.com/release/0.7.0/linux/x86_64/openyuanrong-0.7.0-cp39-cp39-manylinux_2_34_x86_64.whl`，[更多安装信息](https://pages.openeuler.openatom.cn/openyuanrong/docs/zh-cn/latest/deploy/installation.html)。
-- [快速入门](https://pages.openeuler.openatom.cn/openyuanrong/docs/zh-cn/latest/getting_started.html)
+- **安装**：
+  请根据您的环境选择合适的版本。以下为 Python 3.9 (x86_64) 的示例安装命令：
+  ```bash
+  pip install [https://openyuanrong.obs.cn-southwest-2.myhuaweicloud.com/release/0.7.0/linux/x86_64/openyuanrong-0.7.0-cp39-cp39-manylinux_2_34_x86_64.whl](https://openyuanrong.obs.cn-southwest-2.myhuaweicloud.com/release/0.7.0/linux/x86_64/openyuanrong-0.7.0-cp39-cp39-manylinux_2_34_x86_64.whl)
+
+
+[更多安装信息及版本选择](https://pages.openeuler.openatom.cn/openyuanrong/docs/zh-cn/latest/deploy/installation.html)。
+
+* [快速入门](https://pages.openeuler.openatom.cn/openyuanrong/docs/zh-cn/latest/getting_started.html)
 
 ## 贡献
 
