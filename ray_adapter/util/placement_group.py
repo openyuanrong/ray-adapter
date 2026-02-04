@@ -132,6 +132,10 @@ def _validate_bundles(bundles: List[Dict[str, float]]):
                 "Bundles cannot be an empty dictionary or "
                 f"resources with only 0 values. Bundles: {bundles}"
             )
+        if "NPU" in bundle:
+            bundle["NPU/.+/count"] = bundle.pop("NPU")
+        if "GPU" in bundle:
+            bundle["GPU/.+/count"] = bundle.pop("GPU")
         if "memory" in bundle:
             bundle["Memory"] = bundle.pop("memory")
         if "CPU" in bundle:
@@ -169,10 +173,11 @@ def placement_group(
         bundle_label_selector: List[Dict[str, str]] = None,
 ) -> PlacementGroup:
     """Asynchronously creates a PlacementGroup."""
+    bundles_t = bundles
     validate_placement_group(bundles, strategy, lifetime, _soft_target_node_id, bundle_label_selector)
     if len(name) == 0:
-        return PlacementGroup(create_resource_group(bundles, None, strategy), bundles)
-    return PlacementGroup(create_resource_group(bundles, name, strategy), bundles)
+        return PlacementGroup(create_resource_group(bundles, None, strategy), bundles_t)
+    return PlacementGroup(create_resource_group(bundles, name, strategy), bundles_t)
 
 
 def remove_placement_group(placement_group_object: PlacementGroup) -> None:
