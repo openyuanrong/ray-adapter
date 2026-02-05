@@ -138,7 +138,7 @@ index 1b5f86a..4e91ca3 100644
 +    set(CURL_INC_DIR ${curl_ROOT}/include)
 +    set(CURL_LIB_DIR ${curl_ROOT}/lib)
 +    set(OPENSSL_INC_DIR ${openssl_ROOT}/include)
-+    set(OPENSSL_LIB_DIR ${openssl_ROOT}/lib)
++    set(OPENSSL_LIB_DIR ${openssl_ROOT}/lib ${openssl_ROOT}/lib64)
 +    set(LIBXML2_INC_DIR ${PROJECT_SOURCE_DIR}/build/script/Provider/build/${LINKARCH}/${LIBXML2_VERSION}/include)
 +    set(LIBXML2_LIB_DIR ${PROJECT_SOURCE_DIR}/build/script/Provider/build/${LINKARCH}/${LIBXML2_VERSION}/lib)
 +    set(PCRE_INC_DIR ${PROJECT_SOURCE_DIR}/build/script/Provider/build/${LINKARCH}/${PCRE_VERSION}/include)
