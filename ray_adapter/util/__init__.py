@@ -18,16 +18,18 @@ __all__ = [
     "placement_group",
     "remove_placement_group",
     "get_node_ip_address",
-    "list_named_actors"
-    "placement_group_table"
-    "get_current_placement_group"
-    "state"
+    "list_named_actors",
+    "placement_group_table",
+    "get_current_placement_group",
+    "state",
+    "scheduling_strategies"
 ]
 
 import importlib
 from ray_adapter.util.placement_group import (placement_group, remove_placement_group, placement_group_table,
                                               get_current_placement_group)
 from ray_adapter.util.scheduling_strategies import PlacementGroupSchedulingStrategy, NodeAffinitySchedulingStrategy
+from ray_adapter.util import scheduling_strategies
 from ray_adapter._private.services import get_node_ip_address, list_named_actors
 
 
