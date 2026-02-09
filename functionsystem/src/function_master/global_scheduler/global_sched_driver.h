@@ -46,6 +46,9 @@ public:
     };
 
     void InitQueryResourcesInfoHandler(const std::shared_ptr<GlobalSched> &globalSched);
+    void InitQueryMasterInfoHandler(const std::shared_ptr<GlobalSched> &globalSched,
+                                    const std::string &masterAddress,
+                                    const std::string &metaStoreAddress);
 };
 
 class GlobalSchedDriver {

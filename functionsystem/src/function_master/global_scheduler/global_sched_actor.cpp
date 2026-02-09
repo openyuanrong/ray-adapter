@@ -233,6 +233,12 @@ Node::TreeNode GlobalSchedActor::FindRootDomainSched()
     return business_->FindRootDomainSched();
 }
 
+messages::ScheduleTopology GlobalSchedActor::FindRootTopologyView()
+{
+    ASSERT_IF_NULL(business_);
+    return business_->FindRootDomainSched()->GetTopologyView();
+}
+
 litebus::Future<Status> GlobalSchedActor::UpdateSchedTopology()
 {
     // topo is putting to metastore and no other update is waiting to update

@@ -210,6 +210,12 @@ litebus::Future<messages::QueryResourcesInfoResponse> GlobalSched::QueryResource
     return litebus::Async(globalSchedActor_->GetAID(), &GlobalSchedActor::HandleQueryResourcesInfo, req);
 }
 
+litebus::Future<messages::ScheduleTopology> GlobalSched::QueryRootTopologyView()
+{
+    ASSERT_IF_NULL(globalSchedActor_);
+    return litebus::Async(globalSchedActor_->GetAID(), &GlobalSchedActor::FindRootTopologyView);
+}
+
 void GlobalSched::OnHealthyStatus(const Status &status)
 {
     RETURN_IF_NULL(globalSchedActor_);

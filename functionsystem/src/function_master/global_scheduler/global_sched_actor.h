@@ -118,6 +118,8 @@ public:
 
     virtual Node::TreeNode FindRootDomainSched();
 
+    virtual messages::ScheduleTopology FindRootTopologyView();
+
     virtual std::unordered_map<std::string, Node::TreeNode> FindNodes(const uint64_t level);
 
     virtual litebus::Option<std::string> GetLocalAddress(const std::string &name);
