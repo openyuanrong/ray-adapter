@@ -560,7 +560,7 @@ TEST_F(SchedulerPerformerTest, ScheduleGroupWithStrictPack)
     auto result = groupSchedulerPerformer_->DoSchedule(GetPreAllocatedContext(info), info, scheduleItem);
     EXPECT_EQ(result.code, 0);
     EXPECT_EQ(cnt, 0);
-    ASSERT_EQ(result.results.size(), 2);
+    ASSERT_EQ(result.results.size(), size_t{2});
     EXPECT_EQ(result.results[0].unitID, "unit1");
     EXPECT_EQ(result.results[1].unitID, "unit1");
 }

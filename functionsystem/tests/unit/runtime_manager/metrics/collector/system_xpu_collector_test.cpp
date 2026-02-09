@@ -967,7 +967,7 @@ TEST_F(XpuCollectorTest, TestNpuProbeOnGetNPUSmiInfoFailed)
         EXPECT_TRUE(status.IsError());
         EXPECT_EQ(status.RawMessage(), "failed to parse npu smi info!");
         auto devInfo = probe->GetClusterInfo();
-        EXPECT_EQ(devInfo->devIDs.size(), 6);
+        EXPECT_EQ(devInfo->devIDs.size(), size_t{6});
 
         EXPECT_CALL(*cmdTool.get(), GetCmdResult(testing::_)).WillOnce(testing::Return(stringToVector(wrongNpuSmiInfo1)));
         status = probe->OnGetNPUInfo(false);
@@ -1057,7 +1057,7 @@ TEST_F(XpuCollectorTest, TestGetNPUIPInfo)
         devInfo->devIDs = {2,3};
         auto status = probe->GetNPUIPInfo();
         EXPECT_TRUE(status.IsOk());
-        ASSERT_EQ(devInfo->devIPs.size(), 2);
+        ASSERT_EQ(devInfo->devIPs.size(), size_t{2});
         EXPECT_EQ(devInfo->devIPs[0], "127.0.0.116");
         EXPECT_EQ(devInfo->devIPs[1], "127.0.0.117");
     }
@@ -1070,7 +1070,7 @@ TEST_F(XpuCollectorTest, TestGetNPUIPInfo)
        devInfo->devIDs = {2,3};
        auto status = probe->GetNPUIPInfo();
        EXPECT_TRUE(status.IsOk());
-       ASSERT_EQ(devInfo->devIPs.size(), 2);
+       ASSERT_EQ(devInfo->devIPs.size(), size_t{2});
        EXPECT_EQ(devInfo->devIPs[0], "127.0.0.217");
        EXPECT_EQ(devInfo->devIPs[1], "127.0.0.70");
    }
@@ -1313,12 +1313,12 @@ TEST_F(XpuCollectorTest, TestUpdateInfo)
        probe->npuNum_ = 8;
        probe->UpdateHealth();
        probe->UpdateHealth();
-       EXPECT_EQ(devInfo->health.size(), 8);
+       EXPECT_EQ(devInfo->health.size(), size_t{8});
 
        // mock get npu num not equal npu-smi info card num, update healthy failed
        probe->npuNum_ = 4;
        probe->UpdateHealth();
-       EXPECT_EQ(devInfo->health.size(), 8);
+       EXPECT_EQ(devInfo->health.size(), size_t{8});
    }
    // case2: update all info successfully
    {
@@ -1335,19 +1335,19 @@ TEST_F(XpuCollectorTest, TestUpdateInfo)
        probe->UpdateDeviceIPs();
        probe->UpdateHealth();
        auto devInfo = probe->GetClusterInfo();
-       EXPECT_EQ(probe->npuNum_, 8);
-       EXPECT_EQ(devInfo->health.size(), 8);
-       EXPECT_EQ(devInfo->devIDs.size(), 8);
-       EXPECT_EQ(devInfo->devUsedMemory.size(), 8);
-       EXPECT_EQ(devInfo->devTotalMemory.size(), 8);
-       EXPECT_EQ(devInfo->devUsedHBM.size(), 8);
-       EXPECT_EQ(devInfo->devLimitHBMs.size(), 8);
-       EXPECT_EQ(devInfo->devIPs.size(), 8);
+       EXPECT_EQ(probe->npuNum_, size_t{8});
+       EXPECT_EQ(devInfo->health.size(), size_t{8});
+       EXPECT_EQ(devInfo->devIDs.size(), size_t{8});
+       EXPECT_EQ(devInfo->devUsedMemory.size(), size_t{8});
+       EXPECT_EQ(devInfo->devTotalMemory.size(), size_t{8});
+       EXPECT_EQ(devInfo->devUsedHBM.size(), size_t{8});
+       EXPECT_EQ(devInfo->devLimitHBMs.size(), size_t{8});
+       EXPECT_EQ(devInfo->devIPs.size(), size_t{8});
        probe->npuNum_ = 4;
        EXPECT_CALL(*cmdTool.get(), GetCmdResult("npu-smi info -t topo")).WillOnce(testing::Return(stringToVector(""))).WillRepeatedly(testing::Return(topoInfo));
        probe->UpdateDevTopo();
        probe->UpdateDevTopo();
-       EXPECT_EQ(devInfo->devTopo.size(), 4);
+       EXPECT_EQ(devInfo->devTopo.size(), size_t{4});
    }
 }
 
@@ -1384,7 +1384,7 @@ TEST_F(XpuCollectorTest, TestGpuProbeSmiInfoFailed)
     EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi topo -m")).WillRepeatedly(testing::Return(std::vector<std::string>{}));
 
     auto status = probe.RefreshTopo();
-    EXPECT_EQ(probe.GetPartition().size(), 0);
+    EXPECT_EQ(probe.GetPartition().size(), size_t{0});
 }
 
 TEST_F(XpuCollectorTest, TestGpuProbe)
@@ -1396,14 +1396,14 @@ TEST_F(XpuCollectorTest, TestGpuProbe)
     EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi")).WillRepeatedly(testing::Return(gpuMemoryInfo));
     EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi topo -m")).WillRepeatedly(testing::Return(gpuTopoInfo));
 
-    EXPECT_EQ(probe.devInfo_->health.size(), 0);
+    EXPECT_EQ(probe.devInfo_->health.size(), size_t{0});
     auto status = probe.RefreshTopo();
     std::vector<int> expected = {0};
-    EXPECT_EQ(probe.devInfo_->health.size(), 1);
+    EXPECT_EQ(probe.devInfo_->health.size(), size_t{1});
     EXPECT_EQ(probe.devInfo_->health, expected);
-    EXPECT_EQ(probe.GetDevClusterIDs().size(), 1);
-    EXPECT_EQ(probe.GetLimit(), 1);
-    EXPECT_EQ(probe.GetUsage(), 1);
+    EXPECT_EQ(probe.GetDevClusterIDs().size(), size_t{1});
+    EXPECT_EQ(probe.GetLimit(), size_t{1});
+    EXPECT_EQ(probe.GetUsage(), size_t{1});
     expected = {20};
     EXPECT_EQ(probe.devInfo_->devUsedHBM, expected);
     expected = {24576};
@@ -1429,10 +1429,10 @@ TEST_F(XpuCollectorTest, TestNpuCollectorByCmd)
     auto deviceIDsUsage =
         npuCollector.GetUsage().Get().devClusterMetrics.Get().intsInfo
             .at(resource_view::IDS_KEY);
-    EXPECT_EQ(deviceIDsUsage.size(), 16);
+    EXPECT_EQ(deviceIDsUsage.size(), size_t{16});
     auto deviceIDsLimit =
         npuCollector.GetLimit().devClusterMetrics.Get().intsInfo
             .at(resource_view::IDS_KEY);
-    EXPECT_EQ(deviceIDsLimit.size(), 16);
+    EXPECT_EQ(deviceIDsLimit.size(), size_t{16});
 }
 }

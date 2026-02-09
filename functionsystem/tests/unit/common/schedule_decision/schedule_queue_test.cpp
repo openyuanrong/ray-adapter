@@ -50,7 +50,7 @@ TEST_F(ScheduleQueueTest, EnqueueTest)
     req->mutable_instance()->mutable_scheduleoption()->set_priority(1);
     res = priorityQueue->Enqueue(item).Get();
     EXPECT_EQ(res.StatusCode(), StatusCode::SUCCESS);
-    EXPECT_EQ(priorityQueue->reqIndex_.size(), 3);
+    EXPECT_EQ(priorityQueue->reqIndex_.size(), size_t{3});
     EXPECT_TRUE(priorityQueue->reqIndex_.find("123") != priorityQueue->reqIndex_.end());
 }
 
@@ -65,7 +65,7 @@ TEST_F(ScheduleQueueTest, FrontAndDequeueTest)
     EXPECT_EQ(priorityQueue->Front()->GetPriority(), 3);
     EXPECT_EQ(priorityQueue->Front()->GetRequestId(), "testGroup");
     EXPECT_EQ(priorityQueue->Dequeue().Get().StatusCode(), StatusCode::SUCCESS);
-    EXPECT_EQ(priorityQueue->reqIndex_.size(), 1);
+    EXPECT_EQ(priorityQueue->reqIndex_.size(), size_t{1});
     EXPECT_EQ(priorityQueue->Front()->GetPriority(), 2);
     EXPECT_EQ(priorityQueue->Front()->GetRequestId(), "test");
     EXPECT_EQ(priorityQueue->Dequeue().Get().StatusCode(), StatusCode::SUCCESS);
@@ -80,7 +80,7 @@ TEST_F(ScheduleQueueTest, SwapTest)
     scheduleQueue->Enqueue(InstanceItem::CreateInstanceItem("req1"));
     auto targetQueue = std::make_shared<ScheduleQueue>();
     scheduleQueue->Swap(targetQueue);
-    EXPECT_EQ(scheduleQueue->reqIndex_.size(), 0);
+    EXPECT_EQ(scheduleQueue->reqIndex_.size(), size_t{0});
     EXPECT_TRUE(targetQueue->reqIndex_.find("req1") != targetQueue->reqIndex_.end());
 
     scheduleQueue = std::make_shared<ScheduleQueue>();
@@ -88,7 +88,7 @@ TEST_F(ScheduleQueueTest, SwapTest)
     targetQueue->Enqueue(InstanceItem::CreateInstanceItem("req1"));
     scheduleQueue->Swap(targetQueue);
     EXPECT_TRUE(scheduleQueue->reqIndex_.find("req1") != scheduleQueue->reqIndex_.end());
-    EXPECT_EQ(targetQueue->reqIndex_.size(), 0);
+    EXPECT_EQ(targetQueue->reqIndex_.size(), size_t{0});
 
     scheduleQueue = std::make_shared<ScheduleQueue>();
     scheduleQueue->Enqueue(InstanceItem::CreateInstanceItem("req1"));

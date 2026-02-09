@@ -54,7 +54,7 @@ TEST_F(VirtualEnvMgrActorTest, AddEnvReferInfos)
 
     actor_->AddEnvReferInfos(envName, runtimeId);
 
-    ASSERT_EQ(actor_->GetEnvReferInfos().size(), 1);
+    ASSERT_EQ(actor_->GetEnvReferInfos().size(), size_t{1});
     for (const auto &info : actor_->GetEnvReferInfos()) {
         ASSERT_EQ(info.first, envName);
         ASSERT_TRUE(info.second.runtimeIds.count(runtimeId));
@@ -75,6 +75,6 @@ TEST_F(VirtualEnvMgrActorTest, RmEnvReferInfosOnSameEnvs)
 
     actor_->RecycleUnusedEnvs();
 
-    ASSERT_EQ(actor_->GetEnvReferInfos().size(), 1);
+    ASSERT_EQ(actor_->GetEnvReferInfos().size(), size_t{1});
 }
 }  // namespace functionsystem::test

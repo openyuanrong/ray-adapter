@@ -621,7 +621,7 @@ TEST_F(LocalGroupCtrlTest, GroupScheduleWithRangeInstanceScheduleSuccessful)
                                       localGroupCtrlActor_->GetAID(), clearGroupReq);
     ASSERT_AWAIT_READY(clearFuture);
     EXPECT_EQ(clearFuture.IsOK(), true);
-    EXPECT_EQ(localGroupCtrlActor_->groupCtxs_.size(), 0);
+    EXPECT_EQ(localGroupCtrlActor_->groupCtxs_.size(), size_t{0});
 }
 
 TEST_F(LocalGroupCtrlTest, GroupScheduleWithRangeInstanceAndNormalRequestSuccessful)

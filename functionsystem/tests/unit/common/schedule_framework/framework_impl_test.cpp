@@ -438,7 +438,7 @@ TEST_F(FrameworkImplTest, AddScoreTest)
     EXPECT_EQ(top.heteroProductName, "NPU/310");
     EXPECT_EQ(top.realIDs, std::vector<int>{1});
     // validate vector allocation info -- append mode
-    EXPECT_EQ(top.vectorAllocations.size(), 3);
+    EXPECT_EQ(top.vectorAllocations.size(), size_t{3});
 }
 
 // multi filter return diff available

@@ -237,13 +237,13 @@ TEST_F(ResourceGroupManagerActorTest, ClusterAndBundleTest)
     rgManagerActor_->AddResourceGroupInfo(groupInfo2);
     groupInfo = rgManagerActor_->GetResourceGroupInfo("rg1", "tenant002");
     EXPECT_FALSE(groupInfo == nullptr);
-    EXPECT_EQ(rgManagerActor_->member_->bundleInfos.size(), 3);
-    EXPECT_EQ(rgManagerActor_->member_->proxyID2BundleIDs.size(), 0);
+    EXPECT_EQ(rgManagerActor_->member_->bundleInfos.size(), size_t{3});
+    EXPECT_EQ(rgManagerActor_->member_->proxyID2BundleIDs.size(), size_t{0});
     groupInfo->mutable_bundles(0)->set_functionproxyid("node001");
     groupInfo->mutable_bundles(1)->set_functionproxyid("node002");
     rgManagerActor_->AddResourceGroupInfo(groupInfo);
-    EXPECT_EQ(rgManagerActor_->member_->bundleInfos.size(), 3);
-    EXPECT_EQ(rgManagerActor_->member_->proxyID2BundleIDs.size(), 2);
+    EXPECT_EQ(rgManagerActor_->member_->bundleInfos.size(), size_t{3});
+    EXPECT_EQ(rgManagerActor_->member_->proxyID2BundleIDs.size(), size_t{2});
     auto bundleIndex = rgManagerActor_->GetBundleIndex("bundle001");
     EXPECT_TRUE(bundleIndex == nullptr);
     auto index = std::make_shared<BundleIndex>();
@@ -262,13 +262,13 @@ TEST_F(ResourceGroupManagerActorTest, ClusterAndBundleTest)
     rgManagerActor_->member_->bundleInfos["bundle001"] = index;
     bundleIndex = rgManagerActor_->GetBundleIndex("bundle001");
     EXPECT_TRUE(bundleIndex == nullptr);
-    EXPECT_EQ(rgManagerActor_->member_->bundleInfos.size(), 3);
+    EXPECT_EQ(rgManagerActor_->member_->bundleInfos.size(), size_t{3});
     rgManagerActor_->DeleteResourceGroupInfo(groupInfo1);
-    EXPECT_EQ(rgManagerActor_->member_->bundleInfos.size(), 2);
+    EXPECT_EQ(rgManagerActor_->member_->bundleInfos.size(), size_t{2});
     rgManagerActor_->DeleteResourceGroupInfo(groupInfo2);
-    EXPECT_EQ(rgManagerActor_->member_->bundleInfos.size(), 0);
-    EXPECT_EQ(rgManagerActor_->member_->resourceGroups.size(), 0);
-    EXPECT_EQ(rgManagerActor_->member_->proxyID2BundleIDs.size(), 0);
+    EXPECT_EQ(rgManagerActor_->member_->bundleInfos.size(), size_t{0});
+    EXPECT_EQ(rgManagerActor_->member_->resourceGroups.size(), size_t{0});
+    EXPECT_EQ(rgManagerActor_->member_->proxyID2BundleIDs.size(), size_t{0});
     rgManagerActor_->DeleteResourceGroupInfo(groupInfo2);
 }
 
@@ -285,14 +285,14 @@ TEST_F(ResourceGroupManagerActorTest, ResourceGroupOperatorTest)
     EXPECT_CALL(*mockMetaClient, Put).WillOnce(testing::Return(putResp));
     auto future = rgManagerActor_->groupOperator_->TxnResourceGroup(groupInfo1);
     ASSERT_AWAIT_READY(future);
-    EXPECT_EQ(future.Get().StatusCode(), common::ErrorCode::ERR_ETCD_OPERATION_ERROR);
+    EXPECT_EQ(static_cast<int>(future.Get().StatusCode()), static_cast<int>(common::ErrorCode::ERR_ETCD_OPERATION_ERROR));
     // 2.delete error
     auto deleteResp = std::make_shared<DeleteResponse>();
     deleteResp->status = Status(StatusCode::FAILED);
     EXPECT_CALL(*mockMetaClient, Delete).WillOnce(testing::Return(deleteResp));
     future = rgManagerActor_->groupOperator_->DeleteResourceGroup(groupInfo1);
     ASSERT_AWAIT_READY(future);
-    EXPECT_EQ(future.Get().StatusCode(), common::ErrorCode::ERR_ETCD_OPERATION_ERROR);
+    EXPECT_EQ(static_cast<int>(future.Get().StatusCode()), static_cast<int>(common::ErrorCode::ERR_ETCD_OPERATION_ERROR));
     // 3. sync error
     auto getResp = std::make_shared<GetResponse>();
     getResp->status = Status(StatusCode::FAILED);

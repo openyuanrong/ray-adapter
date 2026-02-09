@@ -85,25 +85,25 @@ TEST_F(FamilyManagementTest, AddAndRemoveInstance)  // NOLINT
     // A
     caches.AddInstance(MakeInstanceInfo("A", "", "", "node001", InstanceState::RUNNING));
     auto family = caches.GetFamily();
-    ASSERT_EQ(family.size(), 1u);
+    ASSERT_EQ(family.size(), size_t{1});
     ASSERT_TRUE(family.find("A") != family.end());
 
     // A
     // └-B
     caches.AddInstance(MakeInstanceInfo("B", "", "A", "node001", InstanceState::RUNNING));
     family = caches.GetFamily();
-    ASSERT_EQ(family.size(), 2u);
+    ASSERT_EQ(family.size(), size_t{2});
     ASSERT_TRUE(family.find("B") != family.end());
-    ASSERT_EQ(family.find("A")->second.childrenInstanceID.size(), 1u);
+    ASSERT_EQ(family.find("A")->second.childrenInstanceID.size(), size_t{1});
 
     // A
     // ├-B
     // └-C
     caches.AddInstance(MakeInstanceInfo("C", "", "A", "node001", InstanceState::RUNNING));
     family = caches.GetFamily();
-    ASSERT_EQ(family.size(), 3u);
+    ASSERT_EQ(family.size(), size_t{3});
     ASSERT_TRUE(family.find("C") != family.end());
-    ASSERT_EQ(family.find("A")->second.childrenInstanceID.size(), 2u);
+    ASSERT_EQ(family.find("A")->second.childrenInstanceID.size(), size_t{2});
 
     // A
     // ├-B
@@ -111,8 +111,8 @@ TEST_F(FamilyManagementTest, AddAndRemoveInstance)  // NOLINT
     //   └-D
     caches.AddInstance(MakeInstanceInfo("D", "", "C", "node001", InstanceState::RUNNING));
     family = caches.GetFamily();
-    ASSERT_EQ(family.size(), 4u);
-    ASSERT_EQ(family.find("C")->second.childrenInstanceID.size(), 1u);
+    ASSERT_EQ(family.size(), size_t{4});
+    ASSERT_EQ(family.find("C")->second.childrenInstanceID.size(), size_t{1});
     ASSERT_EQ(family.find("C")->second.childrenInstanceID.count("D"), 1u);
 
     // A
@@ -121,19 +121,19 @@ TEST_F(FamilyManagementTest, AddAndRemoveInstance)  // NOLINT
     // └-D
     caches.RemoveInstance("C");
     family = caches.GetFamily();
-    ASSERT_EQ(family.size(), 3u);
+    ASSERT_EQ(family.size(), size_t{3});
     ASSERT_TRUE(family.find("C") == family.end());  // C should be deleted
     ASSERT_TRUE(family.find("D") != family.end());  // D should be an orphan
-    ASSERT_EQ(family.find("A")->second.childrenInstanceID.size(), 1u);
-    ASSERT_EQ(family.find("A")->second.childrenInstanceID.count("B"), 1u);
+    ASSERT_EQ(family.find("A")->second.childrenInstanceID.size(), size_t{1});
+    ASSERT_EQ(family.find("A")->second.childrenInstanceID.count("B"), size_t{1});
 
     // A
     // └-B
     caches.RemoveInstance("D");
     family = caches.GetFamily();
-    ASSERT_EQ(family.size(), 2u);
+    ASSERT_EQ(family.size(), size_t{2});
     ASSERT_TRUE(family.find("D") == family.end());  // D should be an orphan
-    ASSERT_EQ(family.find("A")->second.childrenInstanceID.size(), 1u);
+    ASSERT_EQ(family.find("A")->second.childrenInstanceID.size(), size_t{1});
     ASSERT_EQ(family.find("A")->second.childrenInstanceID.count("B"), 1u);
 
     caches.RemoveInstance("X");  // no effect
@@ -173,14 +173,14 @@ TEST_F(FamilyManagementTest, GetDescendants)  // NOLINT
     ASSERT_TRUE(idxOfE < idxOfF);
     ASSERT_TRUE(idxOfD < idxOfG);
     ASSERT_TRUE(idxOfE < idxOfG);
-    ASSERT_EQ(descendantsOfC.size(), 4u);
+    ASSERT_EQ(descendantsOfC.size(), size_t{4});
 
     auto descendantsOfAll = caches.GetAllDescendantsOf("");
-    ASSERT_EQ(descendantsOfAll.size(), 7u);
+    ASSERT_EQ(descendantsOfAll.size(), size_t{7});
 
     caches.RemoveInstance("D");
     descendantsOfAll = caches.GetAllDescendantsOf("");
-    ASSERT_EQ(descendantsOfAll.size(), 6u);
+    ASSERT_EQ(descendantsOfAll.size(), size_t{6});
     EXPECT_TRUE(caches.GetInstance("") == nullptr);
     EXPECT_TRUE(caches.GetInstance("NotExist") == nullptr);
     EXPECT_TRUE(caches.GetInstance("C") != nullptr);
@@ -200,9 +200,9 @@ TEST_F(FamilyManagementTest, AddAndRemoveDetachedInstance)  // NOLINT
     caches.AddInstance(insC);
     caches.AddInstance(insD);
     caches.AddInstance(insE);
-    EXPECT_EQ(caches.GetAllDescendantsOf("A").size(), 1);
-    EXPECT_EQ(caches.GetAllDescendantsOf("C").size(), 2);
+    EXPECT_EQ(caches.GetAllDescendantsOf("A").size(), size_t{1});
+    EXPECT_EQ(caches.GetAllDescendantsOf("C").size(), size_t{2});
     caches.RemoveInstance("C");
-    EXPECT_EQ(caches.GetAllDescendantsOf("D").size(), 1);
+    EXPECT_EQ(caches.GetAllDescendantsOf("D").size(), size_t{1});
 }
 }  // namespace functionsystem::instance_manager::test

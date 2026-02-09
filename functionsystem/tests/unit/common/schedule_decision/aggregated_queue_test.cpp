@@ -73,12 +73,12 @@ TEST_F(AggregatedQueueTest, StrictEnqueueTest) {
     priorityQueue->Enqueue(ins1);
     priorityQueue->Enqueue(ins2);
     priorityQueue->Enqueue(ins3);
-    EXPECT_EQ(priorityQueue->aggregatedReqs[1].size(), 3);
+    EXPECT_EQ(priorityQueue->aggregatedReqs[1].size(), size_t{3});
 
     priorityQueue2->Enqueue(ins1);
     priorityQueue2->Enqueue(ins3);
     priorityQueue2->Enqueue(ins2);
-    EXPECT_EQ(priorityQueue2->aggregatedReqs[1].size(), 2);
+    EXPECT_EQ(priorityQueue2->aggregatedReqs[1].size(), size_t{2});
 
 }
 
@@ -92,12 +92,12 @@ TEST_F(AggregatedQueueTest, RelaxEnqueueTest) {
     priorityQueue->Enqueue(ins1);
     priorityQueue->Enqueue(ins2);
     priorityQueue->Enqueue(ins3);
-    EXPECT_EQ(priorityQueue->aggregatedReqs[1].size(), 2);
+    EXPECT_EQ(priorityQueue->aggregatedReqs[1].size(), size_t{2});
 
     priorityQueue2->Enqueue(ins1);
     priorityQueue2->Enqueue(ins3);
     priorityQueue2->Enqueue(ins2);
-    EXPECT_EQ(priorityQueue2->aggregatedReqs[1].size(), 2);
+    EXPECT_EQ(priorityQueue2->aggregatedReqs[1].size(), size_t{2});
 }
 
 
@@ -213,9 +213,9 @@ TEST_F(AggregatedQueueTest, AbnormalTest)
     auto runningQueue1 = std::make_shared<AggregatedQueue>(10, "relaxed");
     auto group1 = GroupItem::CreateGroupItem("group1");
     pendingQueue_->Enqueue(group1);
-    EXPECT_EQ(runningQueue1->aggregatedReqs.size(), 0);
+    EXPECT_EQ(runningQueue1->aggregatedReqs.size(), size_t{0});
     runningQueue1->Extend(pendingQueue_);
-    EXPECT_EQ(runningQueue1->aggregatedReqs.size(), 1);
+    EXPECT_EQ(runningQueue1->aggregatedReqs.size(), size_t{1});
 
     auto group2 = GroupItem::CreateGroupItem("group2");
     EXPECT_EQ(group2->GetItemType(), QueueItemType::GROUP);
@@ -228,7 +228,7 @@ TEST_F(AggregatedQueueTest, AbnormalTest)
     auto ins3 = CreateInstanceItem("ins3", 3, 10, 10);
     schePendingQueue->Enqueue(ins3);
     scheRunningQueue->Extend(schePendingQueue);
-    EXPECT_EQ(scheRunningQueue->queueMap_.size(), 1);
+    EXPECT_EQ(scheRunningQueue->queueMap_.size(), size_t{1});
 
 }
 

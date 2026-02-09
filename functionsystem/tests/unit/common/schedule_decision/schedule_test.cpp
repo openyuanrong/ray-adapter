@@ -259,7 +259,7 @@ TEST_F(ScheduleTest, FairnessScheduleOnResourceUpdate)
     EXPECT_AWAIT_READY_FOR(isScheduled, 1000);
     EXPECT_TRUE(isScheduled.Get());
     EXPECT_TRUE(future.IsInit());
-    EXPECT_EQ(fairnessSchedule->pendingQueue_->Size(), 1);
+    EXPECT_EQ(fairnessSchedule->pendingQueue_->Size(), size_t{1});
     ASSERT_AWAIT_TRUE([&](){
         return scheduleQueueActor_->GetQueueState() == QueueStatus::PENDING;
     });

@@ -468,14 +468,14 @@ TEST_F(KubeClientApiTest, testListNamespacedPod)
     responseQueue.push(std::make_pair(ResponseCode::OK, podListWithOne->ToJson().dump().c_str()));
     apiServer->SetResponseQueue(responseQueue);
     result = kubeClient_->ListNamespacedPod(r_namespace);
-    EXPECT_EQ(result.Get()->GetItems().size(), 3);
+    EXPECT_EQ(result.Get()->GetItems().size(), size_t{3});
     // list pods with second page error
     responseQueue = {};
     responseQueue.push(std::make_pair(ResponseCode::OK, podListWithTwo->ToJson().dump().c_str()));
     responseQueue.push(std::make_pair(ResponseCode::BAD_REQUEST, podListWithOne->ToJson().dump().c_str()));
     apiServer->SetResponseQueue(responseQueue);
     result = kubeClient_->ListNamespacedPod(r_namespace);
-    EXPECT_EQ(result.Get()->GetItems().size(), 2);
+    EXPECT_EQ(result.Get()->GetItems().size(), size_t{2});
     // list pod with 4 items
     responseQueue = {};
     podListWithTwo->GetMetadata()->SetRContinue("id-123");
@@ -485,8 +485,8 @@ TEST_F(KubeClientApiTest, testListNamespacedPod)
     responseQueue.push(std::make_pair(ResponseCode::OK, podListWithTwo->ToJson().dump().c_str()));
     apiServer->SetResponseQueue(responseQueue);
     result = kubeClient_->ListNamespacedPod(r_namespace);
-    EXPECT_EQ(result.Get()->GetItems().size(), 4);
-    EXPECT_EQ(apiServer->GetResponseQueue().size(), 1);
+    EXPECT_EQ(result.Get()->GetItems().size(), size_t{4});
+    EXPECT_EQ(apiServer->GetResponseQueue().size(), size_t{1});
 }
 
 TEST_F(KubeClientApiTest, ListNamespacedDeployment)
@@ -515,13 +515,13 @@ TEST_F(KubeClientApiTest, ListNamespacedDeployment)
     apiServer->SetResponseQueue(responseQueue);
     auto result = kubeClient_->ListNamespacedDeployment(r_namespace);
     result.Get();
-    EXPECT_EQ(result.Get()->GetItems().size(), 0);
+    EXPECT_EQ(result.Get()->GetItems().size(), size_t{0});
     // list one pod
     responseQueue = {};
     responseQueue.push(std::make_pair(ResponseCode::OK, deployListWithOne->ToJson().dump().c_str()));
     apiServer->SetResponseQueue(responseQueue);
     result = kubeClient_->ListNamespacedDeployment(r_namespace);
-    EXPECT_EQ(result.Get()->GetItems().size(), 1);
+    EXPECT_EQ(result.Get()->GetItems().size(), size_t{1});
     // list two pod
     deployListWithTwo->GetMetadata()->SetRContinue("id-123");
     responseQueue = {};
@@ -529,21 +529,21 @@ TEST_F(KubeClientApiTest, ListNamespacedDeployment)
     responseQueue.push(std::make_pair(ResponseCode::OK, deployListWithEmpty->ToJson().dump().c_str()));
     apiServer->SetResponseQueue(responseQueue);
     result = kubeClient_->ListNamespacedDeployment(r_namespace);
-    EXPECT_EQ(result.Get()->GetItems().size(), 2);
+    EXPECT_EQ(result.Get()->GetItems().size(), size_t{2});
     // list pod with two page
     responseQueue = {};
     responseQueue.push(std::make_pair(ResponseCode::OK, deployListWithTwo->ToJson().dump().c_str()));
     responseQueue.push(std::make_pair(ResponseCode::OK, deployListWithOne->ToJson().dump().c_str()));
     apiServer->SetResponseQueue(responseQueue);
     result = kubeClient_->ListNamespacedDeployment(r_namespace);
-    EXPECT_EQ(result.Get()->GetItems().size(), 3);
+    EXPECT_EQ(result.Get()->GetItems().size(), size_t{3});
     // list pods with second page error
     responseQueue = {};
     responseQueue.push(std::make_pair(ResponseCode::OK, deployListWithTwo->ToJson().dump().c_str()));
     responseQueue.push(std::make_pair(ResponseCode::BAD_REQUEST, deployListWithOne->ToJson().dump().c_str()));
     apiServer->SetResponseQueue(responseQueue);
     result = kubeClient_->ListNamespacedDeployment(r_namespace);
-    EXPECT_EQ(result.Get()->GetItems().size(), 2);
+    EXPECT_EQ(result.Get()->GetItems().size(), size_t{2});
     // list pod with 4 items
     responseQueue = {};
     deployListWithTwo->GetMetadata()->SetRContinue("id-123");
@@ -553,14 +553,14 @@ TEST_F(KubeClientApiTest, ListNamespacedDeployment)
     responseQueue.push(std::make_pair(ResponseCode::OK, deployListWithTwo->ToJson().dump().c_str()));
     apiServer->SetResponseQueue(responseQueue);
     result = kubeClient_->ListNamespacedDeployment(r_namespace);
-    EXPECT_EQ(result.Get()->GetItems().size(), 4);
-    EXPECT_EQ(apiServer->GetResponseQueue().size(), 1);
+    EXPECT_EQ(result.Get()->GetItems().size(), size_t{4});
+    EXPECT_EQ(apiServer->GetResponseQueue().size(), size_t{1});
 }
 
 TEST_F(KubeClientApiTest, ListNamespacedHorizontalPodAutoscaler)
 {
     auto result = kubeClient_->ListNamespacedHorizontalPodAutoscaler("default", false);
-    EXPECT_EQ(result.Get()->GetItems().size(), 0);
+    EXPECT_EQ(result.Get()->GetItems().size(), size_t{0});
 }
 
 TEST_F(KubeClientApiTest, CreateNamespacedHorizontalPodAutoscaler)
@@ -681,13 +681,13 @@ TEST_F(KubeClientApiTest, ListNode)
     apiServer->SetResponseQueue(responseQueue);
     auto result = kubeClient_->ListNode();
     result.Get();
-    EXPECT_EQ(result.Get()->GetItems().size(), 0);
+    EXPECT_EQ(result.Get()->GetItems().size(), size_t{0});
     // list one node
     responseQueue = {};
     responseQueue.push(std::make_pair(ResponseCode::OK, nodeListWithOne->ToJson().dump().c_str()));
     apiServer->SetResponseQueue(responseQueue);
     result = kubeClient_->ListNode();
-    EXPECT_EQ(result.Get()->GetItems().size(), 1);
+    EXPECT_EQ(result.Get()->GetItems().size(), size_t{1});
     // list two node
     nodeListWithTwo->GetMetadata()->SetRContinue("id-123");
     responseQueue = {};
@@ -695,7 +695,7 @@ TEST_F(KubeClientApiTest, ListNode)
     responseQueue.push(std::make_pair(ResponseCode::OK, nodeListWithEmpty->ToJson().dump().c_str()));
     apiServer->SetResponseQueue(responseQueue);
     result = kubeClient_->ListNode();
-    EXPECT_EQ(result.Get()->GetItems().size(), 2);
+    EXPECT_EQ(result.Get()->GetItems().size(), size_t{2});
     // list nodes with two page
     nodeListWithTwo->GetMetadata()->SetRContinue("id-123");
     responseQueue = {};
@@ -703,14 +703,14 @@ TEST_F(KubeClientApiTest, ListNode)
     responseQueue.push(std::make_pair(ResponseCode::OK, nodeListWithOne->ToJson().dump().c_str()));
     apiServer->SetResponseQueue(responseQueue);
     result = kubeClient_->ListNode();
-    EXPECT_EQ(result.Get()->GetItems().size(), 3);
+    EXPECT_EQ(result.Get()->GetItems().size(), size_t{3});
     // list nodes with second page error
     responseQueue = {};
     responseQueue.push(std::make_pair(ResponseCode::OK, nodeListWithTwo->ToJson().dump().c_str()));
     responseQueue.push(std::make_pair(ResponseCode::BAD_REQUEST, nodeListWithOne->ToJson().dump().c_str()));
     apiServer->SetResponseQueue(responseQueue);
     result = kubeClient_->ListNode();
-    EXPECT_EQ(result.Get()->GetItems().size(), 2);
+    EXPECT_EQ(result.Get()->GetItems().size(), size_t{2});
     // list node with 4 items
     responseQueue = {};
     nodeListWithTwo->GetMetadata()->SetRContinue("id-123");
@@ -720,8 +720,8 @@ TEST_F(KubeClientApiTest, ListNode)
     responseQueue.push(std::make_pair(ResponseCode::OK, nodeListWithTwo->ToJson().dump().c_str()));
     apiServer->SetResponseQueue(responseQueue);
     result = kubeClient_->ListNode();
-    EXPECT_EQ(result.Get()->GetItems().size(), 4);
-    EXPECT_EQ(apiServer->GetResponseQueue().size(), 1);
+    EXPECT_EQ(result.Get()->GetItems().size(), size_t{4});
+    EXPECT_EQ(apiServer->GetResponseQueue().size(), size_t{1});
 }
 
 TEST_F(KubeClientApiTest, PatchNode)
@@ -998,7 +998,7 @@ TEST_F(KubeClientApiTest, ListNodeRetry)
     result = kubeClient_->DoListNode({}, {}, {});
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     result.Get();
-    EXPECT_EQ(result.Get()->GetItems().size(), 0);
+    EXPECT_EQ(result.Get()->GetItems().size(), size_t{0});
 }
 
 TEST_F(KubeClientApiTest, PatchNodeRetry)

@@ -5694,7 +5694,7 @@ TEST_F(InstanceCtrlTest, KillFatalInstance)
     future = instanceCtrlWithMockObserver_->Kill("src", killReq);
     ASSERT_AWAIT_READY(future);
     resp = future.Get();
-    EXPECT_EQ(resp.code(), StatusCode::ERR_INNER_SYSTEM_ERROR);
+    EXPECT_EQ(static_cast<int>(resp.code()), static_cast<int>(StatusCode::ERR_INNER_SYSTEM_ERROR));
 }
 
 /**
@@ -6098,7 +6098,7 @@ TEST_F(InstanceCtrlTest, KillDriverInstance)
 
     auto killRsp = instanceCtrl_->Kill(srcInstance, killReq);
     ASSERT_AWAIT_READY(killRsp);
-    EXPECT_EQ(killRsp.Get().code(), common::ErrorCode::ERR_NONE);
+    EXPECT_EQ(static_cast<int>(killRsp.Get().code()), static_cast<int>(common::ErrorCode::ERR_NONE));
 }
 
 }  // namespace functionsystem::test

@@ -46,11 +46,11 @@ TEST(DiskScorerTest, ScoreWithPartiallyAllocatedDisk) {
 
     auto score = scorer.Score(preAllocated, instance, unit);
     EXPECT_EQ(score.score, 33); // (1-100/(200-50))*100
-    EXPECT_EQ(score.vectorAllocations.size(), 1);
+    EXPECT_EQ(score.vectorAllocations.size(), size_t{1});
     auto vectorAllocation = score.vectorAllocations[0];
-    EXPECT_EQ(vectorAllocation.selectedIndices.size(), 1);
+    EXPECT_EQ(vectorAllocation.selectedIndices.size(), size_t{1});
     EXPECT_EQ(vectorAllocation.selectedIndices[0], 2);
-    EXPECT_EQ(vectorAllocation.selectedIndices.size(), 1);
+    EXPECT_EQ(vectorAllocation.selectedIndices.size(), size_t{1});
     EXPECT_EQ(vectorAllocation.type, resource_view::DISK_RESOURCE_NAME);
     auto diskMountPoint = vectorAllocation.extendedInfo.find(resource_view::DISK_MOUNT_POINT);
     ASSERT_NE(diskMountPoint, vectorAllocation.extendedInfo.end());
@@ -72,11 +72,11 @@ TEST(DiskScorerTest, ScoreWithFloatDiskReq) {
 
     auto score = scorer.Score(preAllocated, instance, unit);
     EXPECT_EQ(score.score, 33); // int((1-100.5/(200-50))*100)
-    EXPECT_EQ(score.vectorAllocations.size(), 1);
+    EXPECT_EQ(score.vectorAllocations.size(), size_t{1});
     auto vectorAllocation = score.vectorAllocations[0];
-    EXPECT_EQ(vectorAllocation.selectedIndices.size(), 1);
+    EXPECT_EQ(vectorAllocation.selectedIndices.size(), size_t{1});
     EXPECT_EQ(vectorAllocation.selectedIndices[0], 2);
-    EXPECT_EQ(vectorAllocation.selectedIndices.size(), 1);
+    EXPECT_EQ(vectorAllocation.selectedIndices.size(), size_t{1});
     EXPECT_EQ(vectorAllocation.type, resource_view::DISK_RESOURCE_NAME);
 
     std::vector<double> expectAlloc{ 0, 0, 100.5 };
@@ -84,7 +84,7 @@ TEST(DiskScorerTest, ScoreWithFloatDiskReq) {
     ASSERT_NE(allocCategory, vectorAllocation.allocationValues.values().end());
     EXPECT_EQ(allocCategory->second.vectors_size(), 1);
     auto valuesAlloc = allocCategory->second.vectors().begin()->second;
-    EXPECT_EQ(valuesAlloc.values_size(), expectAlloc.size());
+    EXPECT_EQ(static_cast<size_t>(valuesAlloc.values_size()), expectAlloc.size());
     for (size_t i = 0; i< expectAlloc.size(); i++) {
         EXPECT_EQ(expectAlloc[i], valuesAlloc.values(i));
     }

@@ -463,7 +463,7 @@ TEST_F(DISABLED_ServiceJsonTest, ParseServiceInfoTest)
     service_json::ServiceInfo serviceInfo;
 
     ParseServiceInfo(vec, configJsonArray);
-    EXPECT_EQ(vec.size(), 1u);
+    EXPECT_EQ(vec.size(), size_t{1});
     EXPECT_EQ(vec[0].service, "service_test");
     EXPECT_EQ(vec[0].kind, "kind_test");
     EXPECT_EQ(vec[0].description, "description_test");
