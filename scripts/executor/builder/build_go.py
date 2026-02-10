@@ -78,4 +78,6 @@ def build_etcd(vendor_path):
         log.warning("Skip ETCD compilation. Compilation product already exists")
         return
     # 原地编译ETCD
-    utils.sync_command(["bash", "build.sh"], cwd=os.path.join(etcd_path))
+    build_env = os.environ.copy()
+    build_env["GOTOOLCHAIN"]="local"
+    utils.sync_command(["bash", "build.sh"], cwd=os.path.join(etcd_path), env=build_env)
