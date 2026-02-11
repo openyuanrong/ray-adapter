@@ -173,10 +173,6 @@ function install_collector() {
   LD_LIBRARY_PATH=${GO_RUNTIME_BIN}:${DS_SDK_GO_LIB}:${LD_LIBRARY_PATH} \
   "${FUNCTION_SYSTEM_DIR}"/bin/collector \
     --collect_id="${NODE_ID}" \
-    --datasystem_port="${DS_WORKER_PORT}" \
-    --datasystem_client_public_key="${CURVE_KEY_PATH}/client.key" \
-    --datasystem_client_private_key="${CURVE_KEY_PATH}/client.key_secret" \
-    --datasystem_server_public_key="${CURVE_KEY_PATH}/worker.key" \
     --ip="${IP_ADDRESS}" \
     --port="${COLLECTOR_PORT}" \
     --log_root="${LOG_ROOT}" \
