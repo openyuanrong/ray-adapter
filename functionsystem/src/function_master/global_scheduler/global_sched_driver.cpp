@@ -43,6 +43,7 @@ const std::string GET_SCHEDULING_QUEUE_URL = "/scheduling_queue";
 const std::string EVICT_AGENT_URL = "/evictagent";
 const std::string QUERY_AGENT_COUNT_URL = "/queryagentcount";
 const std::string QUERY_RESOURCES_URL = "/resources";
+const std::string QUERY_MASTER_INFO_URL = "/masterinfo";
 const std::string JSON_FORMAT = "json";
 const std::string PROTOBUF_FORMAT = "protobuf";
 
@@ -229,6 +230,41 @@ void ResourcesApiRouter::InitQueryResourcesInfoHandler(const std::shared_ptr<Glo
     RegisterHandler(QUERY_RESOURCES_URL, queryResourcesJsonHandler);
 }
 
+void ResourcesApiRouter::InitQueryMasterInfoHandler(const std::shared_ptr<GlobalSched> &globalSched,
+                                                    const std::string &masterAddress,
+                                                    const std::string &metaStoreAddress)
+{
+    auto queryMasterInfoHandler = [globalSched, masterAddress, metaStoreAddress](
+        const HttpRequest &request) -> litebus::Future<HttpResponse> {
+        if (request.method != "GET") {
+            YRLOG_ERROR("Invalid request method.");
+            return HttpResponse(litebus::http::ResponseCode::METHOD_NOT_ALLOWED);
+        }
+        // Can be 'json' for JSON format. Defaults to 'json' if not provided.
+        if (const auto it = request.headers.find("Type"); it != request.headers.end() && it->second != JSON_FORMAT) {
+            YRLOG_ERROR("Unsupported Type format: {}", it->second);
+            return HttpResponse(litebus::http::ResponseCode::BAD_REQUEST);
+        }
+
+        YRLOG_INFO("received a request to query master info.");
+        return globalSched->QueryRootTopologyView().Then(
+            [masterAddress, metaStoreAddress](
+            const messages::ScheduleTopology &scheduleTopo) -> litebus::Future<HttpResponse> {
+                std::string topoStr;
+                google::protobuf::util::JsonOptions options;
+                options.always_print_primitive_fields = false;
+                (void)google::protobuf::util::MessageToJsonString(scheduleTopo, &topoStr, options);
+                nlohmann::json body;
+                body["master_address"] = masterAddress;
+                body["meta_store_address"] = metaStoreAddress;
+                body["schedule_topo"] = nlohmann::json::parse(topoStr);
+                return litebus::http::Ok(body.dump());
+            });
+    };
+
+    RegisterHandler(QUERY_MASTER_INFO_URL, queryMasterInfoHandler);
+}
+
 GlobalSchedDriver::GlobalSchedDriver(std::shared_ptr<GlobalSched> globalSched, const functionmaster::Flags &flags,
                                      const std::shared_ptr<MetaStoreClient> &metaStoreClient)
     : globalSched_(std::move(globalSched)),
@@ -284,6 +320,7 @@ GlobalSchedDriver::GlobalSchedDriver(std::shared_ptr<GlobalSched> globalSched, c
     // add resources api route
     resourcesApiRouteRegister_ = std::make_shared<ResourcesApiRouter>();
     resourcesApiRouteRegister_->InitQueryResourcesInfoHandler(globalSched_);
+    resourcesApiRouteRegister_->InitQueryMasterInfoHandler(globalSched_, globalSchedAddress_, metaStoreAddress_);
     if (auto registerStatus(httpServer_->RegisterRoute(resourcesApiRouteRegister_));
         registerStatus != StatusCode::SUCCESS) {
         YRLOG_ERROR("register resources api router failed.");
