@@ -36,9 +36,12 @@ def parser_args():
     )
     build_parser.add_argument(
         "--build_type",
-        type=str,
-        default="Release",
-        help="Set program compilation mode(Debug/Release). Default: Release",
+        "--build-type",
+        dest="build_type",
+        type=str.lower,
+        choices=["release", "debug", "debug_fast"],
+        default="release",
+        help="Set program compilation mode(release/debug/debug_fast). Default: release",
     )
     build_parser.add_argument(
         "-m",

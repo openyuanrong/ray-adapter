@@ -19,7 +19,8 @@ message(STATUS "PROJECT_SOURCE_DIR：${PROJECT_SOURCE_DIR}")
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
     message(STATUS "compile tools: ccache")
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+    set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
 endif()
 
 include(GNUInstallDirs)
@@ -52,6 +53,7 @@ endforeach ()
 option(BUILD_GCOV "Enable functionsystem gcov output" OFF)
 option(BUILD_LLT "Enable functionsystem unit test" OFF)
 option(SANITIZERS "Enable Sanitizers tool to detect progress bugs" OFF)
+option(FS_FAST_DEBUG "Use lighter Debug flags for faster local compile" ON)
 
 # 引入三方件与配置
 # 设置 vendor 文件夹路径 | VENDOR_DIR
@@ -140,10 +142,15 @@ endfunction()
 set_linker_flags()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_LD_FLAGS} -pipe ${CXX_WANR_FLAGS} ${LANGUAGE_FLAGS} ${CODE_GENERATE_FLAGS} ${OPTIMIZE_FLAGS} ${COMPILE_SAFE_FLAGS}")
-set(CMAKE_CXX_FLAGS_DEBUG "-Og -g3 -ftrapv -fstack-check")
+if (FS_FAST_DEBUG)
+    set(CMAKE_CXX_FLAGS_DEBUG "-Og -g1")
+    set(CMAKE_C_FLAGS_DEBUG "-Og -g1")
+else()
+    set(CMAKE_CXX_FLAGS_DEBUG "-Og -g3 -ftrapv -fstack-check")
+    set(CMAKE_C_FLAGS_DEBUG "-Og -g3 -ftrapv -fstack-check")
+endif()
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -Wextra -Wno-unused-parameter -Wno-float-equal -DNDEBUG")
 set(CMAKE_C_FLAGS "${CMAKE_C_LD_FLAGS} -pipe ${C_WANR_FLAGS} ${LANGUAGE_FLAGS} ${CODE_GENERATE_FLAGS} ${OPTIMIZE_FLAGS} ${COMPILE_SAFE_FLAGS}")
-set(CMAKE_C_FLAGS_DEBUG "-Og -g3 -ftrapv -fstack-check")
 set(CMAKE_C_FLAGS_RELEASE "-O2 -Wextra -Wno-float-equal -DNDEBUG")
 
 # Link flags

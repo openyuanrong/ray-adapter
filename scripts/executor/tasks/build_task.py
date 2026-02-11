@@ -22,14 +22,27 @@ CXX_MODULES = {
 }
 
 
+def resolve_build_type(raw_build_type: str):
+    build_type = raw_build_type.lower()
+    if build_type == "release":
+        return "Release", False
+    if build_type == "debug":
+        return "Debug", False
+    if build_type == "debug_fast":
+        return "Debug", True
+    raise ValueError(f"Invalid build_type: {raw_build_type}")
+
+
 def run_build(root_dir, cmd_args):
     start_time = time.time()
+    cmake_build_type, fast_debug = resolve_build_type(cmd_args.build_type)
     args = {
         "root_dir": root_dir,
         "job_num": cmd_args.job_num,
         "version": cmd_args.version,
-        "build_type": cmd_args.build_type.capitalize(),  # 设置为首字母大写
+        "build_type": cmake_build_type,
         "module": cmd_args.module,
+        "fast_debug": fast_debug,
     }
     if args["job_num"] > (os.cpu_count() or 1) * 2:
         log.warning(f"The -j {args['job_num']} is over the max logical cpu count({os.cpu_count()}) * 2")
@@ -107,7 +120,14 @@ def build_functionsystem(root_dir, args):
     module = args["module"]
     if module == "all":
         # 编译 CPP 程序
-        builder.build_binary(root_dir, args["job_num"], args["version"], args["build_type"], module)
+        builder.build_binary(
+            root_dir,
+            args["job_num"],
+            args["version"],
+            args["build_type"],
+            module,
+            fast_debug=args["fast_debug"],
+        )
         # 编译 CLI 程序
         builder.build_cli(root_dir)
         # 编译 meta-service
@@ -117,4 +137,11 @@ def build_functionsystem(root_dir, args):
     elif module == "meta_service":
         builder.build_meta_service(root_dir)
     else:
-        builder.build_binary(root_dir, args["job_num"], args["version"], args["build_type"], module)
+        builder.build_binary(
+            root_dir,
+            args["job_num"],
+            args["version"],
+            args["build_type"],
+            module,
+            fast_debug=args["fast_debug"],
+        )
