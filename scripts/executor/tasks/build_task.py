@@ -11,6 +11,15 @@ import utils
 import tasks
 
 log = utils.stream_logger()
+CXX_MODULES = {
+    "all",
+    "function_master",
+    "domain_scheduler",
+    "runtime_manager",
+    "function_proxy",
+    "function_agent",
+    "iam_server",
+}
 
 
 def run_build(root_dir, cmd_args):
@@ -20,15 +29,20 @@ def run_build(root_dir, cmd_args):
         "job_num": cmd_args.job_num,
         "version": cmd_args.version,
         "build_type": cmd_args.build_type.capitalize(),  # 设置为首字母大写
+        "module": cmd_args.module,
     }
     if args["job_num"] > (os.cpu_count() or 1) * 2:
         log.warning(f"The -j {args['job_num']} is over the max logical cpu count({os.cpu_count()}) * 2")
     log.info(f"Start to build function-system with args: {json.dumps(args)}")
 
-    build_vendor(args)
-    build_logs(args)
-    build_litebus(args)
-    build_metrics(args)
+    if args["module"] in CXX_MODULES:
+        build_vendor(args)
+        build_logs(args)
+        build_litebus(args)
+        build_metrics(args)
+    else:
+        log.info(f"Skip vendor/common cpp dependencies for module: {args['module']}")
+
     build_functionsystem(root_dir, args)
     elapsed_time = time.time() - start_time
     log.info(f"Build function-system successfully in {elapsed_time:.2f} seconds")
@@ -90,9 +104,17 @@ def build_metrics(args):
 
 def build_functionsystem(root_dir, args):
     log.info("Start to build functionsystem")
-    # 编译 CPP 程序
-    builder.build_binary(root_dir, args["job_num"], args["version"], args["build_type"])
-    # 编译 CLI 程序
-    builder.build_cli(root_dir)
-    # 编译 meta-service
-    builder.build_meta_service(root_dir)
+    module = args["module"]
+    if module == "all":
+        # 编译 CPP 程序
+        builder.build_binary(root_dir, args["job_num"], args["version"], args["build_type"], module)
+        # 编译 CLI 程序
+        builder.build_cli(root_dir)
+        # 编译 meta-service
+        builder.build_meta_service(root_dir)
+    elif module == "cli":
+        builder.build_cli(root_dir)
+    elif module == "meta_service":
+        builder.build_meta_service(root_dir)
+    else:
+        builder.build_binary(root_dir, args["job_num"], args["version"], args["build_type"], module)

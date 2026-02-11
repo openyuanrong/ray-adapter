@@ -40,6 +40,24 @@ def parser_args():
         default="Release",
         help="Set program compilation mode(Debug/Release). Default: Release",
     )
+    build_parser.add_argument(
+        "-m",
+        "--module",
+        type=str,
+        choices=[
+            "all",
+            "function_master",
+            "domain_scheduler",
+            "runtime_manager",
+            "function_proxy",
+            "function_agent",
+            "iam_server",
+            "cli",
+            "meta_service",
+        ],
+        default="all",
+        help="Build a specific module. Support cpp binaries and go modules(cli/meta_service). Default: all",
+    )
     build_parser.set_defaults(func=lambda func_args: tasks.run_build(ROOT_DIR, func_args))
     # 清理缓存执行参数
     clean_parser = subparsers.add_parser("clean", help="Clean all build artifacts and caches")
