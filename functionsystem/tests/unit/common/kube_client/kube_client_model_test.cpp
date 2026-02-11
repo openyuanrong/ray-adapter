@@ -987,7 +987,7 @@ TEST_F(KubeClientModelTest, V1PodSecurityContextTest)
     EXPECT_EQ(0, V1PodSecurityContext_->IsRunAsNonRoot());
     EXPECT_TRUE(V1PodSecurityContext_->RunAsUserIsSet());
     EXPECT_EQ(0, V1PodSecurityContext_->GetRunAsUser());
-    EXPECT_EQ(2, V1PodSecurityContext_->GetSupplementalGroups().size());
+    EXPECT_EQ(size_t{2}, V1PodSecurityContext_->GetSupplementalGroups().size());
 }
 
 TEST_F(KubeClientModelTest, V1PodSpecTest)

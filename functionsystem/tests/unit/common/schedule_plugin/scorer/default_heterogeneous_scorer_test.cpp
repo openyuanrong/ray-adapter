@@ -237,19 +237,19 @@ TEST(DefaultHeterogeneousScorerTest, TestHeteroScoringFracCountCase5) {
     auto instance2 = view_utils::Get1DInstanceWithNpuResource(0.8, "NPU/Ascend910B");
     score = scorer.Score(preAllocated, instance2, unit);
     EXPECT_EQ(score.realIDs[0], 1);
-    EXPECT_EQ(score.realIDs.size(), 1);
+    EXPECT_EQ(score.realIDs.size(), size_t{1});
 
     AddPreAllocated(instance2, preAllocated, unit.id(), score);
     auto instance3 = view_utils::Get1DInstanceWithNpuResource(5, "NPU/Ascend910B");
     score = scorer.Score(preAllocated, instance3, unit);
     EXPECT_EQ(score.realIDs[0], 2);
-    EXPECT_EQ(score.realIDs.size(), 5);
+    EXPECT_EQ(score.realIDs.size(), size_t{5});
 
     AddPreAllocated(instance3, preAllocated, unit.id(), score);
     auto instance4 = view_utils::Get1DInstanceWithNpuResource(0.5, "NPU/Ascend910B");
     score = scorer.Score(preAllocated, instance4, unit);
     EXPECT_EQ(score.realIDs[0], 0);
-    EXPECT_EQ(score.realIDs.size(), 1);
+    EXPECT_EQ(score.realIDs.size(), size_t{1});
 }
 
 }

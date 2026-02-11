@@ -582,17 +582,17 @@ TEST_F(InstanceOperatorTest, ForceDeleteTest)
     EXPECT_AWAIT_READY(fut);
     getFuture = metaStoreClient_->Get(key, GetOption{ .prefix = false });
     EXPECT_AWAIT_READY(fut);
-    EXPECT_EQ(getFuture.Get()->kvs.size(), 1); // check put success
+    EXPECT_EQ(getFuture.Get()->kvs.size(), size_t{1}); // check put success
 
     fut = instanceOpt.ForceDelete(instancePutInfo, routePutInfo, nullptr, false);
     EXPECT_AWAIT_READY(fut);
     EXPECT_EQ(fut.Get().status.StatusCode(), StatusCode::SUCCESS);
     getFuture = metaStoreClient_->Get(key, GetOption{ .prefix = false });
     EXPECT_AWAIT_READY(fut);
-    EXPECT_EQ(getFuture.Get()->kvs.size(), 0);
+    EXPECT_EQ(getFuture.Get()->kvs.size(), size_t{0});
     getFuture = metaStoreClient_->Get(routeKey, GetOption{ .prefix = false });
     EXPECT_AWAIT_READY(fut);
-    EXPECT_EQ(getFuture.Get()->kvs.size(), 0); // check delete success
+    EXPECT_EQ(getFuture.Get()->kvs.size(), size_t{0}); // check delete success
 }
 
 }  // namespace functionsystem::test

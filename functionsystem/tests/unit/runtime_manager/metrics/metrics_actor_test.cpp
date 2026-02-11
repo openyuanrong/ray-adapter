@@ -90,9 +90,9 @@ struct DiskInfo {
 
 void CheckDiskResourceMatch(const Resource& resource, const std::vector<DiskInfo>& expected)
 {
-    EXPECT_EQ(resource.extensions_size(), expected.size());
+    EXPECT_EQ(resource.extensions_size(), static_cast<int>(expected.size()));
     EXPECT_TRUE(resource.vectors().values().count(metrics_type::DISK));
-    EXPECT_EQ(resource.vectors().values().at(metrics_type::DISK).vectors().size(), 1);
+    EXPECT_EQ(resource.vectors().values().at(metrics_type::DISK).vectors().size(), size_t{1});
     auto diskVector =  resource.vectors().values().at(metrics_type::DISK).vectors().begin()->second;
     for (size_t i = 0; i < expected.size(); ++i) {
         const auto& ext = resource.extensions(i);
@@ -244,7 +244,7 @@ TEST_F(DISABLED_MetricsActorTest, BuildResourceUnit)
 
     // got
     auto got = metricsActor_->BuildResourceUnit(given);
-    EXPECT_EQ(metricsActor_->cardIDs_.size(), 4);
+    EXPECT_EQ(metricsActor_->cardIDs_.size(), size_t{4});
 
     // want
     auto unit = got;
@@ -404,7 +404,7 @@ TEST_F(DISABLED_MetricsActorTest, MonitorDiskUsageErrorTest)
     litebus::os::Rmdir(dir);
     litebus::os::Mkdir(dir);
     ExecuteCommand("dd if=/dev/zero of=" + dir + "/test.txt bs=500M count=1");
-    EXPECT_EQ(mockFuncAgentActor->requestArray_.size(), 0);
+    EXPECT_EQ(mockFuncAgentActor->requestArray_.size(), size_t{0});
     litebus::os::Rmdir(dir);
     ExecuteCommand("mv /usr/bin/du1 /usr/bin/du");
     litebus::Terminate(mockFuncAgentActor->GetAID());
@@ -592,14 +592,14 @@ TEST_F(DISABLED_MetricsActorTest, DiskResourceTestWithMixedConfig)
 
     auto devMetrics = metrics.devClusterMetrics.Get();
 
-    EXPECT_EQ(devMetrics.intsInfo.count(resource_view::DISK_RESOURCE_NAME), 1);
-    EXPECT_EQ(devMetrics.intsInfo.at(resource_view::DISK_RESOURCE_NAME).size(), 1);
+    EXPECT_EQ(devMetrics.intsInfo.count(resource_view::DISK_RESOURCE_NAME), size_t{1});
+    EXPECT_EQ(devMetrics.intsInfo.at(resource_view::DISK_RESOURCE_NAME).size(), size_t{1});
     EXPECT_EQ(devMetrics.intsInfo.at(resource_view::DISK_RESOURCE_NAME)[0], 100);
 
-    EXPECT_EQ(devMetrics.extensionInfo.size(), 1);
+    EXPECT_EQ(devMetrics.extensionInfo.size(), size_t{1});
     const auto& diskExt = devMetrics.extensionInfo[0].disk();
     EXPECT_EQ(diskExt.name(), "disk1");
-    EXPECT_EQ(diskExt.size(), 100);
+    EXPECT_EQ(diskExt.size(), size_t{100});
     EXPECT_EQ(diskExt.mountpoints(), "/tmp/disk1/");
 }
 }  // namespace functionsystem::test

@@ -430,7 +430,7 @@ TEST_F(SubscriptionManagerActorTest, CleanFunctionMasterSubscriberSuccessfully) 
         EXPECT_EQ(result.code(), common::ErrorCode::ERR_NONE);
         auto eventKey = "subscribe_master_" + SUBSCRIBER_ID;
         EXPECT_TRUE(subscriber->HasStateChangeCallback(eventKey));
-        EXPECT_EQ(subscriptionMgrActor_->masterSubscriberMap_.size(), 0);
+        EXPECT_EQ(subscriptionMgrActor_->masterSubscriberMap_.size(), size_t{0});
     }
 
     // case 2: subscriber is exited
@@ -470,7 +470,7 @@ TEST_F(SubscriptionManagerActorTest, NotifyMasterIPToSubscribers) {
     std::string expectIP = "192.167.0.4:19247";
     std::string capturedInstanceID;
     std::shared_ptr<KillRequest> capturedKillReq;
-    int subscriberCnt = 5;
+    size_t subscriberCnt = 5;
 
     EXPECT_CALL(*mockLocalSchedSrv_, QueryMasterIP).WillRepeatedly(Return(""));
     auto killReq = std::make_shared<KillRequest>();
@@ -479,7 +479,7 @@ TEST_F(SubscriptionManagerActorTest, NotifyMasterIPToSubscribers) {
     payload.mutable_functionmaster(); // set functionmaster;
     killReq->set_payload(payload.SerializeAsString());
 
-    for (int i = 0; i < subscriberCnt; i++) {
+    for (size_t i = 0; i < subscriberCnt; i++) {
         auto subscriberID = SUBSCRIBER_ID + std::to_string(i);
         auto subscriber = GetInstanceMachine(subscriberID, InstanceState::RUNNING);
         EXPECT_CALL(*mockInstanceCtrlView_, GetInstance).WillOnce(Return(subscriber));
@@ -508,7 +508,7 @@ TEST_F(SubscriptionManagerActorTest, NotifyMasterIPToSubscribers) {
 
         // check whether notify ip whether is right
         common::NotificationPayload deserializedPayload;
-        for (int i = 0; i < subscriberCnt; i++) {
+        for (size_t i = 0; i < subscriberCnt; i++) {
             auto subscriberID = SUBSCRIBER_ID + std::to_string(i);
             EXPECT_EQ(capturedInstanceIDs[i], subscriberID);
             EXPECT_EQ(capturedKillReqs[i]->instanceid(), subscriberID);

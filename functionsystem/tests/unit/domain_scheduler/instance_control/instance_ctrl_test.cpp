@@ -107,7 +107,7 @@ TEST_F(DomainInstanceCtrlTest, ScheduleInstanceSuccessful)
     EXPECT_EQ(rsp->requestid(), requestID);
     EXPECT_TRUE(instanceCtrl_->cancelTag_.find(rsp->requestid())==instanceCtrl_->cancelTag_.end());
     EXPECT_EQ(req->unitsnapshot().localviewinittime(), "INITTIME1");
-    EXPECT_EQ(req->unitsnapshot().version(), 2);
+    EXPECT_EQ(req->unitsnapshot().version(), uint64_t{2});
 }
 
 /**
@@ -149,7 +149,7 @@ TEST_F(DomainInstanceCtrlTest, ScheduleInstanceVersionWrong)
     EXPECT_EQ(rsp->requestid(), requestID);
     EXPECT_TRUE(instanceCtrl_->cancelTag_.find(rsp->requestid())==instanceCtrl_->cancelTag_.end());
     EXPECT_EQ(req->unitsnapshot().localviewinittime(), "INITTIME1");
-    EXPECT_EQ(req->unitsnapshot().version(), 2);
+    EXPECT_EQ(req->unitsnapshot().version(), uint64_t{2});
     EXPECT_TRUE(instanceCtrl_->cancelTag_.find(rsp->requestid())==instanceCtrl_->cancelTag_.end());
 }
 
@@ -304,7 +304,7 @@ TEST_F(DomainInstanceCtrlTest, ReschedulingTriggeredByRetriesFailed)
     EXPECT_EQ(rsp->requestid(), requestID);
     EXPECT_TRUE(instanceCtrl_->cancelTag_.find(rsp->requestid())==instanceCtrl_->cancelTag_.end());
     EXPECT_EQ(req->unitsnapshot().localviewinittime(), "INITTIME1");
-    EXPECT_EQ(req->unitsnapshot().version(), 5);
+    EXPECT_EQ(req->unitsnapshot().version(), uint64_t{5});
 }
 
 /**
@@ -356,7 +356,7 @@ TEST_F(DomainInstanceCtrlTest, ReSchedulingAfterConflict)
     EXPECT_EQ(rsp->requestid(), requestID);
     EXPECT_TRUE(instanceCtrl_->cancelTag_.find(rsp->requestid())==instanceCtrl_->cancelTag_.end());
     EXPECT_EQ(req->unitsnapshot().localviewinittime(), "INITTIME1");
-    EXPECT_EQ(req->unitsnapshot().version(), 5);
+    EXPECT_EQ(req->unitsnapshot().version(), uint64_t{5});
 }
 
 /**
@@ -414,7 +414,7 @@ TEST_F(DomainInstanceCtrlTest, ReSchedulingFailedAfterConflict)
     EXPECT_EQ(rsp->requestid(), requestID);
     EXPECT_TRUE(instanceCtrl_->cancelTag_.find(rsp->requestid())==instanceCtrl_->cancelTag_.end());
     EXPECT_EQ(req->unitsnapshot().localviewinittime(), "INITTIME1");
-    EXPECT_EQ(req->unitsnapshot().version(), 2);
+    EXPECT_EQ(req->unitsnapshot().version(), uint64_t{2});
 }
 
 /**
@@ -477,7 +477,7 @@ TEST_F(DomainInstanceCtrlTest, CreateAgentSuccess)
     EXPECT_EQ(rsp->requestid(), requestID);
     EXPECT_TRUE(instanceCtrl_->cancelTag_.find(rsp->requestid())==instanceCtrl_->cancelTag_.end());
     EXPECT_EQ(req->unitsnapshot().localviewinittime(), "INITTIME1");
-    EXPECT_EQ(req->unitsnapshot().version(), 2);
+    EXPECT_EQ(req->unitsnapshot().version(), uint64_t{2});
 
     litebus::Terminate(mockScaler->GetAID());
     litebus::Await(mockScaler->GetAID());
@@ -542,7 +542,7 @@ TEST_F(DomainInstanceCtrlTest, EnableHorizontalScale)
     EXPECT_EQ(rsp->requestid(), requestID);
     EXPECT_TRUE(instanceCtrl_->cancelTag_.find(rsp->requestid())==instanceCtrl_->cancelTag_.end());
     EXPECT_EQ(req->unitsnapshot().localviewinittime(), "INITTIME1");
-    EXPECT_EQ(req->unitsnapshot().version(), 2);
+    EXPECT_EQ(req->unitsnapshot().version(), uint64_t{2});
     EXPECT_TRUE(req->instance().scheduleoption().schedpolicyname() == MONOPOLY_SCHEDULE);
 
     litebus::Terminate(mockScaler->GetAID());
@@ -602,7 +602,7 @@ TEST_F(DomainInstanceCtrlTest, AffinityCreateAgent)
     EXPECT_EQ(rsp->requestid(), requestID);
     EXPECT_TRUE(instanceCtrl_->cancelTag_.find(rsp->requestid())==instanceCtrl_->cancelTag_.end());
     EXPECT_EQ(req->unitsnapshot().localviewinittime(), "INITTIME1");
-    EXPECT_EQ(req->unitsnapshot().version(), 2);
+    EXPECT_EQ(req->unitsnapshot().version(), uint64_t{2});
 
     litebus::Terminate(mockScaler->GetAID());
     litebus::Await(mockScaler->GetAID());
@@ -733,7 +733,7 @@ TEST_F(DomainInstanceCtrlTest, DISABLED_CreateAgentRetrySuccess)
     EXPECT_EQ(rsp->requestid(), requestID);
     EXPECT_TRUE(instanceCtrl_->cancelTag_.find(rsp->requestid())==instanceCtrl_->cancelTag_.end());
     EXPECT_EQ(req->unitsnapshot().localviewinittime(), "INITTIME1");
-    EXPECT_EQ(req->unitsnapshot().version(), 2);
+    EXPECT_EQ(req->unitsnapshot().version(), uint64_t{2});
 
     litebus::Terminate(mockScaler->GetAID());
     litebus::Await(mockScaler->GetAID());
@@ -862,7 +862,7 @@ TEST_F(DomainInstanceCtrlTest, MonopolyRetry)
     EXPECT_EQ(rsp->code(), StatusCode::SUCCESS);
     EXPECT_TRUE(instanceCtrl_->cancelTag_.find(rsp->requestid())==instanceCtrl_->cancelTag_.end());
     EXPECT_EQ(req->unitsnapshot().localviewinittime(), "INITTIME1");
-    EXPECT_EQ(req->unitsnapshot().version(), 2);
+    EXPECT_EQ(req->unitsnapshot().version(), uint64_t{2});
 }
 
 TEST_F(DomainInstanceCtrlTest, AffinityRetry)
@@ -921,7 +921,7 @@ TEST_F(DomainInstanceCtrlTest, AffinityRetry)
     EXPECT_EQ(rsp->code(), StatusCode::SUCCESS);
     EXPECT_TRUE(instanceCtrl_->cancelTag_.find(rsp->requestid())==instanceCtrl_->cancelTag_.end());
     EXPECT_EQ(req->unitsnapshot().localviewinittime(), "INITTIME1");
-    EXPECT_EQ(req->unitsnapshot().version(), 2);
+    EXPECT_EQ(req->unitsnapshot().version(), uint64_t{2});
 }
 
 /**
@@ -985,7 +985,7 @@ TEST_F(DomainInstanceCtrlTest, DISABLED_CreateAgentByPoolIDAffinityFailed)
     EXPECT_EQ(rsp->requestid(), requestID);
     EXPECT_TRUE(instanceCtrl_->cancelTag_.find(rsp->requestid())==instanceCtrl_->cancelTag_.end());
     EXPECT_EQ(req->unitsnapshot().localviewinittime(), "INITTIME1");
-    EXPECT_EQ(req->unitsnapshot().version(), 2);
+    EXPECT_EQ(req->unitsnapshot().version(), uint64_t{2});
 
     litebus::Terminate(mockScaler->GetAID());
     litebus::Await(mockScaler->GetAID());

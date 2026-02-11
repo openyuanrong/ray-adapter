@@ -698,7 +698,7 @@ TEST_F(MetricsAdapterTest, RegisterBillingInstanceRunningDuration)
     // instance is cleared, no observable res
     MetricsAdapter::GetInstance().CollectBillingInstanceRunningDuration(obRes);
     observedVal = obRes->Value();
-    EXPECT_EQ(observedVal.size(), 0);
+    EXPECT_EQ(observedVal.size(), size_t{0});
     auto billingFunctionOptionMap = MetricsAdapter::GetInstance().GetMetricsContext().GetBillingFunctionOptionsMap();
     EXPECT_TRUE(billingFunctionOptionMap.find(instanceID) == billingFunctionOptionMap.end());
 }
@@ -793,8 +793,8 @@ TEST_F(MetricsAdapterTest, InvalidBillingInstanceRunningDuration)
     MetricsAdapter::GetInstance().GetMetricsContext().SetBillingInstanceReportTime(instanceID, reportTimeMillis + 10);
     MetricsAdapter::GetInstance().CollectBillingInstanceRunningDuration(obRes);
     observedVal = obRes->Value();
-    EXPECT_EQ(observedVal.size(), 0);
-    EXPECT_EQ(MetricsAdapter::GetInstance().GetMetricsContext().GetBillingInstanceMap().size(), 0);
+    EXPECT_EQ(observedVal.size(), size_t{0});
+    EXPECT_EQ(MetricsAdapter::GetInstance().GetMetricsContext().GetBillingInstanceMap().size(), size_t{0});
 }
 
 TEST_F(MetricsAdapterTest, SystemInstanceRunningDuartion)
@@ -824,7 +824,7 @@ TEST_F(MetricsAdapterTest, SystemInstanceRunningDuartion)
     auto obRes = std::make_shared<MetricsApi::ObserveResultT<uint64_t>>();
     MetricsAdapter::GetInstance().CollectBillingInstanceRunningDuration(obRes);
     auto observedVal = obRes->Value();
-    EXPECT_EQ(observedVal.size(), 0);
+    EXPECT_EQ(observedVal.size(), size_t{0});
 }
 
 TEST_F(MetricsAdapterTest, ReportBillingInvokeLantencySystemFunction)
@@ -1072,21 +1072,21 @@ TEST_F(MetricsAdapterTest, PodResourceContextTest)
               view_utils::SCALA_VALUE1);
     EXPECT_EQ(map["pod1"].allocatable.resources().at(view_utils::RESOURCE_CPU_NAME).scalar().value(),
               view_utils::SCALA_VALUE1);
-    EXPECT_EQ(map["pod1"].nodeLabels.size(), 1);
-    EXPECT_EQ(map["pod1"].nodeLabels["key"].size(), 2);
+    EXPECT_EQ(map["pod1"].nodeLabels.size(), size_t{1});
+    EXPECT_EQ(map["pod1"].nodeLabels["key"].size(), size_t{2});
 
     // update
     (*unit.mutable_actualuse()) = view_utils::GetCpuMemResources();
     unit.mutable_nodelabels()->clear();
     metrics::MetricsAdapter::GetInstance().GetMetricsContext().SetPodResource("pod1", unit);
     map = metrics::MetricsAdapter::GetInstance().GetMetricsContext().GetPodResourceMap();
-    EXPECT_EQ(map["pod1"].nodeLabels.size(), 0);
+    EXPECT_EQ(map["pod1"].nodeLabels.size(), size_t{0});
 
     // add pod2
     metrics::MetricsAdapter::GetInstance().GetMetricsContext().SetPodResource("pod2",
                                                                               view_utils::Get1DResourceUnit("pod2"));
     map = metrics::MetricsAdapter::GetInstance().GetMetricsContext().GetPodResourceMap();
-    EXPECT_EQ(map.size(), 2);
+    EXPECT_EQ(map.size(), size_t{2});
     EXPECT_NE(map.find("pod2"), map.end());
 
     // add system pod
@@ -1097,19 +1097,19 @@ TEST_F(MetricsAdapterTest, PodResourceContextTest)
 
     metrics::MetricsAdapter::GetInstance().GetMetricsContext().SetPodResource("system", systemUnit);
     map = metrics::MetricsAdapter::GetInstance().GetMetricsContext().GetPodResourceMap();
-    EXPECT_EQ(map.size(), 2);
+    EXPECT_EQ(map.size(), size_t{2});
     EXPECT_EQ(map.find("system"), map.end());
 
     // delete pod1
     metrics::MetricsAdapter::GetInstance().GetMetricsContext().DeletePodResource("pod1");
     map = metrics::MetricsAdapter::GetInstance().GetMetricsContext().GetPodResourceMap();
-    EXPECT_EQ(map.size(), 1);
+    EXPECT_EQ(map.size(), size_t{1});
     EXPECT_EQ(map.find("pod1"), map.end());
 
     // clear
     metrics::MetricsAdapter::GetInstance().GetMetricsContext().ErasePodResource();
     map = metrics::MetricsAdapter::GetInstance().GetMetricsContext().GetPodResourceMap();
-    EXPECT_EQ(map.size(), 0);
+    EXPECT_EQ(map.size(), size_t{0});
 }
 
 TEST_F(MetricsAdapterTest, CollectPodResourceMetricsTest)
@@ -1128,7 +1128,7 @@ TEST_F(MetricsAdapterTest, CollectPodResourceMetricsTest)
     metrics::MetricsAdapter::GetInstance().GetMetricsContext().SetPodResource("pod2",
                                                                               view_utils::Get1DResourceUnit("pod2"));
     auto map = metrics::MetricsAdapter::GetInstance().GetMetricsContext().GetPodResourceMap();
-    EXPECT_EQ(map.size(), 2);
+    EXPECT_EQ(map.size(), size_t{2});
 
     // register observable instrument
     MetricsAdapter::GetInstance().RegisterPodResource();
@@ -1150,7 +1150,7 @@ TEST_F(MetricsAdapterTest, CollectPodResourceMetricsTest)
         }
         YRLOG_DEBUG("value: {}", value.second);
     }
-    EXPECT_EQ(obRes->Value().size(), 2);
+    EXPECT_EQ(obRes->Value().size(), size_t{2});
 }
 
 }  // namespace functionsystem::test

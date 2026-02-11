@@ -124,7 +124,7 @@ TEST_F(InstanceXpuCollectorTest, InstanceNPUCollectorGetUsage)
             std::make_shared<runtime_manager::InstanceXPUCollector>(info, runtime_manager::metrics_type::NPU, tool, params);
 
     instNpuCollector->probe_ = probe;
-    ASSERT_EQ(instNpuCollector->logicIDs_.size(), 1);
+    ASSERT_EQ(instNpuCollector->logicIDs_.size(), size_t{1});
     litebus::Future<runtime_manager::Metric> future = instNpuCollector->GetUsage();
     runtime_manager::Metric metric = future.Get();
     ASSERT_EQ(metric.value, 8.0);

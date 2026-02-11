@@ -111,7 +111,7 @@ TEST_F(MetaStoreKvTest, KvInitExploreTest)  // NOLINT
     actor3->InitExplorer();
     EXPECT_FALSE(actor3->needExplore_);
     EXPECT_EQ(actor3->curStatus_, MASTER_BUSINESS);
-    EXPECT_EQ(actor3->businesses_.size(), 2);
+    EXPECT_EQ(actor3->businesses_.size(), size_t{2});
     EXPECT_EQ(actor3->business_, actor3->businesses_[MASTER_BUSINESS]);
 
     // needExplore_ == false, ignore UpdateLeaderInfo

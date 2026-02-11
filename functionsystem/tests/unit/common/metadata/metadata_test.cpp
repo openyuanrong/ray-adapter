@@ -744,8 +744,8 @@ TEST_F(LoaderTest, GetExtendedMetaDataFromJson)
         }
     })";
     FunctionMeta ins_function = GetFuncMetaFromJson(ins_json);
-    EXPECT_EQ(ins_function.extendedMetaData.initializer.timeout, 180);
+    EXPECT_EQ(ins_function.extendedMetaData.initializer.timeout, uint32_t{180});
     EXPECT_EQ(ins_function.extendedMetaData.userAgency.accessKey, "123");
-    EXPECT_EQ(ins_function.extendedMetaData.customGracefulShutdown.maxShutdownTimeout, 10);
+    EXPECT_EQ(ins_function.extendedMetaData.customGracefulShutdown.maxShutdownTimeout, uint32_t{10});
 }
 }

@@ -98,7 +98,7 @@ public:
 
 
 
-static int MakeTmpDir(const std::string &path = "tmp")
+[[maybe_unused]] static int MakeTmpDir(const std::string &path = "tmp")
 {
     std::string cmd = "mkdir -p " + path;
     int r = system(cmd.c_str());

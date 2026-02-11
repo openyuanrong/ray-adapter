@@ -807,7 +807,7 @@ TEST_F(DISABLED_InstanceManagerTest, OnLocalSchedulerFaultNotRecover)  // NOLINT
 
     map.clear();  // [notice] clear and then Get
     litebus::Async(instanceMgrActor->GetAID(), &InstanceManagerActor::Get, NODE_ID_2, &map).Get();
-    EXPECT_EQ(map.size(), 1u);
+    EXPECT_EQ(map.size(), size_t{1});
 
     instanceMgrDriver->Stop();
     instanceMgrDriver->Await();
@@ -2326,7 +2326,6 @@ TEST_F(DISABLED_InstanceManagerTest, IsInstanceShouldBeKilledTest)
     auto masterBusiness = std::make_shared<InstanceManagerActor::MasterBusiness>(member, instanceMgrActor);
     masterBusiness->member_->family = std::make_shared<InstanceFamilyCaches>();
     std::string instanceIDA = "instanceA";
-    InstanceState instanceStatusA = InstanceState::RUNNING;
     std::shared_ptr<resource_view::InstanceInfo> instanceInfoA = std::make_shared<resource_view::InstanceInfo>();
     instanceInfoA->set_instanceid("instanceA");
     instanceInfoA->mutable_instancestatus()->set_code(int32_t(InstanceState::RUNNING));
@@ -2358,7 +2357,6 @@ TEST_F(DISABLED_InstanceManagerTest, IsInstanceManagedByJobTest)
         nullptr, nullptr, nullptr, nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     instanceMgrActor->member_->family = std::make_shared<InstanceFamilyCaches>();
     std::string instanceIDA = "instanceA";
-    InstanceState instanceStatusA = InstanceState::RUNNING;
     std::shared_ptr<resource_view::InstanceInfo> instanceInfoA = std::make_shared<resource_view::InstanceInfo>();
     instanceInfoA->set_instanceid("instanceA");
     instanceInfoA->mutable_instancestatus()->set_code(int32_t(InstanceState::RUNNING));
