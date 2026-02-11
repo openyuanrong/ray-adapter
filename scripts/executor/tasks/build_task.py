@@ -43,6 +43,7 @@ def run_build(root_dir, cmd_args):
         "build_type": cmake_build_type,
         "module": cmd_args.module,
         "fast_debug": fast_debug,
+        "linker": cmd_args.linker,
     }
     if args["job_num"] > (os.cpu_count() or 1) * 2:
         log.warning(f"The -j {args['job_num']} is over the max logical cpu count({os.cpu_count()}) * 2")
@@ -127,6 +128,7 @@ def build_functionsystem(root_dir, args):
             args["build_type"],
             module,
             fast_debug=args["fast_debug"],
+            linker=args["linker"],
         )
         # 编译 CLI 程序
         builder.build_cli(root_dir)
@@ -144,4 +146,5 @@ def build_functionsystem(root_dir, args):
             args["build_type"],
             module,
             fast_debug=args["fast_debug"],
+            linker=args["linker"],
         )

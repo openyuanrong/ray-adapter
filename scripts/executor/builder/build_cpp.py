@@ -13,7 +13,7 @@ def build_gtest(root_dir, job_num):
     build_functionsystem(root_dir, job_num, build_type="Debug", gtest=True)
 
 
-def build_binary(root_dir, job_num, version, build_type="Release", module="all", fast_debug=True):
+def build_binary(root_dir, job_num, version, build_type="Release", module="all", fast_debug=True, linker="auto"):
     build_functionsystem(
         root_dir,
         job_num,
@@ -21,6 +21,7 @@ def build_binary(root_dir, job_num, version, build_type="Release", module="all",
         version=version,
         module=module,
         fast_debug=fast_debug,
+        linker=linker,
     )
 
 
@@ -36,6 +37,7 @@ def build_functionsystem(
     gtest=False,
     module="all",
     fast_debug=True,
+    linker="auto",
 ):
     log.info("Build cpp code in functionsystem")
 
@@ -64,6 +66,7 @@ def build_functionsystem(
         "JEMALLOC_PROF_ENABLE": bool2switch(jemalloc),
         "FUNCTION_SYSTEM_BUILD_TARGET": module,
         "FS_FAST_DEBUG": bool2switch(fast_debug),
+        "FS_LINKER": linker,
         "FUNCTION_SYSTEM_BUILD_TIME_TRACE": bool2switch(time_trace),
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
     }

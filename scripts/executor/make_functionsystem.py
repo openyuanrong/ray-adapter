@@ -61,6 +61,13 @@ def parser_args():
         default="all",
         help="Build a specific module. Support cpp binaries and go modules(cli/meta_service). Default: all",
     )
+    build_parser.add_argument(
+        "--linker",
+        type=str.lower,
+        choices=["auto", "gold", "lld", "mold"],
+        default="auto",
+        help="Select cpp linker backend. Default: auto (legacy behavior, no mold unless explicitly selected)",
+    )
     build_parser.set_defaults(func=lambda func_args: tasks.run_build(ROOT_DIR, func_args))
     # 清理缓存执行参数
     clean_parser = subparsers.add_parser("clean", help="Clean all build artifacts and caches")
