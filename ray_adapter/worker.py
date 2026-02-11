@@ -210,6 +210,7 @@ def _make_remote(function_or_class, options):
 
     name = options.get("name")
     namespace = options.get("namespace")
+    get_if_exists = options.get("get_if_exists")
     if name is not None:
         if not isinstance(name, str):
             raise TypeError(
@@ -224,6 +225,7 @@ def _make_remote(function_or_class, options):
                              "Pass None to not specify a namespace.")
     opts.name = name
     opts.namespace = namespace
+    opts.get_if_exists = False if get_if_exists is None else get_if_exists
 
     scheduling_strategy = options.get("scheduling_strategy", None)
     if isinstance(scheduling_strategy, PlacementGroupSchedulingStrategy):

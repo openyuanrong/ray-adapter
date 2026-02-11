@@ -201,6 +201,5 @@ class TestProxyAdaptor(unittest.TestCase):
         res = build_yr_scheduling_options(mock_opts, runtime_env=env)
         self.assertEqual(res.runtime_env, env)
 
-
 if __name__ == "__main__":
     unittest.main()
