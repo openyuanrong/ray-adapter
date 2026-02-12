@@ -19,6 +19,7 @@
 #include "common/aksk/aksk_util.h"
 #include "common/constants/constants.h"
 #include "common/etcd_service/etcd_service_driver.h"
+#include "common/hex/hex.h"
 #include "common/utils/aksk_content.h"
 #include "common/utils/sensitive_value.h"
 #include "function_proxy/common/iam/internal_credential_manager_actor.h"
@@ -99,7 +100,7 @@ TEST_F(BuildInCredentialTest, InitCredentialIAM_ValidEnv_Test)  // NOLINT
 
     const auto count = litebus::Async(aid, &InternalCredentialManagerActor::GetCredentialCount);
     EXPECT_AWAIT_READY(count);  // wait async action
-    EXPECT_EQ(count.Get(), 2);
+    EXPECT_EQ(count.Get(), size_t{2});
 
     EXPECT_NE(actor->newCredMap_.find("t"), actor->newCredMap_.end());
     EXPECT_EQ(actor->newCredMap_.find("t")->second->accessKey, "a");
@@ -112,7 +113,7 @@ TEST_F(BuildInCredentialTest, InitCredentialIAM_ValidEnv_Test)  // NOLINT
 
     const auto count_2 = litebus::Async(aid, &InternalCredentialManagerActor::GetCredentialCount);
     EXPECT_AWAIT_READY(count_2);  // wait async action
-    EXPECT_EQ(count_2.Get(), 2);  // 永久凭据不支持删除
+    EXPECT_EQ(count_2.Get(), size_t{2});  // 永久凭据不支持删除
 
     litebus::Terminate(aid);
     litebus::Await(aid);
@@ -131,7 +132,7 @@ TEST_F(BuildInCredentialTest, InitCredentialIAM_InvalidEnv_Test)  // NOLINT
     // Do set env action after load credential from env within Init
     auto ready = litebus::Async(aid, &InternalCredentialManagerActor::GetCredentialCount);
     ASSERT_AWAIT_READY(ready);  // for ready
-    EXPECT_EQ(ready.Get(), 1);
+    EXPECT_EQ(ready.Get(), size_t{1});
 
     {  // invalid json
         SensitiveValue plain(R"({])");
@@ -140,7 +141,7 @@ TEST_F(BuildInCredentialTest, InitCredentialIAM_InvalidEnv_Test)  // NOLINT
         litebus::Async(aid, &InternalCredentialManagerActor::LoadBuiltInCredential);
         auto count = litebus::Async(aid, &InternalCredentialManagerActor::GetCredentialCount);
         ASSERT_AWAIT_READY(count);  // wait async action
-        EXPECT_EQ(count.Get(), 1);
+        EXPECT_EQ(count.Get(), size_t{1});
 
         litebus::os::UnSetEnv(YR_BUILD_IN_CREDENTIAL);
     }
@@ -152,7 +153,7 @@ TEST_F(BuildInCredentialTest, InitCredentialIAM_InvalidEnv_Test)  // NOLINT
         litebus::Async(aid, &InternalCredentialManagerActor::LoadBuiltInCredential);
         auto count = litebus::Async(aid, &InternalCredentialManagerActor::GetCredentialCount);
         ASSERT_AWAIT_READY(count);  // wait async action
-        EXPECT_EQ(count.Get(), 1);
+        EXPECT_EQ(count.Get(), size_t{1});
 
         litebus::os::UnSetEnv(YR_BUILD_IN_CREDENTIAL);
     }
@@ -164,7 +165,7 @@ TEST_F(BuildInCredentialTest, InitCredentialIAM_InvalidEnv_Test)  // NOLINT
         litebus::Async(aid, &InternalCredentialManagerActor::LoadBuiltInCredential);
         auto count = litebus::Async(aid, &InternalCredentialManagerActor::GetCredentialCount);
         ASSERT_AWAIT_READY(count);  // wait async action
-        EXPECT_EQ(count.Get(), 1);
+        EXPECT_EQ(count.Get(), size_t{1});
 
         litebus::os::UnSetEnv(YR_BUILD_IN_CREDENTIAL);
     }
@@ -176,7 +177,7 @@ TEST_F(BuildInCredentialTest, InitCredentialIAM_InvalidEnv_Test)  // NOLINT
         litebus::Async(aid, &InternalCredentialManagerActor::LoadBuiltInCredential);
         auto count = litebus::Async(aid, &InternalCredentialManagerActor::GetCredentialCount);
         ASSERT_AWAIT_READY(count);  // wait async action
-        EXPECT_EQ(count.Get(), 1);
+        EXPECT_EQ(count.Get(), size_t{1});
 
         litebus::os::UnSetEnv(YR_BUILD_IN_CREDENTIAL);
     }
@@ -190,7 +191,7 @@ TEST_F(BuildInCredentialTest, InitCredentialIAM_InvalidEnv_Test)  // NOLINT
         litebus::Async(aid, &InternalCredentialManagerActor::LoadBuiltInCredential);
         auto count = litebus::Async(aid, &InternalCredentialManagerActor::GetCredentialCount);
         ASSERT_AWAIT_READY(count);  // wait async action
-        EXPECT_EQ(count.Get(), 1);
+        EXPECT_EQ(count.Get(), size_t{1});
 
         litebus::os::UnSetEnv(YR_BUILD_IN_CREDENTIAL);
     }
@@ -269,7 +270,7 @@ TEST_F(SystemCredentialTest, LoadSystemCredential_Test)  // NOLINT
     // Do set env action after load credential from env within Init
     auto count = litebus::Async(aid, &InternalCredentialManagerActor::GetCredentialCount);
     ASSERT_AWAIT_READY(count);  // wait async action
-    EXPECT_EQ(count.Get(), 1);
+    EXPECT_EQ(count.Get(), size_t{1});
 
     litebus::Terminate(aid);
     litebus::Await(aid);
@@ -286,13 +287,13 @@ TEST_F(SystemCredentialTest, LoadSystemCredential_Error_Test)  // NOLINT
     // Do set env action after load credential from env within Init
     auto count = litebus::Async(aid, &InternalCredentialManagerActor::GetCredentialCount);
     ASSERT_AWAIT_READY(count);  // wait async action
-    EXPECT_EQ(count.Get(), 0);
+    EXPECT_EQ(count.Get(), size_t{0});
 
     litebus::os::SetEnv("LITEBUS_AKSK_ENABLED", "1");
     litebus::Async(aid, &InternalCredentialManagerActor::LoadSystemCredential);
     count = litebus::Async(aid, &InternalCredentialManagerActor::GetCredentialCount);
     ASSERT_AWAIT_READY(count);  // wait async action
-    EXPECT_EQ(count.Get(), 0);
+    EXPECT_EQ(count.Get(), size_t{0});
 
     litebus::Terminate(aid);
     litebus::Await(aid);

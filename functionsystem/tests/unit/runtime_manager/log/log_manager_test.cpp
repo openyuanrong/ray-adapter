@@ -794,8 +794,8 @@ TEST_F(LogManagerTest, ReleaseLogPrefix)
 
 TEST_F(LogManagerTest, AddLogAndPopLogTest)
 {
-    int toDeleteCount = 200;
-    for (int i = 0; i < toDeleteCount; i++) {
+    size_t toDeleteCount = 200;
+    for (size_t i = 0; i < toDeleteCount; i++) {
         helper_->expiredLogQueue_->AddLogFile(std::make_shared<RuntimeLogFile>("", "/tmp/xxx_"+std::to_string(i), 1756216109, false),
                                               false);
     }

@@ -13,8 +13,16 @@ def build_gtest(root_dir, job_num):
     build_functionsystem(root_dir, job_num, build_type="Debug", gtest=True)
 
 
-def build_binary(root_dir, job_num, version, build_type="Release"):
-    build_functionsystem(root_dir, job_num, build_type=build_type, version=version)
+def build_binary(root_dir, job_num, version, build_type="Release", module="all", fast_debug=True, linker="auto"):
+    build_functionsystem(
+        root_dir,
+        job_num,
+        build_type=build_type,
+        version=version,
+        module=module,
+        fast_debug=fast_debug,
+        linker=linker,
+    )
 
 
 def build_functionsystem(
@@ -27,6 +35,9 @@ def build_functionsystem(
     jemalloc=False,
     sanitizers=False,
     gtest=False,
+    module="all",
+    fast_debug=True,
+    linker="auto",
 ):
     log.info("Build cpp code in functionsystem")
 
@@ -53,13 +64,16 @@ def build_functionsystem(
         "BUILD_THREAD_NUM": job_num,
         "ROOT_DIR": root_dir,  # 为了数据系统路径
         "JEMALLOC_PROF_ENABLE": bool2switch(jemalloc),
+        "FUNCTION_SYSTEM_BUILD_TARGET": module,
+        "FS_FAST_DEBUG": bool2switch(fast_debug),
+        "FS_LINKER": linker,
         "FUNCTION_SYSTEM_BUILD_TIME_TRACE": bool2switch(time_trace),
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
     }
     cmake_generate(code_path, build_dir, cmake_args)
 
     # 使用 Ninja 编译程序
-    ninja_make(build_dir, str(job_num))
+    ninja_make(build_dir, str(job_num), module)
 
     # 使用 CMake 完成产物复制
     cmake_install(build_dir)
@@ -76,9 +90,12 @@ def cmake_generate(source_dir, build_dir, cmake_args: dict[str, str]):
     utils.sync_command(["cmake", "-G", "Ninja", "-S", source_dir, "-B", build_dir, *args])
 
 
-def ninja_make(build_dir: str, job_num: str):
-    log.info(f"Run Ninja build in dir[{build_dir}] using {job_num} cores.")
-    utils.sync_command(["ninja", "-C", build_dir, "-j", job_num])
+def ninja_make(build_dir: str, job_num: str, module: str = "all"):
+    log.info(f"Run Ninja build in dir[{build_dir}] using {job_num} cores. Module: {module}")
+    command = ["ninja", "-C", build_dir, "-j", job_num]
+    if module != "all":
+        command.append(module)
+    utils.sync_command(command)
 
 
 def cmake_install(build_dir: str):

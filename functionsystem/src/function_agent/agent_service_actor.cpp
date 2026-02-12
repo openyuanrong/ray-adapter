@@ -42,7 +42,7 @@ using messages::RuleType;
 static const int32_t GRACE_SHUTDOWN_DELAY = 3;
 static const int32_t GRACE_SHUTDOWN_TIMEOUT_MS = 1000;
 static const uint32_t DOWNLOAD_CODE_RETRY_TIMES = 5;
-static const uint32_t GRACE_SHUTDOWN_CLEAN_AGENT_TIMEOUT = 3 * UPDATE_AGENT_STATUS_TIMEOUT; // 1500ms
+static const uint32_t GRACE_SHUTDOWN_CLEAN_AGENT_TIMEOUT = 3 * UPDATE_AGENT_STATUS_TIMEOUT;  // 1500ms
 static const std::string SF_CONFIG_PATH = "SF_CONFIG_PATH";
 static const std::string SF_SCHEDULE_TIMEOUT_MS = "SF_SCHEDULE_TIMEOUT_MS";
 static const std::string SF_INSTANCE_TYPE_NOTE = "SF_INSTANCE_TYPE_NOTE";
@@ -235,7 +235,8 @@ void AgentServiceActor::DownloadCodeAndStartRuntime(
     }
     if (deployObjects->empty()) {
         YRLOG_INFO("{}|directly start runtime({}).", req->requestid(), req->instanceid());
-        (void)StartRuntime(req);
+        PrepareEnv(req).OnComplete(
+            litebus::Defer(GetAID(), &AgentServiceActor::StartRuntime, req, std::placeholders::_1));
         return;
     }
 
@@ -315,6 +316,30 @@ litebus::Future<DeployResult> AgentServiceActor::AsyncDownloadCode(
     DownloadCode(request, deployer, promise, 1);
     return promise->GetFuture();
 }
+
+litebus::Future<Status> AgentServiceActor::PrepareEnv(const DeployInstanceRequest &request)
+{
+    const auto requestID = request->requestid();
+    if (prepareEnvRequest_.find(requestID) != prepareEnvRequest_.end()) {
+        return prepareEnvRequest_[requestID]->GetFuture();
+    }
+    if (!pluginClient_) {
+        pluginClient_ = std::make_shared<MultiPluginClient>();
+    }
+    prepareEnvRequest_[requestID] = std::make_shared<litebus::Promise<Status>>();
+    auto promise = prepareEnvRequest_[requestID];
+    promise->Associate(pluginClient_->PrepareEnv(request));
+    return promise->GetFuture();
+}
+
+litebus::Future<bool> AgentServiceActor::RecoverPluginCache(const std::string &message)
+{
+    if (!pluginClient_) {
+        pluginClient_ = std::make_shared<MultiPluginClient>();
+    }
+    return pluginClient_->RecoverPluginCache(message);
+}
+
 
 bool AgentServiceActor::IsDownloadFailed(const std::shared_ptr<messages::DeployInstanceRequest> &req)
 {
@@ -531,8 +556,8 @@ bool AgentServiceActor::SetNetwork(const std::vector<NetworkConfig> &configs)
 
             auto nameserverList = NetworkTool::GetNameServerList();
             for (std::string &nameserver : nameserverList) {
-                auto routeConfig =
-                    RouteConfig{ config.routeConfig.Get().gateway, nameserver, addrInfo.Get().interface };
+                auto routeConfig = RouteConfig{config.routeConfig.Get().gateway, nameserver,
+                                               addrInfo.Get().interface};
                 if (!NetworkTool::SetRoute(routeConfig)) {
                     YRLOG_ERROR("set dns server {} route failed.", nameserver);
                     return false;
@@ -834,6 +859,11 @@ void AgentServiceActor::StartInstanceResponse(const litebus::AID &from, std::str
                    startInstanceResponse.startruntimeinstanceresponse().runtimeid(),
                    startInstanceResponse.startruntimeinstanceresponse().address(),
                    startInstanceResponse.startruntimeinstanceresponse().pid());
+        if (!pluginClient_) {
+            pluginClient_ = std::make_shared<MultiPluginClient>();
+        }
+        pluginClient_->IncreaseEnvRef(request->second.request,
+                                      startInstanceResponse.startruntimeinstanceresponse().runtimeid());
     }
 
     auto deployInstanceResponse = BuildDeployInstanceResponse(startInstanceResponse, request->second.request);
@@ -899,7 +929,10 @@ void AgentServiceActor::StopInstanceResponse(const litebus::AID &from, std::stri
     }
 
     DeleteCodeReferByRuntimeInstanceInfo(runtimeIter->second);
-
+    if (!pluginClient_) {
+        pluginClient_ = std::make_shared<MultiPluginClient>();
+    }
+    pluginClient_->DecreaseEnvRef(runtimeID, runtimeIter->second);
     (void)runtimesDeploymentCache_->runtimes.erase(runtimeID);
     (void)killingRequest_.erase(requestID);
 
@@ -1057,8 +1090,31 @@ void AgentServiceActor::MarkRuntimeManagerUnavailable(const std::string &id)
     UpdateAgentStatusToLocal(static_cast<int32_t>(RUNTIME_MANAGER_REGISTER_FAILED));
 }
 
-Status AgentServiceActor::StartRuntime(const DeployInstanceRequest &request)
+Status AgentServiceActor::StartRuntime(const DeployInstanceRequest &request,
+                                       const litebus::Future<Status> &prepareEnvRes)
 {
+    if (prepareEnvRes.IsError()) {
+        return Status(StatusCode::FUNC_AGENT_START_RUNTIME_FAILED, "prepare env failed");
+    }
+    const auto &prepareResult = prepareEnvRes.Get();
+    if (prepareResult.IsError()) {
+        YRLOG_ERROR("{}|{}|failed to prepare runtime env, instance {}", request->traceid(), request->requestid(),
+                    request->instanceid());
+        std::string errorMsg = prepareResult.GetMessage();
+        if (prepareResult.StatusCode() == StatusCode::REQUEST_TIME_OUT) {
+            errorMsg = "prepare runtime env timeout, " + errorMsg;
+        }
+        auto resp = InitDeployInstanceResponse(static_cast<int32_t>(StatusCode::ERR_INNER_SYSTEM_ERROR),
+                                               errorMsg, *request);
+        (void)Send(localSchedFuncAgentMgrAID_, "DeployInstanceResponse", resp.SerializeAsString());
+        prepareEnvRequest_.erase(request->requestid());
+        return Status(StatusCode::FUNC_AGENT_START_RUNTIME_FAILED, "prepare env failed");
+    }
+    YRLOG_INFO("{}|{}|prepare runtime env succeed, instance {}", request->traceid(), request->requestid(),
+               request->instanceid());
+    for (const auto &[fst, snd] : request->createoptions()) {
+        YRLOG_DEBUG("{}|{}|request cmds key {}, value {}", request->traceid(), request->requestid(), fst, snd);
+    }
     auto startInstanceRequest = std::make_unique<messages::StartInstanceRequest>();
     function_agent::SetStartRuntimeInstanceRequestConfig(startInstanceRequest, request);
     if (request->funcdeployspec().storagetype() == COPY_STORAGE_TYPE) {
@@ -1072,13 +1128,14 @@ Status AgentServiceActor::StartRuntime(const DeployInstanceRequest &request)
         auto resp = InitDeployInstanceResponse(static_cast<int32_t>(StatusCode::ERR_INNER_COMMUNICATION),
                                                "invalid runtime-manager", *request);
         (void)Send(localSchedFuncAgentMgrAID_, "DeployInstanceResponse", resp.SerializeAsString());
+        prepareEnvRequest_.erase(request->requestid());
         return Status(StatusCode::FUNC_AGENT_START_RUNTIME_FAILED, "invalid runtime-manager");
     }
     YRLOG_INFO("{}|{}|send StartInstance request to ({}-{}), instance: {}", request->traceid(), request->requestid(),
                registerRuntimeMgr_.name, registerRuntimeMgr_.address, request->instanceid());
     Send(litebus::AID(registerRuntimeMgr_.name, registerRuntimeMgr_.address), "StartInstance",
          startInstanceRequest->SerializeAsString());
-
+    prepareEnvRequest_.erase(request->requestid());
     return Status::OK();
 }
 
@@ -1095,7 +1152,7 @@ void AgentServiceActor::SetRegisterHelper(const std::shared_ptr<RegisterHelper> 
 void AgentServiceActor::ReceiveRegister(const std::string &message)
 {
     YRLOG_INFO("receive register message");
-    messages::RegisterRuntimeManagerResponse rsp;
+    auto rsp = std::make_shared<messages::RegisterRuntimeManagerResponse>();
     messages::RegisterRuntimeManagerRequest req;
     if (!req.ParseFromString(message)) {
         YRLOG_ERROR("failed to parse RuntimeManager register message");
@@ -1107,13 +1164,13 @@ void AgentServiceActor::ReceiveRegister(const std::string &message)
             YRLOG_INFO(
                 "{}|FunctionAgent has received RuntimeManager(id:{}) register request before, discard this request",
                 agentID_, req.id());
-            rsp.set_code(static_cast<int32_t>(StatusCode::SUCCESS));
+            rsp->set_code(static_cast<int32_t>(StatusCode::SUCCESS));
         } else {
             YRLOG_WARN("{}|FunctionAgent receive RuntimeManager(id:{}) pong timeout and retry register failed",
                        agentID_, req.id());
-            rsp.set_code(static_cast<int32_t>(StatusCode::REGISTER_ERROR));
+            rsp->set_code(static_cast<int32_t>(StatusCode::REGISTER_ERROR));
         }
-        registerHelper_->SendRegistered(req.name(), req.address(), rsp.SerializeAsString());
+        registerHelper_->SendRegistered(req.name(), req.address(), rsp->SerializeAsString());
         return;
     }
 
@@ -1135,16 +1192,27 @@ void AgentServiceActor::ReceiveRegister(const std::string &message)
     }
     registeredResourceUnit_->CopyFrom(req.resourceunit());
 
-    // send Registered message back to runtime_manager
-    rsp.set_code(static_cast<int32_t>(StatusCode::SUCCESS));
-    YRLOG_INFO("gonna send Registered message back to RuntimeManager({}-{})", registerRuntimeMgr_.name,
-               registerRuntimeMgr_.address);
-    registerHelper_->SendRegistered(registerRuntimeMgr_.name, registerRuntimeMgr_.address, rsp.SerializeAsString());
+    // recover plugin cache from runtime-manager request
+    litebus::Async(GetAID(), &AgentServiceActor::RecoverPluginCache, message)
+        .OnComplete([rsp, this](const litebus::Future<bool> &pluginRegisterResFut) {
+            if (pluginRegisterResFut.IsError() || !pluginRegisterResFut.Get()) {
+                // we must not proceed to avoid using incorrect cache
+                // for example, a user's virtual env is being deleted while it is still in use,
+                // causing the cache to hold invalid references.
+                YRLOG_ERROR("agent plugin register error, no need send response back");
+                return;
+            }
+            rsp->set_code(static_cast<int32_t>(StatusCode::SUCCESS));
+            YRLOG_INFO("gonna send Registered message back to RuntimeManager({}-{})", registerRuntimeMgr_.name,
+                       registerRuntimeMgr_.address);
+            registerHelper_->SendRegistered(registerRuntimeMgr_.name, registerRuntimeMgr_.address,
+                                            rsp->SerializeAsString());
 
-    // start to register function_agent to local_scheduler
-    RegisterAgent()
-        .Then(litebus::Defer(GetAID(), &AgentServiceActor::StartPingPong, std::placeholders::_1))
-        .Then(litebus::Defer(GetAID(), &AgentServiceActor::CreateStaticFunctionInstance));
+            // start to register function_agent to local_scheduler
+            RegisterAgent()
+                .Then(litebus::Defer(GetAID(), &AgentServiceActor::StartPingPong, std::placeholders::_1))
+                .Then(litebus::Defer(GetAID(), &AgentServiceActor::CreateStaticFunctionInstance));
+        });
 }
 
 void AgentServiceActor::AddCodeReferByRuntimeInstanceInfo(const messages::RuntimeInstanceInfo &info)
@@ -1774,5 +1842,13 @@ bool AgentServiceActor::IsDelegateWorkingDirPath(const DeployerParameters &deplo
 {
     // if the bucket id (working dir) is the code destination path, the deployObject is for a delegate working dir code
     return deployObject.request->deploymentconfig().bucketid() == deployObject.destination;
+}
+
+litebus::Future<Status> AgentServiceActor::LoadPlugins(const std::string &configs)
+{
+    if (!pluginClient_) {
+        pluginClient_ = std::make_shared<MultiPluginClient>();
+    }
+    return pluginClient_->RegisterPlugin(configs);
 }
 }  // namespace functionsystem::function_agent

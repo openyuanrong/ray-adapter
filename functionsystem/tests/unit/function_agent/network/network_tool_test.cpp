@@ -193,7 +193,7 @@ TEST_F(NetworkToolTest, ParseNetworkConfigTest)
 
     str1 = "fake_json";
     config1 = function_agent::NetworkTool::ParseNetworkConfig(str1);
-    EXPECT_EQ(config1.size(), 0);
+    EXPECT_EQ(config1.size(), size_t{0});
 }
 
 /**

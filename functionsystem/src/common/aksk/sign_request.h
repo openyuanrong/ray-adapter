@@ -15,8 +15,8 @@
  */
 
 
-#ifndef COMMON_SIGN_REQUEST_H
-#define COMMON_SIGN_REQUEST_H
+#ifndef COMMON_AKSK_SIGN_REQUEST_H
+#define COMMON_AKSK_SIGN_REQUEST_H
 
 #include <map>
 #include <memory>
@@ -42,4 +42,4 @@ public:
 };
 }  // namespace functionsystem
 
-#endif // COMMON_SIGN_REQUEST_H
+#endif // COMMON_AKSK_SIGN_REQUEST_H

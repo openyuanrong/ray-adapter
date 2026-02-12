@@ -92,6 +92,11 @@ public:
 
     void Await() override;
 
+    std::shared_ptr<ResourceGroupManagerActor> GetResourceGroupManagerActor()
+    {
+        return resourceGroupManagerActor_;
+    }
+
 private:
     std::shared_ptr<ResourceGroupManagerActor> resourceGroupManagerActor_;
 

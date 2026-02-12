@@ -53,7 +53,10 @@ def download_vendor(config_path, download_path):
             )
             download_zipfile(package_name, config["repo"], archive_path)
             verify_checksum(package_name, archive_path, config["sha256"])
-            extract_name = utils.extract_file(archive_path, download_path)
+            if config["bomb"] == "false":
+                extract_name = utils.extract_file(archive_path, download_path)  # 无根目录的压缩包
+            else:
+                extract_name = utils.extract_file(archive_path, download_path, config["name"])
             package_path = os.path.join(download_path, extract_name)  # vendor/src/xxx-vvv
             os.rename(package_path, vendor_path)
     return 0

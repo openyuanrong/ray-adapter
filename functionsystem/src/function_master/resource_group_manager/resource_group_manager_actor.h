@@ -64,6 +64,8 @@ public:
     litebus::Future<Status> OnLocalAbnormal(const std::string &abnormalLocal);
     litebus::Future<messages::QueryResourceGroupResponse> QueryResourceGroup(
         const std::shared_ptr<messages::QueryResourceGroupRequest> req);
+    void OnDeleteInstance(const std::shared_ptr<resource_view::InstanceInfo> &ins);
+    void OnKillJob(const std::string &jobId);
 
 protected:
     void Init() override;
@@ -87,6 +89,8 @@ protected:
                                            const std::shared_ptr<core_service::CreateResourceGroupRequest> request);
     void HandleForwardDeleteResourceGroup(const litebus::AID &from,
                                            const std::shared_ptr<inner_service::ForwardKillRequest> request);
+    void HandleDeleteInstance(const std::shared_ptr<resource_view::InstanceInfo> &ins);
+    void HandleKillJob(const std::string &jobId);
     void ScheduleResourceGroup(
         const std::shared_ptr<litebus::Promise<core_service::CreateResourceGroupResponse>> &promise,
         const std::string &requestID, const std::string &name, const std::string &tenantID,
@@ -132,6 +136,9 @@ protected:
         const litebus::Future<std::list<messages::GroupResponse>> &future, const std::string &tenantID,
         const std::string &rgName);
     void TransCreateResourceGroupReq(std::shared_ptr<CreateResourceGroupRequest> &req);
+    std::vector<std::shared_ptr<messages::ResourceGroupInfo>> GetRgByParentId(const std::string &parentId);
+    std::vector<std::shared_ptr<messages::ResourceGroupInfo>> GetRgByJobId(const std::string &jobId);
+    bool IsDetachedResourceGroup(const std::shared_ptr<messages::ResourceGroupInfo> &rg);
 
 private:
     class ResourceGroupOperator {
@@ -181,6 +188,8 @@ private:
                                                const std::shared_ptr<messages::ReportAgentAbnormalRequest> request) = 0;
         virtual litebus::Future<messages::QueryResourceGroupResponse> QueryResourceGroup(
             const std::shared_ptr<messages::QueryResourceGroupRequest> req) = 0;
+        virtual void OnDeleteInstance(const std::shared_ptr<resource_view::InstanceInfo> &ins) = 0;
+        virtual void OnKillJob(const std::string &jobId) = 0;
 
     protected:
         std::shared_ptr<Member> member_;
@@ -204,6 +213,8 @@ private:
                                        const std::shared_ptr<messages::ReportAgentAbnormalRequest> request) override;
         litebus::Future<messages::QueryResourceGroupResponse> QueryResourceGroup(
             const std::shared_ptr<messages::QueryResourceGroupRequest> req) override;
+        void OnDeleteInstance(const std::shared_ptr<resource_view::InstanceInfo> &ins) override;
+        void OnKillJob(const std::string &jobId) override;
     };
 
     class SlaveBusiness : public Business {
@@ -223,6 +234,8 @@ private:
         litebus::Future<Status> OnLocalAbnormal(const std::string &abnormalLocal) override;
         litebus::Future<messages::QueryResourceGroupResponse> QueryResourceGroup(
             const std::shared_ptr<messages::QueryResourceGroupRequest> req) override;
+        void OnDeleteInstance(const std::shared_ptr<resource_view::InstanceInfo> &ins) override;
+        void OnKillJob(const std::string &jobId) override;
     };
 
     void ForwardQueryResourceGroupHandler(const litebus::AID &from, std::string &&name, std::string &&msg);

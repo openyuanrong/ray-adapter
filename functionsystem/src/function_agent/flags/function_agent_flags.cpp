@@ -73,6 +73,7 @@ FunctionAgentFlags::FunctionAgentFlags()
             NumCheck(0, MAX_CODE_AGING_TIME));
     AddFlag(&FunctionAgentFlags::enableDisConvCallStack, "enable_dis_conv_call_stack",
             "enable distributed convergent call stack", false);
+    AddFlag(&FunctionAgentFlags::pluginConfigs_, "agent_plugin_configs", "plugin configs", false);
 }
 
 FunctionAgentFlags::~FunctionAgentFlags() = default;

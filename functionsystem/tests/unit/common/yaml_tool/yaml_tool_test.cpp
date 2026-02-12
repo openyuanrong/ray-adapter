@@ -84,12 +84,12 @@ TEST_F(YamlToolTest, GetFunctionMetaSuccess)
 
     auto serviceInfosOpt = service_json::GetServiceInfosFromJson(jsonStr);
     ASSERT_TRUE(serviceInfosOpt.IsSome());
-    EXPECT_EQ(serviceInfosOpt.Get().size(), 1u);
+    EXPECT_EQ(serviceInfosOpt.Get().size(), size_t{1});
 
     auto functionMetas = service_json::ConvertFunctionMeta(serviceInfosOpt.Get(), "/home/sn");
 
     ASSERT_TRUE(functionMetas.IsSome());
-    EXPECT_EQ(functionMetas.Get().size(), 1u);
+    EXPECT_EQ(functionMetas.Get().size(), size_t{1});
 
     for (auto functionMeta : functionMetas.Get()) {
         YRLOG_INFO("name: {}", functionMeta.funcMetaData.name);

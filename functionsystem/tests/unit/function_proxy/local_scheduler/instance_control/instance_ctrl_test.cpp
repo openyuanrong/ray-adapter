@@ -1303,8 +1303,8 @@ TEST_F(InstanceCtrlTest, KillEmptyInstanceInfo)
     auto stateMachine = std::make_shared<MockInstanceStateMachine>("nodeID");
     EXPECT_CALL(*instanceControlView_, GetInstance).WillOnce(Return(nullptr));
     auto killRsp = instanceCtrl_->Kill(srcInstance, killReq).Get();
-    EXPECT_EQ(killRsp.code(), common::ErrorCode::ERR_INSTANCE_NOT_FOUND);
-    EXPECT_EQ(killRsp.message(), "instance not found, the instance may have been killed");
+    EXPECT_EQ(killRsp.code(), common::ErrorCode::ERR_NONE);
+    EXPECT_EQ(killRsp.message(), "");
 }
 
 TEST_F(InstanceCtrlTest, KillInstanceWithCreating)
@@ -1368,7 +1368,7 @@ TEST_F(InstanceCtrlTest, KillInstanceRemote)
     auto killReq = GenKillRequest(instanceID, SHUT_DOWN_SIGNAL);
     auto srcInstance = "instanceM";
     auto killRsp = instanceCtrl_->Kill(srcInstance, killReq).Get();
-    EXPECT_EQ(killRsp.code(), common::ErrorCode::ERR_INSTANCE_NOT_FOUND);
+    EXPECT_EQ(killRsp.code(), common::ErrorCode::ERR_NONE);
 }
 
 TEST_F(InstanceCtrlTest, DISABLED_KillInstanceLocal)
@@ -5694,7 +5694,7 @@ TEST_F(InstanceCtrlTest, KillFatalInstance)
     future = instanceCtrlWithMockObserver_->Kill("src", killReq);
     ASSERT_AWAIT_READY(future);
     resp = future.Get();
-    EXPECT_EQ(resp.code(), StatusCode::ERR_INNER_SYSTEM_ERROR);
+    EXPECT_EQ(static_cast<int>(resp.code()), static_cast<int>(StatusCode::ERR_INNER_SYSTEM_ERROR));
 }
 
 /**
@@ -6098,7 +6098,7 @@ TEST_F(InstanceCtrlTest, KillDriverInstance)
 
     auto killRsp = instanceCtrl_->Kill(srcInstance, killReq);
     ASSERT_AWAIT_READY(killRsp);
-    EXPECT_EQ(killRsp.Get().code(), common::ErrorCode::ERR_NONE);
+    EXPECT_EQ(static_cast<int>(killRsp.Get().code()), static_cast<int>(common::ErrorCode::ERR_NONE));
 }
 
 }  // namespace functionsystem::test

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include <cstdint>
 #include <exception>
 #include <iostream>
 #include <memory>
@@ -41,7 +40,6 @@
 #include "common/utils/param_check.h"
 #include "common/utils/ssl_config.h"
 #include "common/utils/version.h"
-#include "flags/flags.h"
 #include "global_scheduler/global_sched.h"
 #include "global_scheduler/global_sched_driver.h"
 #include "group_manager.h"
@@ -59,7 +57,6 @@
 #include "scaler/scaler_driver.h"
 #include "system_function_loader/bootstrap_actor.h"
 #include "system_function_loader/bootstrap_driver.h"
-#include "utils/string_utils.hpp"
 #include "utils/system_upgrade_switch_utils.h"
 
 using namespace functionsystem;
@@ -353,8 +350,10 @@ bool InitInstanceManagerDriver(const functionmaster::Flags &flags, const std::sh
 {
     auto groupMgrActor = std::make_shared<::instance_manager::GroupManagerActor>(metaClient, globalSched);
     auto groupManager = std::make_shared<::instance_manager::GroupManager>(groupMgrActor);
+    auto resourceGroupManager = std::make_shared<::resource_group_manager::ResourceGroupManager>(
+        g_resourceGroupManagerDriver->GetResourceGroupManagerActor());
     auto instanceMgrActor = std::make_shared<::instance_manager::InstanceManagerActor>(
-        metaClient, globalSched, groupManager,
+        metaClient, globalSched, groupManager, resourceGroupManager,
         instance_manager::InstanceManagerStartParam{ .runtimeRecoverEnable = GetRuntimeRecoverEnableFlag(flags),
                                                      .isMetaStoreEnable = flags.GetEnableMetaStore(),
                                                      .servicesPath = flags.GetServicesPath(),
@@ -533,10 +532,10 @@ void OnCreate(const functionmaster::Flags &flags)
         return;
     }
 
-    if (!InitInstanceManagerDriver(flags, metaClient, globalSched, metaStoreMonitor)) {
+    if (!InitResourceGroupManager(metaClient, globalSched)) {
         return;
     }
-    if (!InitResourceGroupManager(metaClient, globalSched)) {
+    if (!InitInstanceManagerDriver(flags, metaClient, globalSched, metaStoreMonitor)) {
         return;
     }
 

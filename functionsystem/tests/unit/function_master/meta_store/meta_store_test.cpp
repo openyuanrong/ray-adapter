@@ -368,7 +368,7 @@ TEST_F(DISABLED_MetaStoreTest, MetaStoreWithETCDPutErrorTest)  // NOLINT
     EXPECT_AWAIT_READY(getFut);
     EXPECT_TRUE(getFut.Get()->status.IsOk());
     EXPECT_EQ(getFut.Get()->count, 0);
-    EXPECT_EQ(getFut.Get()->kvs.size(), 0);
+    EXPECT_EQ(getFut.Get()->kvs.size(), size_t{0});
 
     litebus::Terminate(kvServerAccessorAID);
     litebus::Await(kvServerAccessorAID);
@@ -1410,9 +1410,9 @@ TEST_F(DISABLED_MetaStoreTest, LinkTest)
 
     auto watchCounts = litebus::Async(kvActor->watchServiceActor_, &meta_store::WatchServiceActor::GetWatchCount);
     ASSERT_AWAIT_READY(watchCounts);
-    EXPECT_EQ(watchCounts.Get().size(), 1);
+    EXPECT_EQ(watchCounts.Get().size(), size_t{1});
     EXPECT_NE(watchCounts.Get().find(client->GetAID()), watchCounts.Get().end());
-    EXPECT_EQ(watchCounts.Get().find(client->GetAID())->second, 1);
+    EXPECT_EQ(watchCounts.Get().find(client->GetAID())->second, uint32_t{1});
 
     litebus::Async(kvActor->watchServiceActor_, &meta_store::WatchServiceActor::Exited, client->GetAID());
 
@@ -1879,7 +1879,7 @@ TEST_F(DISABLED_MetaStoreTest, KvRecoverTest)
     auto ok = litebus::Async(kvServiceActor->GetAID(), &KvServiceActor::Recover);
     ASSERT_AWAIT_READY(ok);
 
-    EXPECT_EQ(kvServiceActor->cache_.size(), 2);
+    EXPECT_EQ(kvServiceActor->cache_.size(), size_t{2});
     EXPECT_NE(kvServiceActor->cache_.find("123"), kvServiceActor->cache_.end());
     EXPECT_EQ(kvServiceActor->cache_.at("123").value(), "123");
     EXPECT_NE(kvServiceActor->cache_.find("1234"), kvServiceActor->cache_.end());
@@ -1946,7 +1946,7 @@ TEST_F(DISABLED_MetaStoreTest, LeaseRecoverTest)
     auto milliseconds =
         std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
             .count();
-    EXPECT_GE(leaseServiceActor->leases_.size(), 1);
+    EXPECT_GE(leaseServiceActor->leases_.size(), size_t{1});
     EXPECT_NE(leaseServiceActor->leases_.find(1), leaseServiceActor->leases_.end());
     EXPECT_EQ(leaseServiceActor->leases_.at(1).id(), 1);
     EXPECT_EQ(leaseServiceActor->leases_.at(1).ttl(), 100);

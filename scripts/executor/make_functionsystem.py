@@ -36,9 +36,37 @@ def parser_args():
     )
     build_parser.add_argument(
         "--build_type",
+        "--build-type",
+        dest="build_type",
+        type=str.lower,
+        choices=["release", "debug", "debug_fast"],
+        default="release",
+        help="Set program compilation mode(release/debug/debug_fast). Default: release",
+    )
+    build_parser.add_argument(
+        "-m",
+        "--module",
         type=str,
-        default="Release",
-        help="Set program compilation mode(Debug/Release). Default: Release",
+        choices=[
+            "all",
+            "function_master",
+            "domain_scheduler",
+            "runtime_manager",
+            "function_proxy",
+            "function_agent",
+            "iam_server",
+            "cli",
+            "meta_service",
+        ],
+        default="all",
+        help="Build a specific module. Support cpp binaries and go modules(cli/meta_service). Default: all",
+    )
+    build_parser.add_argument(
+        "--linker",
+        type=str.lower,
+        choices=["auto", "gold", "lld", "mold"],
+        default="auto",
+        help="Select cpp linker backend. Default: auto (legacy behavior, no mold unless explicitly selected)",
     )
     build_parser.set_defaults(func=lambda func_args: tasks.run_build(ROOT_DIR, func_args))
     # 清理缓存执行参数

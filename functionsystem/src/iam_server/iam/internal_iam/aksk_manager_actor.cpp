@@ -18,6 +18,8 @@
 
 #include <async/defer.hpp>
 
+#include "common/aksk/aksk_util.h"
+#include "common/hex/hex.h"
 #include "common/http/http_util.h"
 #include "common/utils/meta_store_kv_operation.h"
 

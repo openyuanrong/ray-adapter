@@ -63,59 +63,59 @@ TEST_F(SystemFunctionPodManagerTest, PodEvent)
         // normal pod
         auto pod = GenPodForManager("function-agent-pod1");
         frontendManager_->OnPodUpdate(pod);
-        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), 1);
+        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), size_t{1});
         frontendManager_->OnPodDelete(pod);
         auto pod1 = GenPodForManager("function-agent-pod2");
         pod1->GetSpec()->SetNodeName("node002");
         frontendManager_->OnPodDelete(pod1);
-        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), 0);
+        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), size_t{0});
     }
     {
         // frontend pod
         auto pod = GenPodForManager("function-agent-a-500m-2048mi-faasfrontend-1");
         pod->GetMetadata()->SetLabels({});
         frontendManager_->OnPodUpdate(pod);
-        EXPECT_EQ(frontendManager_->nodeID2SystemFuncPodNames_.size(), 1);
+        EXPECT_EQ(frontendManager_->nodeID2SystemFuncPodNames_.size(), size_t{1});
         frontendManager_->OnPodDelete(pod);
         auto pod1 = GenPodForManager("function-agent-a-500m-2048mi-faasfrontend-2");
         pod1->GetSpec()->SetNodeName("node002");
         frontendManager_->OnPodDelete(pod1);
-        EXPECT_EQ(frontendManager_->nodeID2SystemFuncPodNames_.size(), 0);
+        EXPECT_EQ(frontendManager_->nodeID2SystemFuncPodNames_.size(), size_t{0});
     }
     {
         auto pod = GenPodForManager("function-agent-pod1");
         // pod not ready
         pod->UnsetStatus();
         frontendManager_->OnPodUpdate(pod);
-        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), 0);
+        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), size_t{0});
         // pod is not match
         pod = GenPodForManager("function-agent-pod1");
         pod->GetMetadata()->SetLabels({ {"reuse", "false"}});
         frontendManager_->OnPodUpdate(pod);
-        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), 0);
+        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), size_t{0});
         pod->GetMetadata()->SetLabels({});
         frontendManager_->OnPodUpdate(pod);
-        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), 0);
+        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), size_t{0});
     }
     {
         // pod terminating event
         auto pod = GenPodForManager("function-agent-pod1");
         frontendManager_->OnPodUpdate(pod);
-        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), 1);
+        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), size_t{1});
         pod->GetStatus()->GetContainerStatuses().front()->SetState(std::make_shared<functionsystem::kube_client::model::V1ContainerState>());
         pod->GetStatus()->GetContainerStatuses().front()->GetState()->SetTerminated(std::make_shared<functionsystem::kube_client::model::V1ContainerStateTerminated>());
         frontendManager_->OnPodUpdate(pod);
-        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), 0);
+        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), size_t{0});
     }
     {
         auto pod = GenPodForManager("function-agent-pod1");
         frontendManager_->OnPodUpdate(pod);
-        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), 1);
+        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), size_t{1});
         pod->GetStatus()->SetPhase("Failed");
         pod->GetStatus()->SetContainerStatuses({});
         pod->GetStatus()->UnsetContainerStatuses();
         frontendManager_->OnPodUpdate(pod);
-        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), 0);
+        EXPECT_EQ(frontendManager_->nodeID2PodNames_.size(), size_t{0});
     }
 }
 

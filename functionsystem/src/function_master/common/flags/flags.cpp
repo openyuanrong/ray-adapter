@@ -62,8 +62,6 @@ Flags::Flags()
     AddFlag(&Flags::runtimeRecoverEnable_, "runtime_recover_enable", "enable recover runtime", false);
     AddFlag(&Flags::isScheduleTolerateAbnormal_, "is_schedule_tolerate_abnormal",
             "enable tolerate underlayer scheduler exception while scheduling", true);
-    AddFlag(&Flags::decryptAlgorithm_, "decrypt_algorithm", "decrypt algorithm, eg: GCM, CBC, STS",
-            std::string("NO_CRYPTO"), WhiteListCheck({ "NO_CRYPTO", "CBC", "GCM", "STS" }));
     AddFlag(&Flags::electionMode_, "election_mode", "function master selection mode, eg: standalone,etcd,txn,k8s",
             std::string("standalone"), WhiteListCheck({ "etcd", "txn", "k8s", "standalone" }));
     AddFlag(&Flags::electLeaseTTL_, "elect_lease_ttl", "lease ttl of function master election", DEFAULT_ELECT_LEASE_TTL,
@@ -206,11 +204,6 @@ bool Flags::GetRuntimeRecoverEnable() const
 bool Flags::GetIsScheduleTolerateAbnormal() const
 {
     return isScheduleTolerateAbnormal_;
-}
-
-const std::string &Flags::GetDecryptAlgorithm() const
-{
-    return decryptAlgorithm_;
 }
 
 const std::string &Flags::GetK8sNamespace() const

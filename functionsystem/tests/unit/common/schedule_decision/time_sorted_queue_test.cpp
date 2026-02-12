@@ -209,7 +209,7 @@ TEST_F(TimeSortedQueueTest, TimeSortedQueue_Swap_ShouldNotSwap_WhenTargetIsNull)
     // Swap the queues
     queue1->Swap(queue2);
     // Check if the swap was not successful
-    EXPECT_EQ(queue1->queueMap_.size(), 1);
+    EXPECT_EQ(queue1->queueMap_.size(), size_t{1});
     auto result = queue1->Front();
     EXPECT_EQ(result->GetRequestId(), queueItem->GetRequestId());
 }
@@ -224,8 +224,8 @@ TEST_F(TimeSortedQueueTest, TimeSortedQueue_Extend_ShouldHandleNullTargetQueue)
     auto queueItem = InstanceItem::CreateInstanceItem("1233456");
     timeSortedQueue->Enqueue(queueItem);
     timeSortedQueue->Extend(nullptr);
-    EXPECT_EQ(timeSortedQueue->queueMap_.size(), 1);
-    EXPECT_EQ(timeSortedQueue->queueMap_[0].size(), 1);
+    EXPECT_EQ(timeSortedQueue->queueMap_.size(), size_t{1});
+    EXPECT_EQ(timeSortedQueue->queueMap_[0].size(), size_t{1});
 }
 
 /**
@@ -239,8 +239,8 @@ TEST_F(TimeSortedQueueTest, TimeSortedQueue_Extend_ShouldHandleNonTimeSortedQueu
     timeSortedQueue->Enqueue(queueItem);
     std::shared_ptr<TimeSortedQueue> nonTimeSortedQueue = std::make_shared<TimeSortedQueue>();
     timeSortedQueue->Extend(nonTimeSortedQueue);
-    EXPECT_EQ(timeSortedQueue->queueMap_.size(), 1);
-    EXPECT_EQ(timeSortedQueue->queueMap_[0].size(), 1);
+    EXPECT_EQ(timeSortedQueue->queueMap_.size(), size_t{1});
+    EXPECT_EQ(timeSortedQueue->queueMap_[0].size(), size_t{1});
 }
 
 /**

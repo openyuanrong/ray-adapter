@@ -2001,7 +2001,7 @@ TEST_F(ScalerTest, PodPoolTest)
     EXPECT_TRUE(mockDeployment->GetSpec()->GetRTemplate()->GetSpec()->GetAffinity()->GetPodAntiAffinity()->PreferredDuringSchedulingIgnoredDuringExecutionIsSet());
     EXPECT_EQ(true, mockDeployment->GetSpec()->GetRTemplate()->GetSpec()->TopologySpreadConstraintsIsSet());
     EXPECT_EQ(1, mockDeployment->GetSpec()->GetRTemplate()->GetSpec()->GetTopologySpreadConstraints()[0]->GetMaxSkew());
-    EXPECT_EQ(1, mockDeployment->GetSpec()->GetRTemplate()->GetSpec()->GetTopologySpreadConstraints()[0]->GetLabelSelector()->GetMatchLabels().size());
+    EXPECT_EQ(size_t{1}, mockDeployment->GetSpec()->GetRTemplate()->GetSpec()->GetTopologySpreadConstraints()[0]->GetLabelSelector()->GetMatchLabels().size());
     EXPECT_EQ(static_cast<long unsigned int>(3),
         mockDeployment->GetSpec()->GetRTemplate()->GetSpec()->GetInitContainers()[0]->GetVolumeMounts().size());
     std::shared_ptr<V1DeploymentStatus> deploymentStatus = std::make_shared<V1DeploymentStatus>();
@@ -2508,15 +2508,15 @@ TEST_F(ScalerTest, ParseLabelWithAnnotationTest)
     (*instance1.mutable_createoptions())["DELEGATE_POD_LABELS"] = "{}";
     auto readyPod = GetReadyPod();
     HandlePodLabelsWithAnnotation(instance1, readyPod, false);
-    EXPECT_EQ(1, readyPod->GetMetadata()->GetLabels().size());
-    EXPECT_EQ(0, readyPod->GetMetadata()->GetAnnotations().size());
+    EXPECT_EQ(size_t{1}, readyPod->GetMetadata()->GetLabels().size());
+    EXPECT_EQ(size_t{0}, readyPod->GetMetadata()->GetAnnotations().size());
     (*instance1.mutable_createoptions())["DELEGATE_POD_LABELS"] = "{\"label1\":\"va1\", \"label2\":\"val2\",\"\":\"\"}";
     HandlePodLabelsWithAnnotation(instance1, readyPod, false);
-    EXPECT_EQ(3, readyPod->GetMetadata()->GetLabels().size());
-    EXPECT_EQ(1, readyPod->GetMetadata()->GetAnnotations().size());
+    EXPECT_EQ(size_t{3}, readyPod->GetMetadata()->GetLabels().size());
+    EXPECT_EQ(size_t{1}, readyPod->GetMetadata()->GetAnnotations().size());
     HandlePodLabelsWithAnnotation(instance1, readyPod, true);
-    EXPECT_EQ(1, readyPod->GetMetadata()->GetLabels().size());
-    EXPECT_EQ(0, readyPod->GetMetadata()->GetAnnotations().size());
+    EXPECT_EQ(size_t{1}, readyPod->GetMetadata()->GetLabels().size());
+    EXPECT_EQ(size_t{0}, readyPod->GetMetadata()->GetAnnotations().size());
     auto newPod = GetReadyPod();
     newPod->GetMetadata()->GetLabels()["label2"] = "val2";
     newPod->GetMetadata()->GetLabels()["label3"] = "val3";
@@ -2531,8 +2531,8 @@ TEST_F(ScalerTest, ParseLabelWithAnnotationTest)
     newPod->GetMetadata()->GetAnnotations()["yr-labels-" + instance3.instanceid()] = "{\"label3\":\"va3\"}";
     HandlePodLabelsWithAnnotation(instance2, newPod, false);
     HandlePodLabelsWithAnnotation(instance3, newPod, false);
-    EXPECT_EQ(2, newPod->GetMetadata()->GetLabels().size());
-    EXPECT_EQ(0, newPod->GetMetadata()->GetAnnotations().size());
+    EXPECT_EQ(size_t{2}, newPod->GetMetadata()->GetLabels().size());
+    EXPECT_EQ(size_t{0}, newPod->GetMetadata()->GetAnnotations().size());
 }
 
 TEST_F(ScalerTest, WatchSharedInstanceTest)
@@ -3053,7 +3053,7 @@ TEST_F(ScalerTest, DISABLED_ResourceIsSyncedTest) {
     EXPECT_CALL(*mockClient.get(), DeleteNamespacedDeployment).Times(0);
     actor_->member_->isSynced = false;
     masterBusiness->OnChange();
-    EXPECT_EQ(2, actor_->GetPoolDeploymentsMap().size());
+    EXPECT_EQ(size_t{2}, actor_->GetPoolDeploymentsMap().size());
     metaStorageAccessor_->Delete("/yr/podpools/info", true).Get();
 }
 
@@ -3135,26 +3135,26 @@ TEST_F(ScalerTest, MergeNodeAffinityAggregation)
     nodeAffinity2->UnsetRequiredDuringSchedulingIgnoredDuringExecution();
     // src set require, dest not set require
     auto mergeAff = MergeNodeAffinity(nodeAffinity1, nodeAffinity2, mergePolicy);
-    EXPECT_EQ(mergeAff->GetPreferredDuringSchedulingIgnoredDuringExecution().size(), 2);
-    EXPECT_EQ(mergeAff->GetRequiredDuringSchedulingIgnoredDuringExecution()->GetNodeSelectorTerms().size(), 2);
+    EXPECT_EQ(mergeAff->GetPreferredDuringSchedulingIgnoredDuringExecution().size(), size_t{2});
+    EXPECT_EQ(mergeAff->GetRequiredDuringSchedulingIgnoredDuringExecution()->GetNodeSelectorTerms().size(), size_t{2});
     // src not set require, dest set require
     mergeAff = MergeNodeAffinity(nodeAffinity2, nodeAffinity1, mergePolicy);
-    EXPECT_EQ(mergeAff->GetPreferredDuringSchedulingIgnoredDuringExecution().size(), 2);
-    EXPECT_EQ(mergeAff->GetRequiredDuringSchedulingIgnoredDuringExecution()->GetNodeSelectorTerms().size(), 2);
+    EXPECT_EQ(mergeAff->GetPreferredDuringSchedulingIgnoredDuringExecution().size(), size_t{2});
+    EXPECT_EQ(mergeAff->GetRequiredDuringSchedulingIgnoredDuringExecution()->GetNodeSelectorTerms().size(), size_t{2});
     nodeAffinity2->FromJson(json);
     mergeAff = MergeNodeAffinity(nodeAffinity1, nodeAffinity2, mergePolicy);
-    EXPECT_EQ(mergeAff->GetPreferredDuringSchedulingIgnoredDuringExecution().size(), 2);
-    EXPECT_EQ(mergeAff->GetRequiredDuringSchedulingIgnoredDuringExecution()->GetNodeSelectorTerms().size(), 4);
+    EXPECT_EQ(mergeAff->GetPreferredDuringSchedulingIgnoredDuringExecution().size(), size_t{2});
+    EXPECT_EQ(mergeAff->GetRequiredDuringSchedulingIgnoredDuringExecution()->GetNodeSelectorTerms().size(), size_t{4});
     EXPECT_EQ(mergeAff->GetRequiredDuringSchedulingIgnoredDuringExecution()
                   ->GetNodeSelectorTerms()[0]
                   ->GetMatchExpressions()
                   .size(),
-              4);
+              size_t{4});
     EXPECT_EQ(mergeAff->GetRequiredDuringSchedulingIgnoredDuringExecution()
                   ->GetNodeSelectorTerms()[0]
                   ->GetMatchFields()
                   .size(),
-              4);
+              size_t{4});
     // exceed limit
     nodeAffinity1->FromJson(json);
     nodeAffinity2->FromJson(json);
@@ -3167,7 +3167,7 @@ TEST_F(ScalerTest, MergeNodeAffinityAggregation)
         nodeAffinity2->GetRequiredDuringSchedulingIgnoredDuringExecution()->GetNodeSelectorTerms().emplace_back(item);
     }
     mergeAff = MergeNodeAffinity(nodeAffinity1, nodeAffinity2, mergePolicy);
-    EXPECT_EQ(mergeAff->GetRequiredDuringSchedulingIgnoredDuringExecution()->GetNodeSelectorTerms().size(), 100);
+    EXPECT_EQ(mergeAff->GetRequiredDuringSchedulingIgnoredDuringExecution()->GetNodeSelectorTerms().size(), size_t{100});
 }
 
 TEST_F(ScalerTest, AbnormalPodAlarm)
@@ -3454,7 +3454,7 @@ TEST_F(ScalerTest, CreateAgentByPoolIDTest)
         EXPECT_EQ(GetTestResponse().code(), StatusCode::GS_START_CREATE_POD_FAILED);
         EXPECT_EQ(poolManager->GetPodPool("pool1")->readyCount, 1);
         EXPECT_EQ(*counter, 7);
-        EXPECT_EQ(poolManager->GetPodPool("pool1")->pendingCreatePodSet.size(), 0);
+        EXPECT_EQ(poolManager->GetPodPool("pool1")->pendingCreatePodSet.size(), size_t{0});
     }
 }
 
@@ -3542,5 +3542,31 @@ TEST_F(ScalerTest, SystemFunctionPodManager)
         .WillOnce(testing::DoAll(test::FutureArg<0>(&deletePodCalledArg), testing::Return(GetReadyPod())));
     actor_->member_->frontendManager->CheckSystemFunctionNeedScale();
     ASSERT_AWAIT_READY(deletePodCalledArg);
+}
+
+TEST_F(ScalerTest, ParseContainerInfoForServiceAccountNameTest)
+{
+    std::string delegateContainerStrForServiceAccountName = R"(
+    {
+         "image": "image",
+         "serviceAccountName": "sa-test",
+         "env": [],
+         "command": {},
+         "volumeMounts": [],
+         "livenessProbe": {},
+         "readinessProbe": {}
+    }
+    )";
+    ::resources::InstanceInfo instanceInfo;
+    instanceInfo.mutable_createoptions()->operator[](DELEGATE_CONTAINER) = delegateContainerStrForServiceAccountName;
+
+    litebus::Option<std::shared_ptr<V1Container>> delegateContainerOp;
+    ParseDelegateContainer(instanceInfo, delegateContainerOp);
+    EXPECT_TRUE(delegateContainerOp.IsSome());
+
+    auto delegateContainer = delegateContainerOp.Get();
+
+    EXPECT_TRUE(delegateContainer->ServiceAccountNameIsSet());
+    EXPECT_EQ(delegateContainer->GetServiceAccountName(), "sa-test");
 }
 }  // namespace functionsystem::scaler::test

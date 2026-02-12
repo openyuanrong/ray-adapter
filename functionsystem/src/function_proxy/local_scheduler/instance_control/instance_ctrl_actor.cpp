@@ -29,6 +29,7 @@
 #include "common/logs/logging.h"
 #include "common/metadata/metadata.h"
 #include "common/metrics/metrics_adapter.h"
+#include "common/posix_client/control_plane_client/control_interface_posix_client.h"
 #include "common/posix_service/posix_service.h"
 #include "common/proto/pb/posix/common.pb.h"
 #include "common/proto/pb/posix_pb.h"
@@ -42,7 +43,6 @@
 #include "common/utils/random_number.h"
 #include "common/utils/struct_transfer.h"
 #include "instance_ctrl_message.h"
-#include "common/posix_client/control_plane_client/control_interface_posix_client.h"
 #include "local_scheduler/grpc_server/bus_service/bus_service.h"
 #include "local_scheduler_service/local_sched_srv.h"
 
@@ -496,7 +496,27 @@ void InstanceCtrlActor::OnKill(const std::shared_ptr<KillRequest> &killReq, cons
     if (iter == killingRequest_.end()) {
         return;
     }
-    iter->second->Associate(rsp);
+    const int &signal = killReq->signal();
+    auto response = rsp.Get();
+    if (response.code() == common::ErrorCode::ERR_INSTANCE_NOT_FOUND) {
+        auto errorMsg = response.message();
+        switch (signal) {
+            case SHUT_DOWN_SIGNAL:
+                [[fallthrough]];
+            case SHUT_DOWN_SIGNAL_SYNC:
+                [[fallthrough]];
+            case APP_STOP_SIGNAL: {
+                YRLOG_INFO("{}|Kill {} response ERR_INSTANCE_NOT_FOUND, ignore it and return OK",
+                    killReq->requestid(), killReq->instanceid());
+                iter->second->Associate(GenKillResponse(common::ErrorCode::ERR_NONE, ""));
+                break;
+            }
+            default:
+                iter->second->Associate(GenKillResponse(response.code(), response.message()));
+        }
+    } else {
+        iter->second->Associate(rsp);
+    }
     killingRequest_.erase(iter);
 }
 
@@ -1537,6 +1557,11 @@ litebus::Future<ScheduleResponse> InstanceCtrlActor::DoDispatchSchedule(
             if (CheckExistInstanceState(static_cast<InstanceState>(result.savedInfo.instancestatus().code()),
                                         runtimePromise, scheduleReq)
                 && scheduleReq->instance().instancestatus().code() == static_cast<uint32_t>(InstanceState::NEW)) {
+                return runtimePromise->GetFuture();
+            }
+            if (static_cast<InstanceState>(result.savedInfo.instancestatus().code()) == InstanceState::RUNNING) {
+                YRLOG_INFO("{}|{}|{}|{}", scheduleReq->traceid(), scheduleReq->requestid(),
+                           scheduleReq->instance().instanceid(), "instance is running, just return instance state");
                 return runtimePromise->GetFuture();
             }
             const std::string msg = "instance has been scheduled on other node";

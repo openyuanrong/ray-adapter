@@ -373,7 +373,7 @@ inline resource_view::ResourceUnit Get1DResourceUnitWithDisk(
     unit.set_id(id);
     (*unit.mutable_capacity()) = GetDiskResources(vectorValue, nodeid);
     (*unit.mutable_allocatable()) = GetDiskResources(vectorValue, nodeid);
-    std::vector<int> actualuse(vectorValue.size(), 0);
+    std::vector<int> actualuse(vectorValue.size(), size_t{0});
     (*unit.mutable_actualuse()) = GetDiskResources(actualuse, nodeid);
     return unit;
 }

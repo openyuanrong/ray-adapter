@@ -80,6 +80,24 @@ const std::string HTTP_SERVER_NAME = "v3.0";
 // sub-pub
 const std::string SUBSCRIBER_ID = "subscriber";
 const std::string PUBLISHER_ID = "publisher";
+
+std::shared_ptr<InstanceStateMachine> CreateSubscriber(
+        const std::string& nodeId = TEST_NODE_ID,
+        const std::string& instanceId = SUBSCRIBER_ID,
+        const std::string& requestId = "requestId",
+        const std::string& tenantId = "tenantId",
+        InstanceState state = InstanceState::RUNNING)
+{
+    auto scheduleReq = std::make_shared<messages::ScheduleRequest>();
+    scheduleReq->mutable_instance()->mutable_instancestatus()->set_code(static_cast<int32_t>(state));
+    scheduleReq->mutable_instance()->set_functionproxyid(nodeId);
+    scheduleReq->mutable_instance()->set_instanceid(instanceId);
+    scheduleReq->set_requestid(requestId);
+    scheduleReq->mutable_instance()->set_tenantid(tenantId);
+
+    auto context = std::make_shared<InstanceContext>(scheduleReq);
+    return std::make_shared<InstanceStateMachine>(nodeId, context, false);
+}
 }
 
 class MockUtilClass {
@@ -896,6 +914,50 @@ TEST_F(DISABLED_InstanceCtrlActorTest, RetryNotificationSignal) {
 
     response = instanceCtrlActor_->Kill(PUBLISHER_ID, notifyReq).Get();
     EXPECT_EQ(response.code(), common::ErrorCode::ERR_NONE);
+}
+
+TEST_F(DISABLED_InstanceCtrlActorTest, KillResponseWithInstanceNotFound_SHUT_DOWN_SIGNAL)
+{
+    auto subscriber = CreateSubscriber();
+    EXPECT_CALL(*mockInstanceCtrlView_, GetInstance).WillOnce(Return(subscriber)).WillRepeatedly(Return(nullptr));
+    auto killReq = std::make_shared<KillRequest>();
+    killReq->set_signal(SHUT_DOWN_SIGNAL);
+    killReq->set_instanceid(SUBSCRIBER_ID);
+    auto response = instanceCtrlActor_->Kill(PUBLISHER_ID, killReq).Get();
+    EXPECT_EQ(response.code(), common::ERR_NONE);
+}
+
+TEST_F(DISABLED_InstanceCtrlActorTest, KillResponseWithInstanceNotFound_SHUT_DOWN_SIGNAL_SYNC)
+{
+    auto subscriber = CreateSubscriber();
+    EXPECT_CALL(*mockInstanceCtrlView_, GetInstance).WillOnce(Return(subscriber)).WillRepeatedly(Return(nullptr));
+    auto killReq = std::make_shared<KillRequest>();
+    killReq->set_signal(SHUT_DOWN_SIGNAL_SYNC);
+    killReq->set_instanceid(SUBSCRIBER_ID);
+    auto response = instanceCtrlActor_->Kill(PUBLISHER_ID, killReq).Get();
+    EXPECT_EQ(response.code(), common::ERR_NONE);
+}
+
+TEST_F(DISABLED_InstanceCtrlActorTest, KillResponseWithInstanceNotFound_APP_STOP_SIGNAL)
+{
+    auto subscriber = CreateSubscriber();
+    EXPECT_CALL(*mockInstanceCtrlView_, GetInstance).WillOnce(Return(subscriber)).WillRepeatedly(Return(nullptr));
+    auto killReq = std::make_shared<KillRequest>();
+    killReq->set_signal(APP_STOP_SIGNAL);
+    killReq->set_instanceid(SUBSCRIBER_ID);
+    auto response = instanceCtrlActor_->Kill(PUBLISHER_ID, killReq).Get();
+    EXPECT_EQ(response.code(), common::ERR_NONE);
+}
+
+TEST_F(DISABLED_InstanceCtrlActorTest, KillResponseWithInstanceNotFound_OtherSignal)
+{
+    auto subscriber = CreateSubscriber();
+    EXPECT_CALL(*mockInstanceCtrlView_, GetInstance).WillOnce(Return(subscriber)).WillRepeatedly(Return(nullptr));
+    auto killReq = std::make_shared<KillRequest>();
+    killReq->set_signal(NOTIFY_SIGNAL);
+    killReq->set_instanceid(SUBSCRIBER_ID);
+    auto response = instanceCtrlActor_->Kill(PUBLISHER_ID, killReq).Get();
+    EXPECT_NE(response.code(), common::ERR_NONE);
 }
 
 TEST_F(DISABLED_InstanceCtrlActorTest, GetStaticFunctionChangeRequest) {

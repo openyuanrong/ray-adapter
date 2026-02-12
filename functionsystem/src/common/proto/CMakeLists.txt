@@ -21,6 +21,7 @@ set(GRPC_PROTO_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/posix/common.proto"
         "${CMAKE_CURRENT_SOURCE_DIR}/posix/bus_service.proto"
         "${CMAKE_CURRENT_SOURCE_DIR}/posix/message.proto"
         "${CMAKE_CURRENT_SOURCE_DIR}/posix/resource.proto"
+        "${CMAKE_CURRENT_SOURCE_DIR}/posix/agent_plugin.proto"
         "${CMAKE_CURRENT_SOURCE_DIR}/posix/bus_adapter.proto")
 GENERATE_GRPC_CPP(GRPCPB_SRCS GRPCPB_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/pb/posix
         PROTO_FILES  ${GRPC_PROTO_SRCS}

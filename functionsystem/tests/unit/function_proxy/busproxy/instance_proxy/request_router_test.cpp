@@ -114,7 +114,7 @@ TEST_F(RequestRouterTest, InstanceNotFound)
     (void)response->ParseFromString(testMsg);
     EXPECT_EQ(response->messageid(), "messageID");
     ASSERT_TRUE(response->has_callrsp());
-    EXPECT_EQ(response->callrsp().code(), ERR_INSTANCE_NOT_FOUND);
+    EXPECT_EQ(static_cast<int>(response->callrsp().code()), static_cast<int>(ERR_INSTANCE_NOT_FOUND));
 }
 
 TEST_F(RequestRouterTest, InstanceFound)

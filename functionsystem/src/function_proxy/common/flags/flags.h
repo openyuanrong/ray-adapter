@@ -197,11 +197,6 @@ public:
         return runtimeRecoverEnable_;
     }
 
-    bool GetEnableTrace() const
-    {
-        return enableTrace_;
-    }
-
     bool GetIsPseudoDataPlane() const
     {
         return isPseudoDataPlane_;
@@ -242,11 +237,6 @@ public:
     bool GetIsEnableServerMode() const
     {
         return enableServerMode_;
-    }
-
-    const std::string &GetDecryptAlgorithm() const
-    {
-        return decryptAlgorithm_;
     }
 
     const float &GetLowMemoryThreshold() const
@@ -461,9 +451,7 @@ protected:
     uint32_t runtimeConnTimeoutSeconds_;
     uint32_t runtimeShutdownTimeoutSeconds_;
     int32_t maxGrpcSize_;
-    std::string decryptAlgorithm_;
     bool enableDriver_;
-    bool enableTrace_{ false };
     bool isPseudoDataPlane_{ false };
     float lowMemoryThreshold_;
     float highMemoryThreshold_;

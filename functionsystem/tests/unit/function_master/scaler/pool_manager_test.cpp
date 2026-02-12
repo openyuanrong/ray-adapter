@@ -174,8 +174,8 @@ TEST_F(PoolManagerTest, PodEvent)
         poolManager_->OnPodUpdate(pod3);
         EXPECT_EQ(poolManager_->GetPodPool("pool1")->readyCount, 2);
         EXPECT_EQ(poolManager_->GetPodPool("pool1")->status, static_cast<int32_t>(PoolState::RUNNING));
-        EXPECT_EQ(poolManager_->GetPodPool("pool1")->readyPodSet.size(), 2);
-        EXPECT_EQ(poolManager_->GetPodPool("pool1")->pendingCreatePodSet.size(), 0);
+        EXPECT_EQ(poolManager_->GetPodPool("pool1")->readyPodSet.size(), size_t{2});
+        EXPECT_EQ(poolManager_->GetPodPool("pool1")->pendingCreatePodSet.size(), size_t{0});
         EXPECT_EQ(*persistentCounter, 2);
         EXPECT_EQ(*scaleUpCounter, 3);
         // delete pod
@@ -221,11 +221,11 @@ TEST_F(PoolManagerTest, PendingPodEvent)
         pod1->GetStatus()->SetPhase("Pending");
         poolManager_->OnPodUpdate(pod1);
         EXPECT_EQ(poolManager_->GetPodPool("pending-pool1")->readyCount, 0);
-        EXPECT_EQ(poolManager_->GetPodPool("pending-pool1")->pendingCreatePodSet.size(), 1);
+        EXPECT_EQ(poolManager_->GetPodPool("pending-pool1")->pendingCreatePodSet.size(), size_t{1});
         pod1->GetStatus()->SetPhase("Running");
         poolManager_->OnPodUpdate(pod1);
         EXPECT_EQ(poolManager_->GetPodPool("pending-pool1")->readyCount, 1);
-        EXPECT_EQ(poolManager_->GetPodPool("pending-pool1")->pendingCreatePodSet.size(), 0);
+        EXPECT_EQ(poolManager_->GetPodPool("pending-pool1")->pendingCreatePodSet.size(), size_t{0});
         auto pod2 = GenNewPod("function-agent-pending-pool1-2");
         pod2->GetMetadata()->GetAnnotations()["yr-pod-pool"] = "pending-pool1";
         poolManager_->OnPodUpdate(pod2);
@@ -283,32 +283,32 @@ TEST_F(PoolManagerTest, TryScaleUpPod)
         deployment1->GetSpec()->GetRTemplate()->GetMetadata()->GetAnnotations()["key1"] = "val1";
         poolManager_->PutDeployment(deployment1);
         // scale reserved
-        EXPECT_EQ(poolManager_->GetPodPool("pool1")->pendingCreatePodSet.size(), 0);
+        EXPECT_EQ(poolManager_->GetPodPool("pool1")->pendingCreatePodSet.size(), size_t{0});
         auto pod = poolManager_->TryScaleUpPod("pool1", true).Get();
         EXPECT_EQ(pod->GetMetadata()->GetLabels()["yr-idle-to-recycle"], "unlimited");
         EXPECT_EQ(pod->GetMetadata()->GetAnnotations()["yr-pod-pool"], "pool1");
         EXPECT_EQ(pod->GetMetadata()->GetAnnotations()["key1"], "val1");
         EXPECT_EQ(pod->GetMetadata()->GetLabels()["key1"], "val1");
         EXPECT_EQ(pod->GetMetadata()->GetOwnerReferences()[0]->GetName(), "function-agent-pool1");
-        EXPECT_EQ(poolManager_->GetPodPool("pool1")->pendingCreatePodSet.size(), 1);
+        EXPECT_EQ(poolManager_->GetPodPool("pool1")->pendingCreatePodSet.size(), size_t{1});
         // scale scaled
         auto pod1 = poolManager_->TryScaleUpPod("pool1", false).Get();
         EXPECT_EQ(pod1->GetMetadata()->GetLabels()["yr-idle-to-recycle"], "1");
-        EXPECT_EQ(poolManager_->GetPodPool("pool1")->pendingCreatePodSet.size(), 2);
+        EXPECT_EQ(poolManager_->GetPodPool("pool1")->pendingCreatePodSet.size(), size_t{2});
         EXPECT_EQ(poolManager_->GetPodPool("pool1")->readyCount, 0);
         pod1->SetStatus(std::make_shared<functionsystem::kube_client::model::V1PodStatus>());
         pod1->GetStatus()->SetContainerStatuses({ std::make_shared<functionsystem::kube_client::model::V1ContainerStatus>() });
         pod1->GetStatus()->GetContainerStatuses().front()->SetContainerID("runtime-manager");
         pod1->GetStatus()->SetPhase("Running");
         poolManager_->OnPodUpdate(pod1);
-        EXPECT_EQ(poolManager_->GetPodPool("pool1")->pendingCreatePodSet.size(), 1);
+        EXPECT_EQ(poolManager_->GetPodPool("pool1")->pendingCreatePodSet.size(), size_t{1});
         EXPECT_EQ(poolManager_->GetPodPool("pool1")->readyCount, 1);
         pod->SetStatus(std::make_shared<functionsystem::kube_client::model::V1PodStatus>());
         pod->GetStatus()->SetContainerStatuses({ std::make_shared<functionsystem::kube_client::model::V1ContainerStatus>() });
         pod->GetStatus()->GetContainerStatuses().front()->SetContainerID("runtime-manager");
         pod->GetStatus()->SetPhase("Running");
         poolManager_->OnPodUpdate(pod);
-        EXPECT_EQ(poolManager_->GetPodPool("pool1")->pendingCreatePodSet.size(), 0);
+        EXPECT_EQ(poolManager_->GetPodPool("pool1")->pendingCreatePodSet.size(), size_t{0});
         EXPECT_EQ(poolManager_->GetPodPool("pool1")->readyCount, 2);
     }
 }

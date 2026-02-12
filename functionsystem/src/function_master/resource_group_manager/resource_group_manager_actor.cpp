@@ -28,8 +28,8 @@ const int32_t DEFAULT_RG_SCHEDULE_TIMEOUT_SEC = 30;
 const std::string BUNDLE_ID_SEPARATOR = "_";
 
 core_service::CreateResourceGroupResponse GenCreateResourceGroupResponse(const std::string &requestID,
-                                                                           const common::ErrorCode code,
-                                                                           const std::string &message)
+                                                                         const common::ErrorCode code,
+                                                                         const std::string &message)
 {
     core_service::CreateResourceGroupResponse rsp;
     rsp.set_requestid(requestID);
@@ -56,7 +56,7 @@ std::string GenBundleID(const std::string &rgName, const std::string requestID, 
 }
 
 void TransResourceGroupInfo(const std::shared_ptr<core_service::CreateResourceGroupRequest> createRequest,
-                             const std::shared_ptr<messages::ResourceGroupInfo> resourceGroupInfo)
+                            const std::shared_ptr<messages::ResourceGroupInfo> resourceGroupInfo)
 {
     auto rgSpec = createRequest->rgroupspec();
     resourceGroupInfo->set_requestid(createRequest->requestid());
@@ -65,6 +65,10 @@ void TransResourceGroupInfo(const std::shared_ptr<core_service::CreateResourceGr
     resourceGroupInfo->set_tenantid(rgSpec.tenantid());
     resourceGroupInfo->set_owner(rgSpec.owner());
     resourceGroupInfo->set_appid(rgSpec.appid());
+    auto ext = rgSpec.opt().extension();
+    if (ext.find("parentId") != ext.end()) {
+        resourceGroupInfo->set_parentid(ext["parentId"]);
+    }
     resourceGroupInfo->mutable_status()->set_code(static_cast<int32_t>(ResourceGroupState::PENDING));
     resourceGroupInfo->mutable_opt()->set_priority(createRequest->rgroupspec().opt().priority());
     resourceGroupInfo->mutable_opt()->set_grouppolicy(createRequest->rgroupspec().opt().grouppolicy());
@@ -127,6 +131,7 @@ void TransGroupRequest(const std::shared_ptr<messages::ResourceGroupInfo> resour
     groupInfo->set_traceid(resourceGroupInfo->traceid());
     groupInfo->set_rgroupname(resourceGroupInfo->owner());
     groupInfo->set_target(::resources::CreateTarget::RESOURCE_GROUP);
+    groupInfo->set_parentid(resourceGroupInfo->parentid());
     // To do: use timeout filed in request
     groupInfo->mutable_groupopts()->set_timeout(DEFAULT_RG_SCHEDULE_TIMEOUT_SEC);
     groupInfo->mutable_groupopts()->set_grouppolicy(resourceGroupInfo->opt().grouppolicy());
@@ -258,7 +263,7 @@ litebus::Future<Status> ResourceGroupManagerActor::OnSyncResourceGroups(
 }
 
 void ResourceGroupManagerActor::ForwardCreateResourceGroup(const litebus::AID &from, std::string &&name,
-                                                             std::string &&msg)
+                                                           std::string &&msg)
 {
     auto createRgRequest = std::make_shared<core_service::CreateResourceGroupRequest>();
     if (!createRgRequest->ParseFromString(msg)) {
@@ -271,7 +276,7 @@ void ResourceGroupManagerActor::ForwardCreateResourceGroup(const litebus::AID &f
 }
 
 void ResourceGroupManagerActor::ForwardDeleteResourceGroup(const litebus::AID &from, std::string &&name,
-                                                             std::string &&msg)
+                                                           std::string &&msg)
 {
     auto killRequest = std::make_shared<inner_service::ForwardKillRequest>();
     if (!killRequest->ParseFromString(msg)) {
@@ -323,6 +328,18 @@ litebus::Future<messages::QueryResourceGroupResponse> ResourceGroupManagerActor:
 {
     ASSERT_IF_NULL(business_);
     return business_->QueryResourceGroup(req);
+}
+
+void ResourceGroupManagerActor::OnDeleteInstance(const std::shared_ptr<resource_view::InstanceInfo> &ins)
+{
+    ASSERT_IF_NULL(business_);
+    business_->OnDeleteInstance(ins);
+}
+
+void ResourceGroupManagerActor::OnKillJob(const std::string &jobId)
+{
+    ASSERT_IF_NULL(business_);
+    business_->OnKillJob(jobId);
 }
 
 void ResourceGroupManagerActor::ForwardQueryResourceGroupHandler(const litebus::AID &from, std::string &&name,
@@ -539,6 +556,37 @@ void ResourceGroupManagerActor::HandleForwardDeleteResourceGroup(
             GenForwardKillResponse(request->requestid(), common::ErrorCode::ERR_INSTANCE_NOT_FOUND,
                                    "resource group not found"),
             from);
+    }
+}
+
+// 1. Non detached resource group is automatically freed when driver exits
+// 2. Resource group is automatically freed when detached parent instance is deleted
+void ResourceGroupManagerActor::HandleDeleteInstance(const std::shared_ptr<resource_view::InstanceInfo> &ins)
+{
+    if (IsDriver(ins)) {
+        YRLOG_INFO("Try to free resource group because driver({})(jobId:{}) exits", ins->jobid(), ins->instanceid());
+        OnKillJob(ins->jobid());
+        return;
+    }
+    if (!ins->detached()) {
+        return;
+    }
+    auto rgs = GetRgByParentId(ins->instanceid());
+    for (auto &rg : rgs) {
+        YRLOG_INFO("Free resource group {} whose detached parent {} is deleted", rg->name(), ins->instanceid());
+        DoDeleteResourceGroup(rg, litebus::AID(), nullptr);
+    }
+}
+
+// 3. Non detached resource group is automatically freed when job is killed
+void ResourceGroupManagerActor::HandleKillJob(const std::string &jobId)
+{
+    auto rgs = GetRgByJobId(jobId);
+    for (auto &rg : rgs) {
+        if (!IsDetachedResourceGroup(rg)) {
+            YRLOG_INFO("Free non detached resource group {} because job {} is killed", rg->name(), jobId);
+            DoDeleteResourceGroup(rg, litebus::AID(), nullptr);
+        }
     }
 }
 
@@ -950,6 +998,21 @@ litebus::Future<messages::QueryResourceGroupResponse> ResourceGroupManagerActor:
     return rsp;
 }
 
+void ResourceGroupManagerActor::MasterBusiness::OnDeleteInstance(
+    const std::shared_ptr<resource_view::InstanceInfo> &ins)
+{
+    auto actor = actor_.lock();
+    ASSERT_IF_NULL(actor);
+    actor->HandleDeleteInstance(ins);
+}
+
+void ResourceGroupManagerActor::MasterBusiness::OnKillJob(const std::string &jobId)
+{
+    auto actor = actor_.lock();
+    ASSERT_IF_NULL(actor);
+    actor->HandleKillJob(jobId);
+}
+
 void ResourceGroupManagerActor::SlaveBusiness::ForwardCreateResourceGroup(
     const litebus::AID &from, const std::shared_ptr<core_service::CreateResourceGroupRequest> request)
 {
@@ -1006,6 +1069,15 @@ litebus::Future<messages::QueryResourceGroupResponse> ResourceGroupManagerActor:
         YRLOG_INFO("{}|Slave sends QueryResourceGroup to Master {}", req->requestid(), std::string(masterAID));
     }
     return member_->queryResourceGroupPromise->GetFuture();
+}
+
+void ResourceGroupManagerActor::SlaveBusiness::OnDeleteInstance(
+    const std::shared_ptr<resource_view::InstanceInfo> &ins)
+{
+}
+
+void ResourceGroupManagerActor::SlaveBusiness::OnKillJob(const std::string &jobId)
+{
 }
 
 void ResourceGroupManagerActor::AddResourceGroupInfo(const std::shared_ptr<messages::ResourceGroupInfo> &req)
@@ -1157,5 +1229,42 @@ void ResourceGroupManagerActor::TransCreateResourceGroupReq(std::shared_ptr<Crea
     if (req->rgroupspec().owner().empty()) {
         req->mutable_rgroupspec()->set_owner(PRIMARY_TAG);
     }
+}
+
+std::vector<std::shared_ptr<messages::ResourceGroupInfo>> ResourceGroupManagerActor::GetRgByParentId(
+    const std::string &parentId)
+{
+    std::vector<std::shared_ptr<messages::ResourceGroupInfo>> rgs;
+    for (auto &iter : member_->resourceGroups) {
+        for (auto &it : iter.second) {
+            if (it.second->parentid() == parentId) {
+                rgs.push_back(it.second);
+            }
+        }
+    }
+    return rgs;
+}
+
+std::vector<std::shared_ptr<messages::ResourceGroupInfo>> ResourceGroupManagerActor::GetRgByJobId(
+    const std::string &jobId)
+{
+    std::vector<std::shared_ptr<messages::ResourceGroupInfo>> rgs;
+    for (auto &iter : member_->resourceGroups) {
+        for (auto &it : iter.second) {
+            if (it.second->appid() == jobId) {
+                rgs.push_back(it.second);
+            }
+        }
+    }
+    return rgs;
+}
+
+bool ResourceGroupManagerActor::IsDetachedResourceGroup(const std::shared_ptr<messages::ResourceGroupInfo> &rg)
+{
+    auto ext = rg->opt().extension();
+    if (ext.find("lifetime") != ext.end() && ext["lifetime"] == "detached") {
+        return true;
+    }
+    return false;
 }
 }  // namespace functionsystem::resource_group_manager

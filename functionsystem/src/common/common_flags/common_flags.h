@@ -17,9 +17,8 @@
 #ifndef COMMON_COMMON_FLAGS_COMMON_FLAGS_H
 #define COMMON_COMMON_FLAGS_COMMON_FLAGS_H
 
-#include <unordered_set>
 #include <async/flag_parser_impl.hpp>
-#include <async/option.hpp>
+#include <unordered_set>
 
 #include "common/constants/constants.h"
 
@@ -243,6 +242,16 @@ public:
         return systemAuthMode_;
     }
 
+    const std::string &GetDecryptAlgorithm() const
+    {
+        return decryptAlgorithm_;
+    }
+
+    const std::string &GetResourcePath() const
+    {
+        return resourcePath_;
+    }
+
     int32_t GetScheduleRelaxed() const
     {
         return scheduleRelaxed_;
@@ -304,6 +313,8 @@ protected:
     std::string clusterId_;
 
     std::string systemAuthMode_;
+    std::string decryptAlgorithm_;
+    std::string resourcePath_;
     int32_t scheduleRelaxed_;
     bool enablePreemption_;
 };

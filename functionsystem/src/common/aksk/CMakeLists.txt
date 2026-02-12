@@ -15,11 +15,14 @@
 project(aksk)
 
 message(STATUS "Begin to configure aksk")
-add_library(aksk STATIC "")
-get_property(UTILS_INCLUDE GLOBAL PROPERTY "UTILS_INCLUDE")
 
-include_directories(${UTILS_INCLUDE})
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR} AKSK_SRCS)
-add_dependencies(aksk hex http)
-target_sources(aksk PRIVATE ${AKSK_SRCS})
-target_link_libraries(aksk PUBLIC hex http ${litebus_ALL_LIB})
+add_library(${PROJECT_NAME} STATIC ${AKSK_SRCS})
+
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include>
+)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC crypto hex http ${litebus_ALL_LIB})

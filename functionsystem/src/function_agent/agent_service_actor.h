@@ -34,6 +34,7 @@
 #include "function_agent/common/constants.h"
 #include "function_agent/common/types.h"
 #include "function_agent/network/network_tool.h"
+#include "function_agent/plugin/multi_plugin_client.h"
 
 namespace functionsystem::function_agent {
 
@@ -217,6 +218,8 @@ public:
     virtual void QueryDebugInstanceInfosResponse(const litebus::AID &, std::string &&, std::string &&msg);
 
     litebus::Future<Status> CreateStaticFunctionInstance();
+
+    litebus::Future<Status> LoadPlugins(const std::string &configs);
 
     // for test
     [[maybe_unused]] void SetIpsetName(std::string ipsetName)
@@ -441,7 +444,7 @@ private:
 
     void InitKillInstanceResponse(messages::KillInstanceResponse *target, const messages::KillInstanceRequest &source);
 
-    Status StartRuntime(const DeployInstanceRequest &request);
+    Status StartRuntime(const DeployInstanceRequest &request, const litebus::Future<Status> &prepareEnvRes);
     litebus::Future<messages::Registered> RegisterAgent();
     void RetryRegisterAgent(const std::string &msg);
     void ReceiveRegister(const std::string &message);
@@ -473,6 +476,10 @@ private:
     litebus::Future<DeployResult> AsyncDownloadCode(const std::shared_ptr<messages::DeployRequest> &request,
                                                     const std::shared_ptr<Deployer> &deployer);
 
+    litebus::Future<Status> PrepareEnv(const DeployInstanceRequest &request);
+
+    litebus::Future<bool> RecoverPluginCache(const std::string &message);
+
     void AttachTemporaryAccesskey(const std::string &storageType,
                                   std::shared_ptr<messages::DeployRequest> &deployRequest,
                                   const std::shared_ptr<messages::DeployInstanceRequest> &req);
@@ -489,6 +496,7 @@ private:
 
 private:
     std::unordered_map<std::string, std::shared_ptr<Deployer>> deployers_;
+    std::shared_ptr<MultiPluginClient> pluginClient_;
 
     /** <requestID : DeployInstanceRequestWrapper> for response */
     std::unordered_map<std::string, DeployInstanceRequestWrapper> deployingRequest_;
@@ -499,6 +507,8 @@ private:
     std::unordered_map<std::string, litebus::Promise<DeployResult>> deployingObjects_;
     // key: requestID, value: DeployResult
     std::unordered_map<std::string, DeployResult> failedDownloadRequests_;
+    // key: requestID
+    std::unordered_map<std::string, std::shared_ptr<litebus::Promise<Status>>> prepareEnvRequest_;
 
     // manager function code and layer's reference numbers
     std::shared_ptr<std::unordered_map<std::string, CodeReferInfo>> codeReferInfos_{ nullptr };

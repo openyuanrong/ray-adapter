@@ -44,11 +44,12 @@ void ValidateDiskExtensions(const DevClusterMetrics &devMetrics, const std::vect
         const auto& expected = expectedDisks[i];
 
         EXPECT_EQ(diskExt.name(), expected.name);
-        EXPECT_EQ(diskExt.size(), expected.size);
+        EXPECT_EQ(diskExt.size(), static_cast<size_t>(expected.size));
         EXPECT_EQ(diskExt.mountpoints(), expected.mountpoints);
 
         if (devMetrics.intsInfo.count(resource_view::DISK_RESOURCE_NAME) > 0) {
-            EXPECT_EQ(diskExt.size(), devMetrics.intsInfo.at(resource_view::DISK_RESOURCE_NAME)[i]);
+            EXPECT_EQ(diskExt.size(), static_cast<size_t>(
+                devMetrics.intsInfo.at(resource_view::DISK_RESOURCE_NAME)[i]));
         }
     }
 }

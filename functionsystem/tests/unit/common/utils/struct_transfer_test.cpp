@@ -118,7 +118,7 @@ TEST_F(StructTransferTest, MergeScheduleResultToRequest)
     auto hetegroVectors = heteroCategory->second.vectors().find(DEFAULT_NODE_UUID);
     ASSERT_NE(hetegroVectors, heteroCategory->second.vectors().end());
 
-    EXPECT_EQ(hetegroVectors->second.values_size(), DEFAULT_VECTOR_RESOURCE.size());
+    EXPECT_EQ(static_cast<size_t>(hetegroVectors->second.values_size()), DEFAULT_VECTOR_RESOURCE.size());
     for (int i = 0; i < hetegroVectors->second.values_size(); i++) {
         EXPECT_EQ(DEFAULT_VECTOR_RESOURCE[i], hetegroVectors->second.values(i));
     }
@@ -142,7 +142,7 @@ TEST_F(StructTransferTest, MergeScheduleResultToRequest)
     auto diskVectors = diskCategory->second.vectors().find(DEFAULT_NODE_UUID);
     ASSERT_NE(diskVectors, diskCategory->second.vectors().end());
 
-    EXPECT_EQ(diskVectors->second.values_size(), DEFAULT_VECTOR_RESOURCE.size());
+    EXPECT_EQ(static_cast<size_t>(diskVectors->second.values_size()), DEFAULT_VECTOR_RESOURCE.size());
     for (int i = 0; i < diskVectors->second.values_size(); i++) {
         EXPECT_EQ(DEFAULT_VECTOR_RESOURCE[i], diskVectors->second.values(i));
     }

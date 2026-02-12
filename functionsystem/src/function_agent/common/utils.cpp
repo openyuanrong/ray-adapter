@@ -18,15 +18,15 @@
 
 #include <nlohmann/json.hpp>
 #include <utils/os_utils.hpp>
-#include <utils/string_utils.hpp>
 
-#include "constants.h"
 #include "common/aksk/aksk_util.h"
 #include "common/constants/constants.h"
 #include "common/create_agent_decision/create_agent_decision.h"
+#include "common/crypto/crypto.h"
 #include "common/logs/logging.h"
 #include "common/metadata/metadata.h"
 #include "common/utils/struct_transfer.h"
+#include "constants.h"
 
 namespace functionsystem::function_agent {
 const static std::string RUNTIME_ENV_PREFIX = "func-";
@@ -39,7 +39,8 @@ const int DEFAULT_QUOTA = 512;
 const int QUOTA_NO_MONITOR = -1;
 const std::unordered_set<std::string> DECRYPT_IGNORE_SET = { CRYPTO_ALGORITHM_STR, ENV_KEY };
 
-const std::vector<std::string> DEPLOY_OPTION_KEYS = { CONDA_CONFIG, CONDA_COMMAND, CONDA_PREFIX, CONDA_DEFAULT_ENV };
+const std::vector<std::string> DEPLOY_OPTION_KEYS = { CONDA_CONFIG, CONDA_COMMAND, CONDA_PREFIX, CONDA_DEFAULT_ENV,
+                                                      EXEC_PATH };
 const std::vector<std::string> POSIX_ENV_KEYS = { YR_APP_MODE,
                                                   YR_WORKING_DIR,
                                                   UNZIPPED_WORKING_DIR,
@@ -249,12 +250,26 @@ void SetUserEnv(const std::shared_ptr<messages::DeployInstanceRequest> &req, mes
     if (!req->envinfo().empty()) {
         // 1. The envs of functions from CLI are encrypted.
         // 2. The envs of functions from Local are not encrypted(NO_CRYPTO).
-        ParseEnvInfoJson(req->envinfo(), runtimeConf);
+        auto decryptEnvResult = Crypto::GetInstance().Decrypt(req->envinfo(), req->envkey(), req->cryptoalgorithm());
+        if (decryptEnvResult.IsSome()) {
+            ParseEnvInfoJson(std::string(decryptEnvResult.Get().GetData(), decryptEnvResult.Get().GetSize()),
+                             runtimeConf);
+        } else {
+            YRLOG_ERROR("failed to decrypt user env");
+        }
     }
 
     if (!req->encrypteduserdata().empty()) {
         // Currently, encrypted_user_data is used only in the FG.
-        (void)runtimeConf.mutable_userenvs()->insert({ "func-RUNTIME_USERDATA", req->encrypteduserdata() });
+        auto decryptUserData =
+            Crypto::GetInstance().Decrypt(req->encrypteduserdata(), req->envkey(), req->cryptoalgorithm());
+        if (decryptUserData.IsSome()) {
+            (void)runtimeConf.mutable_userenvs()->insert(
+                { "func-RUNTIME_USERDATA",
+                  std::string(decryptUserData.Get().GetData(), decryptUserData.Get().GetSize()) });
+        } else {
+            YRLOG_ERROR("failed to decrypt user data");
+        }
     }
 }
 
@@ -294,7 +309,13 @@ void SetCreateOptions(const std::shared_ptr<messages::DeployInstanceRequest> &re
             YRLOG_DEBUG("{} not found in createOptions", key);
             continue;
         }
-        (void)runtimeConf.mutable_userenvs()->insert({ key, it->second });
+        auto dataOpt = Crypto::GetInstance().Decrypt(it->second);
+        if (dataOpt.IsNone()) {
+            YRLOG_ERROR("failed to decrypt key: {}", key);
+            continue;
+        }
+        (void)runtimeConf.mutable_userenvs()->insert(
+            { key, std::string(dataOpt.Get().GetData(), dataOpt.Get().GetSize()) });
     }
 }
 
@@ -358,6 +379,12 @@ void SetDeploymentConfig(messages::DeploymentConfig *deploymentConf,
             (*deploymentConf->mutable_deployoptions())[str] = iter->second;
         }
     }
+
+    for (const std::string &str : VIRTUALENV_KEYS) {
+        if (auto iter(req->createoptions().find(str)); iter != req->createoptions().end()) {
+            (*deploymentConf->mutable_deployoptions())[str] = iter->second;
+        }
+    }
 }
 
 litebus::Option<std::string> DecryptDelegateData(const std::string &str, const std::string &dataKey)
@@ -388,7 +415,12 @@ litebus::Option<std::string> DecryptDelegateData(const std::string &str, const s
         if (cipher.empty()) {
             continue;
         }
-        items[item.key()] = cipher;
+
+        if (auto op = Crypto::GetInstance().Decrypt(cipher, key, algorithm); op.IsSome()) {
+            items[item.key()] = std::string(op.Get().GetData(), op.Get().GetSize());
+        } else {
+            YRLOG_ERROR("Decrypt delegate data: {} failed.", item.value());
+        }
     }
     std::string result;
     try {

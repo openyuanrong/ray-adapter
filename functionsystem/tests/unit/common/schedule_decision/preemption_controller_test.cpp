@@ -289,7 +289,7 @@ TEST_F(PreemptionControllerTest, PreemptionSuccessfulWithResourcePriorityAffinit
     auto result = preemption.PreemptDecision(preContext, scheduledInstance, *unit);
     EXPECT_EQ(result.status.StatusCode(), StatusCode::SUCCESS);
     EXPECT_EQ(result.unitID, "unit1");
-    EXPECT_EQ(result.preemptedInstances.size(), 2);
+    EXPECT_EQ(result.preemptedInstances.size(), size_t{2});
     EXPECT_TRUE(result.preemptedInstances[0].instanceid() == instance1.instanceid() ||
                 result.preemptedInstances[0].instanceid() == instance2.instanceid());
 }
@@ -345,7 +345,7 @@ TEST_F(PreemptionControllerTest, PreemptionSuccessfulWithInstancePreferredAffini
     auto result = preemption.PreemptDecision(preContext, scheduledInstance, *unit);
     EXPECT_EQ(result.status.StatusCode(), StatusCode::SUCCESS);
     EXPECT_EQ(result.unitID, "unit1");
-    EXPECT_EQ(result.preemptedInstances.size(), 1);
+    EXPECT_EQ(result.preemptedInstances.size(), size_t{1});
     EXPECT_EQ(result.preemptedInstances[0].instanceid(), instance2.instanceid());
 }
 }  // namespace functionsystem::test

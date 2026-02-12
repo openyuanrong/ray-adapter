@@ -109,10 +109,6 @@ const std::string &GetAccessKey() const
     {
         return credentialType;
     }
-    const std::string &GetDecryptAlgorithm() const
-    {
-        return decryptAlgorithm;
-    }
 
     const bool &GetEnableMergeProcess() const
     {
@@ -137,6 +133,11 @@ const std::string &GetAccessKey() const
     const bool &GetEnableSignatureValidation() const
     {
         return enableSignatureValidation_;
+    }
+
+    const std::string &GetPluginConfigs() const
+    {
+        return pluginConfigs_;
     }
 
 protected:
@@ -166,6 +167,8 @@ protected:
     bool enableDisConvCallStack = false;
     std::string agentUID = "";
     bool enableSignatureValidation_ = false;
+
+    std::string pluginConfigs_ = "";
 };
 }  // namespace functionsystem::function_agent
 

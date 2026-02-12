@@ -55,6 +55,7 @@ static messages::ForwardKillResponse GenerateForwardKillResponse(const messages:
 InstanceManagerActor::InstanceManagerActor(const std::shared_ptr<MetaStoreClient> &metaClient,
                                            const std::shared_ptr<GlobalScheduler> &scheduler,
                                            const std::shared_ptr<GroupManager> &groupManager,
+                                           const std::shared_ptr<ResourceGroupManager> &resourceGroupManager,
                                            const InstanceManagerStartParam &param)
     : ActorBase(INSTANCE_MANAGER_ACTOR_NAME),
       cancelTimout_(CANCEL_TIMEOUT)
@@ -71,6 +72,7 @@ InstanceManagerActor::InstanceManagerActor(const std::shared_ptr<MetaStoreClient
     member_->instanceOpt = std::make_shared<InstanceOperator>(metaClient);
     member_->abnormalScheduler = std::make_shared<std::unordered_set<std::string>>();
     member_->groupManager = groupManager;
+    member_->resourceGroupManager = resourceGroupManager;
     member_->family = std::make_shared<InstanceFamilyCaches>();
 }
 
@@ -536,6 +538,9 @@ void InstanceManagerActor::OnInstanceWatchEvent(const std::vector<WatchEvent> &e
                 OnInstanceDelete(eventKey, history);
                 if (member_->groupManager) {
                     member_->groupManager->OnInstanceDelete(eventKey, history);
+                }
+                if (member_->resourceGroupManager) {
+                    member_->resourceGroupManager->OnDeleteInstance(history);
                 }
                 ASSERT_IF_NULL(business_);
                 business_->OnInstanceDeleteForFamilyManagement(eventKey, history);
@@ -1243,6 +1248,9 @@ void InstanceManagerActor::MasterBusiness::ForwardKill(const litebus::AID &from,
                    std::string(from));
         HandleShutDownAll(from, req);
         auto jobID = req.req().instanceid();
+        if (member_->resourceGroupManager) {
+            member_->resourceGroupManager->OnKillJob(jobID);
+        }
         auto reason = fmt::format("job({}) finalized", jobID);
         (void)actor->TryCancelSchedule(jobID, messages::CancelType::JOB, reason);
         return;

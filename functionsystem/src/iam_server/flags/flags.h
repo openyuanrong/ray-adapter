@@ -51,11 +51,6 @@ public:
         return metaStoreAddress;
     }
 
-    bool GetEnableTrace() const
-    {
-        return enableTrace;
-    }
-
     bool GetIsEnableIAM() const
     {
         return enableIAM_;
@@ -64,16 +59,6 @@ public:
     uint32_t GetTokenExpiredTimeSpan() const
     {
         return tokenExpiredTimeSpan_;
-    }
-
-    const std::string &GetDecryptAlgorithm() const
-    {
-        return decryptAlgorithm_;
-    }
-
-    const std::string &GetResourcePath() const
-    {
-        return resourcePath_;
     }
 
     const std::string &GetK8sBasePath() const
@@ -122,13 +107,10 @@ private:
     std::string ip;
     std::string httpListenPort;
     std::string metaStoreAddress;
-    bool enableTrace = false;
     std::string servicesPath_;
     std::string libPath_;
     bool enableIAM_ = false;
     uint32_t tokenExpiredTimeSpan_;
-    std::string resourcePath_;
-    std::string decryptAlgorithm_;
     std::string k8sBasePath_;
     std::string k8sNamespace_;
     uint32_t electLeaseTTL_;

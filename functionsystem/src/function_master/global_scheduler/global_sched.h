@@ -67,6 +67,8 @@ public:
     virtual litebus::Future<messages::QueryResourcesInfoResponse> QueryResourcesInfo(
         const std::shared_ptr<messages::QueryResourcesInfoRequest> &req);
 
+    virtual litebus::Future<messages::ScheduleTopology> QueryRootTopologyView();
+
     virtual litebus::Future<Status> EvictAgent(const std::string &localID,
                                                const std::shared_ptr<messages::EvictAgentRequest> &req);
 

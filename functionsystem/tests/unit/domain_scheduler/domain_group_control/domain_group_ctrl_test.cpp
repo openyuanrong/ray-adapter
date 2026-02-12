@@ -483,7 +483,7 @@ TEST_F(DomainGroupCtrlTest, GroupScheduleRangeInstanceReserveCallBackThenSuccess
 TEST_F(DomainGroupCtrlTest, RollBackInstanceAfterLastestSuccessfulReserved)
 {
     auto genResult = [](std::shared_ptr<GroupScheduleContext> ctx, std::vector<bool> reserveResult) {
-        for (int i = 0; i < reserveResult.size(); i++) {
+        for (size_t i = 0; i < reserveResult.size(); i++) {
             if (!reserveResult[i]) {
                 ctx->failedReserve.emplace(ctx->requests[i]->requestid());
             }
@@ -767,7 +767,7 @@ TEST_F(DomainGroupCtrlTest, SfmdGroupScheduleSuccessful)
         ASSERT_AWAIT_READY(future);
         EXPECT_EQ(future.Get().code(), StatusCode::SUCCESS);
 
-        ASSERT_EQ(scheduleReqs.size(), 3);
+        ASSERT_EQ(scheduleReqs.size(), size_t{3});
         auto scheduleReq = scheduleReqs[0];
 
         // check functionGroupRunningInfo
@@ -863,7 +863,7 @@ TEST_F(DomainGroupCtrlTest, SfmdGroupScheduleSuccessful)
         ASSERT_AWAIT_READY(future);
         EXPECT_EQ(future.Get().code(), StatusCode::SUCCESS);
 
-        ASSERT_EQ(scheduleReqs.size(), 3);
+        ASSERT_EQ(scheduleReqs.size(), size_t{3});
         auto scheduleReq = scheduleReqs[0];
 
         // check functionGroupRunningInfo
@@ -1000,7 +1000,7 @@ TEST_F(DomainGroupCtrlTest, HeteroGroupSchedulerWithResourceGroup)
     ASSERT_AWAIT_READY(future);
     EXPECT_EQ(future.Get().code(), StatusCode::SUCCESS);
 
-    ASSERT_EQ(scheduleReqs.size(), 3);
+    ASSERT_EQ(scheduleReqs.size(), size_t{3});
     auto scheduleReq = scheduleReqs[0];
 
     // check functionGroupRunningInfo

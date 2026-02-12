@@ -302,7 +302,7 @@ TEST_F(DISABLED_InstanceManagerTest, SyncInstance)  // NOLINT
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -337,7 +337,7 @@ TEST_F(DISABLED_InstanceManagerTest, StartSyncFail)
         .WillRepeatedly(testing::Return(litebus::Future<std::shared_ptr<Watcher>>()));
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         mockMetaStoreClient, scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = false });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = false });
     instanceMgrActor->isSuicide_ = true;
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
@@ -356,7 +356,7 @@ TEST_F(DISABLED_InstanceManagerTest, SchedulerWatchTest)  // NOLINT
     auto groupMgr = std::make_shared<MockGroupManager>(groupMgrActor);
 
     const auto actor = std::make_shared<InstanceManagerActor>(
-        client, scheduler, groupMgr, InstanceManagerStartParam{ .runtimeRecoverEnable = false });
+        client, scheduler, groupMgr, nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = false });
 
     const litebus::AID aid = litebus::Spawn(actor);
 
@@ -383,7 +383,7 @@ TEST_F(DISABLED_InstanceManagerTest, ReplayFailedDeleteOperationTest)  // NOLINT
     auto groupMgr = std::make_shared<MockGroupManager>(groupMgrActor);
 
     const auto actor = std::make_shared<InstanceManagerActor>(
-        client, scheduler, groupMgr, InstanceManagerStartParam{ .runtimeRecoverEnable = false });
+        client, scheduler, groupMgr, nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = false });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(actor, groupMgrActor);
     instanceMgrDriver->Start();
     litebus::Async(actor->GetAID(), &InstanceManagerActor::UpdateLeaderInfo, GetLeaderInfo(actor->GetAID()));
@@ -437,7 +437,7 @@ TEST_F(DISABLED_InstanceManagerTest, SyncAbnormalScheduler)  // NOLINT
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = false });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = false });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -472,7 +472,7 @@ TEST_F(DISABLED_InstanceManagerTest, PutAndDeleteInstance)  // NOLINT
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -547,7 +547,7 @@ TEST_F(DISABLED_InstanceManagerTest, PutAndDeleteAbnormalScheduler)  // NOLINT
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = false });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = false });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -601,7 +601,7 @@ TEST_F(DISABLED_InstanceManagerTest, OnLocalSchedulerFaultRecover)  // NOLINT
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -722,7 +722,7 @@ TEST_F(DISABLED_InstanceManagerTest, OnLocalSchedulerFaultNotRecover)  // NOLINT
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = false });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = false });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -807,7 +807,7 @@ TEST_F(DISABLED_InstanceManagerTest, OnLocalSchedulerFaultNotRecover)  // NOLINT
 
     map.clear();  // [notice] clear and then Get
     litebus::Async(instanceMgrActor->GetAID(), &InstanceManagerActor::Get, NODE_ID_2, &map).Get();
-    EXPECT_EQ(map.size(), 1u);
+    EXPECT_EQ(map.size(), size_t{1});
 
     instanceMgrDriver->Stop();
     instanceMgrDriver->Await();
@@ -834,7 +834,7 @@ TEST_F(DISABLED_InstanceManagerTest, PutInstanceAfterAbnormal)  // NOLINT
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = false });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = false });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -925,7 +925,7 @@ TEST_F(DISABLED_InstanceManagerTest, OnChange)  // NOLINT
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -967,7 +967,7 @@ TEST_F(DISABLED_InstanceManagerTest, SlaveBusinessTest)  // NOLINT
     PutInstances(true);
     auto member = std::make_shared<InstanceManagerActor::Member>();
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
-        nullptr, nullptr, nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, nullptr, nullptr, nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     auto slaveBusiness = std::make_shared<InstanceManagerActor::SlaveBusiness>(member, instanceMgrActor);
     slaveBusiness->ForwardKill(litebus::AID(), "", "");
     slaveBusiness->IsLocalAbnormal("");
@@ -1003,7 +1003,7 @@ TEST_F(DISABLED_InstanceManagerTest, ForwardKillInstance)
     auto groupMgr = std::make_shared<MockGroupManager>(groupMgrActor);
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = false });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = false });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
     auto mockBootstrapActor = std::make_shared<MockBootstrapStubActor>("MockBootstrapStubActor");
@@ -1041,7 +1041,7 @@ TEST_F(DISABLED_InstanceManagerTest, FamilyManagement_OnParentMissingInstancePut
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = false });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = false });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -1101,7 +1101,7 @@ TEST_F(DISABLED_InstanceManagerTest, FamilyManagement_OnAbnormalInstancePut)  //
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = false });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = false });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -1218,7 +1218,7 @@ TEST_F(DISABLED_InstanceManagerTest, FamilyManagement_RetryKill)  // NOLINT
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create({ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = false });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = false });
     instanceMgrActor->SetKillRetryInterval(retryIntervalMsInThisTest);
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
@@ -1288,7 +1288,7 @@ TEST_F(DISABLED_InstanceManagerTest, WatchInstanceMetaJobTest)  // NOLINT
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -1371,7 +1371,7 @@ TEST_F(DISABLED_InstanceManagerTest, FuncMetaKillTest)  // NOLINT
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -1445,7 +1445,7 @@ TEST_F(DISABLED_InstanceManagerTest, JobKillTest)  // NOLINT
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -1538,7 +1538,7 @@ TEST_F(DISABLED_InstanceManagerTest, PutProxyAbnormalFailed)  // NOLINT
     auto groupMgr = std::make_shared<MockGroupManager>(groupMgrActor);
     auto mockMetaStoreClient = std::make_shared<MockMetaStoreClient>(metaStoreServerHost_);
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
-        mockMetaStoreClient, scheduler, groupMgr,
+        mockMetaStoreClient, scheduler, groupMgr, nullptr,
         InstanceManagerStartParam{ .runtimeRecoverEnable = false });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
@@ -1569,7 +1569,7 @@ TEST_F(DISABLED_InstanceManagerTest, ProxyAbnormalSyncerTest)  // NOLINT
     auto groupMgr = std::make_shared<MockGroupManager>(groupMgrActor);
     auto mockMetaStoreClient = std::make_shared<MockMetaStoreClient>(metaStoreServerHost_);
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
-        mockMetaStoreClient, scheduler, groupMgr,
+        mockMetaStoreClient, scheduler, groupMgr, nullptr,
         InstanceManagerStartParam{ .runtimeRecoverEnable = false });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
@@ -1624,7 +1624,7 @@ TEST_F(DISABLED_InstanceManagerTest, FunctionMetaSyncerTest)  // NOLINT
     auto groupMgr = std::make_shared<MockGroupManager>(groupMgrActor);
     auto mockMetaStoreClient = std::make_shared<MockMetaStoreClient>(metaStoreServerHost_);
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
-        mockMetaStoreClient, scheduler, groupMgr,
+        mockMetaStoreClient, scheduler, groupMgr, nullptr,
         InstanceManagerStartParam{ .runtimeRecoverEnable = false, .isMetaStoreEnable= false, .servicesPath="/tmp/services.yaml", .libPath="/tmp/", .functionMetaPath="/tmp/executor-meta/" });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
@@ -1732,7 +1732,7 @@ TEST_F(DISABLED_InstanceManagerTest, InstanceInfoSyncerTest)  // NOLINT
     auto groupMgr = std::make_shared<MockGroupManager>(groupMgrActor);
     auto mockMetaStoreClient = std::make_shared<MockMetaStoreClient>(metaStoreServerHost_);
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
-        mockMetaStoreClient, scheduler, groupMgr,
+        mockMetaStoreClient, scheduler, groupMgr, nullptr,
         InstanceManagerStartParam{ .runtimeRecoverEnable = false });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
@@ -1826,7 +1826,7 @@ TEST_F(DISABLED_InstanceManagerTest, InstanceInfoSyncerOperationReplayTest)  // 
     auto groupMgr = std::make_shared<MockGroupManager>(groupMgrActor);
     auto mockMetaStoreClient = std::make_shared<MockMetaStoreClient>(metaStoreServerHost_);
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
-        mockMetaStoreClient, scheduler, groupMgr, InstanceManagerStartParam{ .runtimeRecoverEnable = false });
+        mockMetaStoreClient, scheduler, groupMgr, nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = false });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -1903,7 +1903,7 @@ TEST_F(DISABLED_InstanceManagerTest, ForwardKillInstanceWhenInstanceManagerNever
     auto groupMgr = std::make_shared<MockGroupManager>(groupMgrActor);
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = false });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = false });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
     auto mockBootstrapActor = std::make_shared<MockBootstrapStubActor>("MockBootstrapStubActor1");
@@ -1939,7 +1939,7 @@ TEST_F(DISABLED_InstanceManagerTest, QueryInstancesInfo)
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -1973,7 +1973,7 @@ TEST_F(DISABLED_InstanceManagerTest, QueryNamedIns)
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -2016,7 +2016,7 @@ TEST_F(DISABLED_InstanceManagerTest, QueryDebugInstancesInfo)
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -2085,7 +2085,7 @@ TEST_F(DISABLED_InstanceManagerTest, CompleteKillInstance)
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -2147,7 +2147,7 @@ TEST_F(DISABLED_InstanceManagerTest, NodesTest)
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
 
@@ -2207,7 +2207,7 @@ TEST_F(DISABLED_InstanceManagerTest, ExecuteTest)
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     litebus::Spawn(instanceMgrActor);
     auto count = std::make_shared<int>();
     *count = 0;
@@ -2233,7 +2233,7 @@ TEST_F(DISABLED_InstanceManagerTest, ForwardQueryDebugInstancesInfo)
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
     {
@@ -2280,7 +2280,7 @@ TEST_F(DISABLED_InstanceManagerTest, ForwardQueryInstancesInfo)
 
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
         MetaStoreClient::Create(MetaStoreConfig{ .etcdAddress = metaStoreServerHost_ }), scheduler, groupMgr,
-        InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     auto instanceMgrDriver = std::make_shared<InstanceManagerDriver>(instanceMgrActor, groupMgrActor);
     instanceMgrDriver->Start();
     {
@@ -2322,11 +2322,10 @@ TEST_F(DISABLED_InstanceManagerTest, IsInstanceShouldBeKilledTest)
 {
     auto member = std::make_shared<InstanceManagerActor::Member>();
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
-        nullptr, nullptr, nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, nullptr, nullptr, nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     auto masterBusiness = std::make_shared<InstanceManagerActor::MasterBusiness>(member, instanceMgrActor);
     masterBusiness->member_->family = std::make_shared<InstanceFamilyCaches>();
     std::string instanceIDA = "instanceA";
-    InstanceState instanceStatusA = InstanceState::RUNNING;
     std::shared_ptr<resource_view::InstanceInfo> instanceInfoA = std::make_shared<resource_view::InstanceInfo>();
     instanceInfoA->set_instanceid("instanceA");
     instanceInfoA->mutable_instancestatus()->set_code(int32_t(InstanceState::RUNNING));
@@ -2355,10 +2354,9 @@ TEST_F(DISABLED_InstanceManagerTest, IsInstanceManagedByJobTest)
 {
     auto member = std::make_shared<InstanceManagerActor::Member>();
     auto instanceMgrActor = std::make_shared<InstanceManagerActor>(
-        nullptr, nullptr, nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
+        nullptr, nullptr, nullptr, nullptr, InstanceManagerStartParam{ .runtimeRecoverEnable = true });
     instanceMgrActor->member_->family = std::make_shared<InstanceFamilyCaches>();
     std::string instanceIDA = "instanceA";
-    InstanceState instanceStatusA = InstanceState::RUNNING;
     std::shared_ptr<resource_view::InstanceInfo> instanceInfoA = std::make_shared<resource_view::InstanceInfo>();
     instanceInfoA->set_instanceid("instanceA");
     instanceInfoA->mutable_instancestatus()->set_code(int32_t(InstanceState::RUNNING));

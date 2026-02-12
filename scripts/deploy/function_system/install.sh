@@ -174,6 +174,9 @@ function install_collector() {
   "${FUNCTION_SYSTEM_DIR}"/bin/collector \
     --collect_id="${NODE_ID}" \
     --datasystem_port="${DS_WORKER_PORT}" \
+    --datasystem_client_public_key="${CURVE_KEY_PATH}/client.key" \
+    --datasystem_client_private_key="${CURVE_KEY_PATH}/client.key_secret" \
+    --datasystem_server_public_key="${CURVE_KEY_PATH}/worker.key" \
     --ip="${IP_ADDRESS}" \
     --port="${COLLECTOR_PORT}" \
     --log_root="${LOG_ROOT}" \
@@ -247,6 +250,7 @@ function install_faas_frontend() {
   -functionName='0/0-system-faasfrontend/$latest' \
   -logLevel=${FS_LOG_LEVEL} \
   -logPath=${FS_LOG_PATH} \
+  -enableEvent=${ENABLE_EVENT} \
   -enableMTLS=${ENABLE_MTLS} \
   -privateKeyPath=${PRIVATE_KEY_PATH} \
   -certificateFilePath=${CERTIFICATE_FILE_PATH} \
