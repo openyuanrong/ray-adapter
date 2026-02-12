@@ -27,6 +27,7 @@
 #include "runtime_manager/metrics/collector/heterogeneous_collector/npu_probe.h"
 #include "runtime_manager/metrics/collector/heterogeneous_collector/topo_info.h"
 #include "common/utils/path.h"
+#include "utils/os_utils.hpp"
 
 using ::testing::MatchesRegex;
 
@@ -153,201 +154,11 @@ const std::vector<std::string> wrongNpuMem{
 };
 
 const std::vector<std::string> gpuOrUnitInfo{
-    "==============NVSMI LOG==============",
-    "",
-    "Timestamp                                 : Mon Mar 31 10:11:18 2025",
-    "Driver Version                            : 535.154.05",
-    "CUDA Version                              : 12.2",
-    "",
-    "Attached GPUs                             : 1",
-    "GPU 00000000:04:00.0",
-    "    Product Name                          : NVIDIA GeForce RTX 3090",
-    "    Product Brand                         : GeForce",
-    "    Product Architecture                  : Ampere",
-    "    Display Mode                          : Disabled",
-    "    Display Active                        : Disabled",
-    "    Persistence Mode                      : Disabled",
-    "    Addressing Mode                       : None",
-    "    MIG Mode",
-    "        Current                           : N/A",
-    "        Pending                           : N/A",
-    "    Accounting Mode                       : Disabled",
-    "    Accounting Mode Buffer Size           : 4000",
-    "    Driver Model",
-    "        Current                           : N/A",
-    "        Pending                           : N/A",
-    "    Serial Number                         : N/A",
-    "    GPU UUID                              : GPU-6b1d0869-fb77-7f91-fcea-007340e02271",
-    "    Minor Number                          : 0",
-    "    VBIOS Version                         : 94.02.26.88.08",
-    "    MultiGPU Board                        : No",
-    "    Board ID                              : 0x400",
-    "    Board Part Number                     : N/A",
-    "    GPU Part Number                       : 2204-300-A1",
-    "    FRU Part Number                       : N/A",
-    "    Module ID                             : 1",
-    "    Inforom Version",
-    "        Image Version                     : G001.0000.03.03",
-    "        OEM Object                        : 2.0",
-    "        ECC Object                        : N/A",
-    "        Power Management Object           : N/A",
-    "    Inforom BBX Object Flush",
-    "        Latest Timestamp                  : N/A",
-    "        Latest Duration                   : N/A",
-    "    GPU Operation Mode",
-    "        Current                           : N/A",
-    "        Pending                           : N/A",
-    "    GSP Firmware Version                  : N/A",
-    "    GPU Virtualization Mode",
-    "        Virtualization Mode               : None",
-    "        Host VGPU Mode                    : N/A",
-    "    GPU Reset Status",
-    "        Reset Required                    : No",
-    "        Drain and Reset Recommended       : N/A",
-    "    IBMNPU",
-    "        Relaxed Ordering Mode             : N/A",
-    "    PCI",
-    "        Bus                               : 0x04",
-    "        Device                            : 0x00",
-    "        Domain                            : 0x0000",
-    "        Device Id                         : 0x220410DE",
-    "        Bus Id                            : 00000000:04:00.0",
-    "        Sub System Id                     : 0x00007377",
-    "        GPU Link Info",
-    "            PCIe Generation",
-    "                Max                       : 3",
-    "                Current                   : 3",
-    "                Device Current            : 3",
-    "                Device Max                : 4",
-    "                Host Max                  : 3",
-    "            Link Width",
-    "                Max                       : 16x",
-    "                Current                   : 16x",
-    "        Bridge Chip",
-    "            Type                          : N/A",
-    "            Firmware                      : N/A",
-    "        Replays Since Reset               : 0",
-    "        Replay Number Rollovers           : 0",
-    "        Tx Throughput                     : 0 KB/s",
-    "        Rx Throughput                     : 0 KB/s",
-    "        Atomic Caps Inbound               : N/A",
-    "        Atomic Caps Outbound              : N/A",
-    "    Fan Speed                             : 30 %",
-    "    Performance State                     : P0",
-    "    Clocks Event Reasons",
-    "        Idle                              : Active",
-    "        Applications Clocks Setting       : Not Active",
-    "        SW Power Cap                      : Not Active",
-    "        HW Slowdown                       : Not Active",
-    "            HW Thermal Slowdown           : Not Active",
-    "            HW Power Brake Slowdown       : Not Active",
-    "        Sync Boost                        : Not Active",
-    "        SW Thermal Slowdown               : Not Active",
-    "        Display Clock Setting             : Not Active",
-    "    FB Memory Usage",
-    "        Total                             : 24576 MiB",
-    "        Reserved                          : 316 MiB",
-    "        Used                              : 0 MiB",
-    "        Free                              : 24259 MiB",
-    "    BAR1 Memory Usage",
-    "        Total                             : 256 MiB",
-    "        Used                              : 1 MiB",
-    "        Free                              : 255 MiB",
-    "    Conf Compute Protected Memory Usage",
-    "        Total                             : 0 MiB",
-    "        Used                              : 0 MiB",
-    "        Free                              : 0 MiB",
-    "    Compute Mode                          : Default",
-    "    Utilization",
-    "        Gpu                               : 2 %",
-    "        Memory                            : 0 %",
-    "        Encoder                           : 0 %",
-    "        Decoder                           : 0 %",
-    "        JPEG                              : 0 %",
-    "        OFA                               : 0 %",
-    "    Encoder Stats",
-    "        Active Sessions                   : 0",
-    "        Average FPS                       : 0",
-    "        Average Latency                   : 0",
-    "    FBC Stats",
-    "        Active Sessions                   : 0",
-    "        Average FPS                       : 0",
-    "        Average Latency                   : 0",
-    "    ECC Mode",
-    "        Current                           : N/A",
-    "        Pending                           : N/A",
-    "    ECC Errors",
-    "        Volatile",
-    "            SRAM Correctable              : N/A",
-    "            SRAM Uncorrectable            : N/A",
-    "            DRAM Correctable              : N/A",
-    "            DRAM Uncorrectable            : N/A",
-    "        Aggregate",
-    "            SRAM Correctable              : N/A",
-    "            SRAM Uncorrectable            : N/A",
-    "            DRAM Correctable              : N/A",
-    "            DRAM Uncorrectable            : N/A",
-    "    Retired Pages",
-    "        Single Bit ECC                    : N/A",
-    "        Double Bit ECC                    : N/A",
-    "        Pending Page Blacklist            : N/A",
-    "    Remapped Rows                         : N/A",
-    "    Temperature",
-    "        GPU Current Temp                  : 33 C",
-    "        GPU T.Limit Temp                  : N/A",
-    "        GPU Shutdown Temp                 : 98 C",
-    "        GPU Slowdown Temp                 : 95 C",
-    "        GPU Max Operating Temp            : 93 C",
-    "        GPU Target Temperature            : 83 C",
-    "        Memory Current Temp               : N/A",
-    "        Memory Max Operating Temp         : N/A",
-    "    GPU Power Readings",
-    "        Power Draw                        : 99.31 W",
-    "        Current Power Limit               : 350.00 W",
-    "        Requested Power Limit             : 350.00 W",
-    "        Default Power Limit               : 350.00 W",
-    "        Min Power Limit                   : 100.00 W",
-    "        Max Power Limit                   : 350.00 W",
-    "    Module Power Readings",
-    "        Power Draw                        : N/A",
-    "        Current Power Limit               : N/A",
-    "        Requested Power Limit             : N/A",
-    "        Default Power Limit               : N/A",
-    "        Min Power Limit                   : N/A",
-    "        Max Power Limit                   : N/A",
-    "    Clocks",
-    "        Graphics                          : 1695 MHz",
-    "        SM                                : 1695 MHz",
-    "        Memory                            : 9751 MHz",
-    "        Video                             : 1515 MHz",
-    "    Applications Clocks",
-    "        Graphics                          : N/A",
-    "        Memory                            : N/A",
-    "    Default Applications Clocks",
-    "        Graphics                          : N/A",
-    "        Memory                            : N/A",
-    "    Deferred Clocks",
-    "        Memory                            : N/A",
-    "    Max Clocks",
-    "        Graphics                          : 2100 MHz",
-    "        SM                                : 2100 MHz",
-    "        Memory                            : 9751 MHz",
-    "        Video                             : 1950 MHz",
-    "    Max Customer Boost Clocks",
-    "        Graphics                          : N/A",
-    "    Clock Policy",
-    "        Auto Boost                        : N/A",
-    "        Auto Boost Default                : N/A",
-    "    Voltage",
-    "        Graphics                          : 812.500 mV",
-    "    Fabric",
-    "        State                             : N/A",
-    "        Status                            : N/A",
-    "    Processes                             : None",
+    "NVIDIA A100-SXM4-80GB",
 };
 
 const std::vector<std::string> gpuInfo {
-    "GPU 0: Tesla V100-PCIE-16GB (UUID: GPU-70051dd3-070d-24b9-366f-111f5ef475bc)",
+    "0",
 };
 
 const std::vector<std::string> gpuTopoInfo {
@@ -1003,7 +814,7 @@ TEST_F(XpuCollectorTest, TestGetNPUIPInfo)
     // case1: get ips from hccn_conf file successfully
     {
         EXPECT_CALL(*tool.get(), Read).WillOnce(testing::Return(litebus::Option<std::string>{hccnConf}));
-        probe->npuNum_ = hccnIps.size();
+        probe->detectedDeviceCnt_ = hccnIps.size();
         auto devInfo = probe->GetClusterInfo();
         devInfo->devIDs = {0,1,2,3};
         auto status = probe->GetNPUIPInfo();
@@ -1052,7 +863,7 @@ TEST_F(XpuCollectorTest, TestGetNPUIPInfo)
             .WillOnce(testing::Return(std::vector<std::string>{"127.0.0.116"}));
         EXPECT_CALL(*cmdTools.get(), GetCmdResult("hccn_tool -i 3 -ip -g | grep ipaddr: | grep -o [0-9][0-9]*.[0-9][0-9]*.[0-9][0-9]*.[0-9][0-9]*"))
             .WillOnce(testing::Return(std::vector<std::string>{"127.0.0.117"}));
-        probe->npuNum_ = 2;
+        probe->detectedDeviceCnt_ = 2;
         auto devInfo = probe->GetClusterInfo();
         devInfo->devIDs = {2,3};
         auto status = probe->GetNPUIPInfo();
@@ -1065,7 +876,7 @@ TEST_F(XpuCollectorTest, TestGetNPUIPInfo)
    // case5: get from hccn conf while id is start from 2, 3
    {
        EXPECT_CALL(*tool.get(), Read).WillOnce(testing::Return(litebus::Option<std::string>{hccn16NpuConf}));
-       probe->npuNum_ = 2;
+       probe->detectedDeviceCnt_ = 2;
        auto devInfo = probe->GetClusterInfo();
        devInfo->devIDs = {2,3};
        auto status = probe->GetNPUIPInfo();
@@ -1088,7 +899,7 @@ TEST_F(XpuCollectorTest, TestGetNPUTopoInfo)
 
     // case1: get topo info successfully
     {
-        probe->npuNum_ = 8;
+        probe->detectedDeviceCnt_ = 8;
         auto devInfo = probe->GetClusterInfo();
         devInfo->devIDs = std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7};
         EXPECT_CALL(*cmdTools.get(), GetCmdResultWithError("npu-smi info -t topo")).WillOnce(testing::Return(stringToVector(npuSminTopoInfo)));
@@ -1102,7 +913,7 @@ TEST_F(XpuCollectorTest, TestGetNPUTopoInfo)
     }
     // case2: get topo info failed
     {
-        probe->npuNum_ = 8;
+        probe->detectedDeviceCnt_ = 8;
         auto devInfo = probe->GetClusterInfo();
         devInfo->devIDs = std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7};
         EXPECT_CALL(*cmdTools.get(), GetCmdResultWithError("npu-smi info -t topo")).WillOnce(testing::Return(stringToVector("Failed to query \"topo\" info.")));
@@ -1113,7 +924,7 @@ TEST_F(XpuCollectorTest, TestGetNPUTopoInfo)
 
     // case3: not support get topo info
     {
-        probe->npuNum_ = 1;
+        probe->detectedDeviceCnt_ = 1;
         auto devInfo = probe->GetClusterInfo();
         devInfo->devIDs = std::vector<int>{0};
         EXPECT_CALL(*cmdTools.get(), GetCmdResultWithError("npu-smi info -t topo")).WillOnce(testing::Return(stringToVector("This device does not support querying topo")));
@@ -1122,7 +933,7 @@ TEST_F(XpuCollectorTest, TestGetNPUTopoInfo)
         EXPECT_EQ(status.RawMessage(), "node does not install npu driver");
 
         EXPECT_CALL(*cmdTools.get(), GetCmdResultWithError("npu-smi info -t topo")).WillOnce(testing::Return(stringToVector("NPU can not query topo")));
-        probe->npuNum_ = 2;
+        probe->detectedDeviceCnt_ = 2;
         devInfo->devIDs = std::vector<int>{0, 1};
         status = probe->GetNPUTopoInfo();
         EXPECT_TRUE(status.IsError());
@@ -1151,7 +962,7 @@ TEST_F(XpuCollectorTest, TestGetNPUTopoInfo)
                                     boot-select, topo, hccs, sio-info, spod-info, tls-csr-get, tls-cert,
                                     tls-cert-period, rootkey, hccs-bw.
         )";
-        probe->npuNum_ = 4;
+        probe->detectedDeviceCnt_ = 4;
         auto devInfo = probe->GetClusterInfo();
         devInfo->devIDs = std::vector<int>{0,1,2,3};
         auto tmp = stringToVector(errorParam);
@@ -1239,6 +1050,27 @@ TEST_F(XpuCollectorTest, TestRefreshTopoInfo)
        status = probe->RefreshTopo();
        EXPECT_TRUE(status.IsError());
    }
+
+   // case7: ASCEND_RT_VISIBLE_DEVICES env var is set, success get
+   {
+       litebus::os::SetEnv("ASCEND_RT_VISIBLE_DEVICES", "5,6");
+       auto tool = std::make_shared<MockProcFSTools>();
+       auto cmdTool = std::make_shared<MockCmdTools>();
+       params->collectMode = runtime_manager::NPU_COLLECT_TOPO;
+       EXPECT_CALL(*cmdTool.get(), GetCmdResult("npu-smi info")).WillRepeatedly(testing::Return(stringToVector(npuSmiInfo910B)));
+       EXPECT_CALL(*cmdTool.get(), GetCmdResultWithError("npu-smi info -t topo")).WillRepeatedly(testing::Return(stringToVector(npuSminTopoInfo)));
+       auto probe = std::make_shared<runtime_manager::NpuProbe>(nodeID, tool, cmdTool, params);
+       auto status = probe->RefreshTopo();
+       EXPECT_TRUE(status.IsOk());
+       EXPECT_TRUE(probe->visibleDevices_.IsSome());
+       EXPECT_EQ(probe->visibleDevices_.Get().size(), 2);
+       EXPECT_EQ(probe->detectedDeviceCnt_, 8);
+       auto ids = probe->GetDevClusterIDs();
+       EXPECT_EQ(ids.size(), 2);
+       EXPECT_EQ(ids[0], 5);
+       EXPECT_EQ(ids[1], 6);
+       litebus::os::UnSetEnv("ASCEND_RT_VISIBLE_DEVICES");
+   }
 }
 
 TEST_F(XpuCollectorTest, TestRefreshTopoInfoAllMode)
@@ -1310,13 +1142,13 @@ TEST_F(XpuCollectorTest, TestUpdateInfo)
        EXPECT_TRUE(devInfo->health.empty());
 
        // mock get npu info, update healthy successfully
-       probe->npuNum_ = 8;
+       probe->detectedDeviceCnt_ = 8;
        probe->UpdateHealth();
        probe->UpdateHealth();
        EXPECT_EQ(devInfo->health.size(), size_t{8});
 
        // mock get npu num not equal npu-smi info card num, update healthy failed
-       probe->npuNum_ = 4;
+       probe->detectedDeviceCnt_ = 4;
        probe->UpdateHealth();
        EXPECT_EQ(devInfo->health.size(), size_t{8});
    }
@@ -1335,7 +1167,7 @@ TEST_F(XpuCollectorTest, TestUpdateInfo)
        probe->UpdateDeviceIPs();
        probe->UpdateHealth();
        auto devInfo = probe->GetClusterInfo();
-       EXPECT_EQ(probe->npuNum_, size_t{8});
+       EXPECT_EQ(probe->detectedDeviceCnt_, size_t{8});
        EXPECT_EQ(devInfo->health.size(), size_t{8});
        EXPECT_EQ(devInfo->devIDs.size(), size_t{8});
        EXPECT_EQ(devInfo->devUsedMemory.size(), size_t{8});
@@ -1343,7 +1175,7 @@ TEST_F(XpuCollectorTest, TestUpdateInfo)
        EXPECT_EQ(devInfo->devUsedHBM.size(), size_t{8});
        EXPECT_EQ(devInfo->devLimitHBMs.size(), size_t{8});
        EXPECT_EQ(devInfo->devIPs.size(), size_t{8});
-       probe->npuNum_ = 4;
+       probe->detectedDeviceCnt_ = 4;
        EXPECT_CALL(*cmdTool.get(), GetCmdResult("npu-smi info -t topo")).WillOnce(testing::Return(stringToVector(""))).WillRepeatedly(testing::Return(topoInfo));
        probe->UpdateDevTopo();
        probe->UpdateDevTopo();
@@ -1368,7 +1200,8 @@ TEST_F(XpuCollectorTest, TestGpuProbeSmiLFailed)
 {
     auto cmdTools = std::make_shared<MockCmdTools>();
     auto probe = runtime_manager::GpuProbe(emptyLdLibraryPath, cmdTools);
-    EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi -L")).WillRepeatedly(testing::Return(std::vector<std::string>{}));
+    EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi --query-gpu=index --format=csv,noheader"))
+        .WillRepeatedly(testing::Return(std::vector<std::string>{}));
 
     auto status = probe.RefreshTopo();
     EXPECT_EQ(status.StatusCode(), StatusCode::RUNTIME_MANAGER_GPU_NOTFOUND);
@@ -1378,8 +1211,10 @@ TEST_F(XpuCollectorTest, TestGpuProbeSmiInfoFailed)
 {
     auto cmdTools = std::make_shared<MockCmdTools>();
     auto probe = runtime_manager::GpuProbe(emptyLdLibraryPath, cmdTools);
-    EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi -q")).WillRepeatedly(testing::Return(gpuOrUnitInfo));
-    EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi -L")).WillRepeatedly(testing::Return(gpuInfo));
+    EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi --query-gpu=name --format=csv,noheader"))
+        .WillRepeatedly(testing::Return(gpuOrUnitInfo));
+    EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi --query-gpu=index --format=csv,noheader"))
+        .WillRepeatedly(testing::Return(gpuInfo));
     EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi")).WillRepeatedly(testing::Return(gpuMemoryInfo));
     EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi topo -m")).WillRepeatedly(testing::Return(std::vector<std::string>{}));
 
@@ -1391,10 +1226,14 @@ TEST_F(XpuCollectorTest, TestGpuProbe)
 {
     auto cmdTools = std::make_shared<MockCmdTools>();
     auto probe = runtime_manager::GpuProbe(emptyLdLibraryPath, cmdTools);
-    EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi -q")).WillRepeatedly(testing::Return(gpuOrUnitInfo));
-    EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi -L")).WillRepeatedly(testing::Return(gpuInfo));
+    EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi --query-gpu=name --format=csv,noheader"))
+        .WillRepeatedly(testing::Return(gpuOrUnitInfo));
+    EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi --query-gpu=index --format=csv,noheader"))
+        .WillRepeatedly(testing::Return(gpuInfo));
     EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi")).WillRepeatedly(testing::Return(gpuMemoryInfo));
     EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi topo -m")).WillRepeatedly(testing::Return(gpuTopoInfo));
+    auto ids = std::vector<std::string>{"0"};
+    EXPECT_CALL(*cmdTools.get(), GetCmdResult("nvidia-smi --query-gpu=index --format=csv,noheader")).WillRepeatedly(testing::Return(ids));
 
     EXPECT_EQ(probe.devInfo_->health.size(), size_t{0});
     auto status = probe.RefreshTopo();
@@ -1410,7 +1249,7 @@ TEST_F(XpuCollectorTest, TestGpuProbe)
     EXPECT_EQ(probe.devInfo_->devLimitHBMs, expected);
     EXPECT_EQ(probe.devInfo_->devType, runtime_manager::DEV_TYPE_GPU);
     EXPECT_EQ(probe.devInfo_->devVendor, runtime_manager::DEV_VENDOR_NVIDIA);
-    EXPECT_EQ(probe.devInfo_->devProductModel, "NVIDIA GeForce RTX 3090");
+    EXPECT_EQ(probe.devInfo_->devProductModel, "NVIDIA A100-SXM4-80GB");
 }
 
 TEST_F(XpuCollectorTest, TestNpuCollectorByCmd)

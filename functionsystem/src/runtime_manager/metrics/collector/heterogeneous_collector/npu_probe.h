@@ -39,8 +39,6 @@ public:
     ~NpuProbe() override;
 
     Status RefreshTopo() override;
-    size_t GetUsage() const override;
-    size_t GetLimit() const override;
 
     // for test
     std::shared_ptr<DevCluster> GetClusterInfo()
@@ -89,7 +87,6 @@ private:
     Status BuildTopoConfigMap(const nlohmann::json &config);
     void AddLdLibraryPathForNpuCmd(const std::string &ldLibraryPath);
     bool IsNpuTopoCommandValid(std::vector<std::string> lines);
-    size_t npuNum_ = 0;
     std::string nodeID;
     bool init = false;
     std::shared_ptr<ProcFSTools> procFSTools_;

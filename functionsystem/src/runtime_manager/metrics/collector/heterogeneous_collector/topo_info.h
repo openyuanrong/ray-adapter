@@ -33,6 +33,9 @@ const static std::string NPU_COLLECT_SFMD = "sfmd";
 const static std::string NPU_COLLECT_TOPO = "topo";
 const static std::string NPU_COLLECT_ALL = "all";
 
+const std::string CUDA_VISIBLE_DEVICES_ENV_VAR = "CUDA_VISIBLE_DEVICES";
+const std::string ASCEND_RT_VISIBLE_DEVICES_ENV_VAR = "ASCEND_RT_VISIBLE_DEVICES";
+
 // for cardType
 const std::string NPU910B = "NPU910B";
 const std::string NPU910C = "NPU910C";

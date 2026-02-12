@@ -21,10 +21,10 @@
 #include "partitioner.h"
 
 namespace functionsystem::runtime_manager {
-const static std::string GET_GPU_NUM_CMD = "nvidia-smi -L";
 const static std::string GET_GPU_TOPO_INFO_CMD = "nvidia-smi topo -m";
 const static std::string GET_GPU_INFO_CMD = "nvidia-smi";
-const static std::string QUERY_GPU_OR_UNIT_INFO_CMD = "nvidia-smi -q";
+const static std::string QUERY_GPU_OR_UNIT_INFO_CMD = "nvidia-smi --query-gpu=name --format=csv,noheader";
+const static std::string QUERY_GPU_ID_CMD = "nvidia-smi --query-gpu=index --format=csv,noheader";
 const static int BASE_TYPE_NUM = 7;
 const static int GPU_ROW_INTERVAL = 4;
 const static int MEMORY_KEY_INDEX = 5;
@@ -38,16 +38,7 @@ GpuProbe::GpuProbe(const std::string &ldLibraryPath, std::shared_ptr<CmdTool> cm
     devInfo_->devType = DEV_TYPE_GPU;
     devInfo_->devVendor = DEV_VENDOR_NVIDIA;
     AddLdLibraryPathForGpuCmd(ldLibraryPath);
-}
-
-size_t GpuProbe::GetLimit() const
-{
-    return gpuNum_;
-}
-
-size_t GpuProbe::GetUsage() const
-{
-    return gpuNum_;
+    ExtractVisibleDevicesFromEnvVar(CUDA_VISIBLE_DEVICES_ENV_VAR);
 }
 
 void GpuProbe::UpdateTopoPartition()
@@ -79,14 +70,13 @@ void GpuProbe::UpdateDevTopo()
         YRLOG_ERROR(msg);
         return;
     }
-    UpdateTopoDevClusterIDs(topoResult[0]);
-    devInfo_->devTopo = GetTopoInfo(topoResult, gpuNum_);
+    devInfo_->devTopo = GetTopoInfo(topoResult, detectedDeviceCnt_);
 }
 
 void GpuProbe::UpdateHBM()
 {
     std::vector<std::string> hbmResult = cmdTool_->GetCmdResult(getGpuInfoCmd);
-    if (hbmResult.empty() || hbmResult.size() < BASE_TYPE_NUM + gpuNum_ * GPU_ROW_INTERVAL) {
+    if (hbmResult.empty() || hbmResult.size() < BASE_TYPE_NUM + detectedDeviceCnt_ * GPU_ROW_INTERVAL) {
         YRLOG_ERROR("using {} to get hbm is wrong", GET_GPU_INFO_CMD);
         return;
     }
@@ -94,10 +84,10 @@ void GpuProbe::UpdateHBM()
     if (columns.size() < MEMORY_KEY_INDEX + 1 || (columns[MEMORY_KEY_INDEX].find("Memory-Usage") == std::string::npos
         && columns[MEMORY_KEY_INDEX + 1].find("Memory-Usage") == std::string::npos)) {
         YRLOG_WARN("cannot use {} to get hbm, set default value 16384Mb", GET_GPU_INFO_CMD);
-        (void)devInfo_->devLimitHBMs.insert(devInfo_->devUsedHBM.begin(), gpuNum_, 0);
+        (void)devInfo_->devLimitHBMs.insert(devInfo_->devUsedHBM.begin(), detectedDeviceCnt_, 0);
         return;
     }
-    for (size_t i = 0; i < gpuNum_; i++) {
+    for (size_t i = 0; i < detectedDeviceCnt_; i++) {
         std::vector<std::string> hbms = GetColumnValue(hbmResult[BASE_TYPE_NUM - 1 + GPU_ROW_INTERVAL * (i + 1) - 1]);
         if (hbms.size() < TOTAL_MEMORY_VAL_INDEX + 1) {
             YRLOG_ERROR("failed to get hbm value");
@@ -116,15 +106,15 @@ void GpuProbe::UpdateHBM()
 
 void GpuProbe::UpdateMemory()
 {
-    if (gpuNum_ != 0) {
-        devInfo_->devTotalMemory.insert(devInfo_->devTotalMemory.begin(), gpuNum_, 0);
+    if (detectedDeviceCnt_ != 0) {
+        devInfo_->devTotalMemory.insert(devInfo_->devTotalMemory.begin(), detectedDeviceCnt_, 0);
     }
 }
 
 void GpuProbe::UpdateUsedMemory()
 {
-    if (gpuNum_ != 0) {
-        devInfo_->devUsedMemory.insert(devInfo_->devUsedMemory.begin(), gpuNum_, 0);
+    if (detectedDeviceCnt_ != 0) {
+        devInfo_->devUsedMemory.insert(devInfo_->devUsedMemory.begin(), detectedDeviceCnt_, 0);
     }
 }
 
@@ -132,7 +122,7 @@ void GpuProbe::UpdateHealth()
 {
     devInfo_->health.clear();
     // stub health ok
-    for (size_t i = 0; i < gpuNum_; ++i) {
+    for (size_t i = 0; i < detectedDeviceCnt_; ++i) {
         devInfo_->health.push_back(0);
     }
 }
@@ -143,13 +133,9 @@ Status GpuProbe::RefreshTopo()
         return Status(StatusCode::SUCCESS);
     }
     init = true;
-    std::vector<std::string> gpuNumResult = cmdTool_->GetCmdResult(getGpuNumCmd);
-    if (gpuNumResult.empty()) {
-        YRLOG_WARN("There seems to be no gpu device on this node.");
-        return Status(StatusCode::RUNTIME_MANAGER_GPU_NOTFOUND, "The node does not have gpu device");
+    if (auto status = HasGpu(); status.IsError()) {
+        return status;
     }
-    gpuNum_ = gpuNumResult.size();
-    hasXPU_ = true;
 
     UpdateProductModel();
     UpdateDevTopo();
@@ -159,16 +145,17 @@ Status GpuProbe::RefreshTopo()
     UpdateUsedMemory();
     UpdateUsedHBM();
     UpdateHealth();
+    FilterDevicesEnvVar();
 
     return Status(StatusCode::SUCCESS);
 }
 
 void GpuProbe::AddLdLibraryPathForGpuCmd(const std::string &ldLibraryPath)
 {
-    getGpuNumCmd = Utils::LinkCommandWithLdLibraryPath(ldLibraryPath, GET_GPU_NUM_CMD);
     getGpuTopoInfoCmd = Utils::LinkCommandWithLdLibraryPath(ldLibraryPath, GET_GPU_TOPO_INFO_CMD);
     getGpuInfoCmd = Utils::LinkCommandWithLdLibraryPath(ldLibraryPath, GET_GPU_INFO_CMD);
     queryGpuOrUnitInfoCmd_ = Utils::LinkCommandWithLdLibraryPath(ldLibraryPath, QUERY_GPU_OR_UNIT_INFO_CMD);
+    queryGpuIdCmd_ = Utils::LinkCommandWithLdLibraryPath(ldLibraryPath, QUERY_GPU_ID_CMD);
 }
 
 void GpuProbe::UpdateProductModel()
@@ -178,17 +165,28 @@ void GpuProbe::UpdateProductModel()
         YRLOG_ERROR("using {} to query gpu or unit info failed.", QUERY_GPU_OR_UNIT_INFO_CMD);
         return;
     }
+    devInfo_->devProductModel = litebus::strings::Trim(queryResult[0]);
+}
 
-    for (const auto &result : queryResult) {
-        if (result.find("Product Name") != std::string::npos) {
-            auto outStrs = litebus::strings::Split(result, ":");
-            if (outStrs.size() <= 1) {
-                YRLOG_ERROR("split result {} failed, GPU missing product name", result);
-                return;
-            }
-            devInfo_->devProductModel = litebus::strings::Trim(outStrs[1]);
-            break;
-        }
+Status GpuProbe::HasGpu()
+{
+    std::vector<std::string> res = cmdTool_->GetCmdResult(queryGpuIdCmd_);
+    if (res.empty()) {
+        YRLOG_ERROR("The node does not have gpu device");
+        return Status(StatusCode::RUNTIME_MANAGER_GPU_NOTFOUND, "The node does not have gpu device");
     }
+    std::vector<int> ids;
+    try {
+        for (const auto &id : res) {
+            ids.push_back(std::stoi(id));
+        }
+    } catch (const std::exception &e) {
+        YRLOG_ERROR("Illegal gpu id, error:{}", e.what());
+        return Status(StatusCode::RUNTIME_MANAGER_GPU_NOTFOUND, "Illegal gpu id");
+    }
+    devInfo_->devIDs = std::move(ids);
+    detectedDeviceCnt_ = devInfo_->devIDs.size();
+    hasXPU_ = true;
+    return Status(StatusCode::SUCCESS);
 }
 }
