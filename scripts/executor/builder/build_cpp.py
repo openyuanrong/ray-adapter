@@ -13,31 +13,32 @@ def build_gtest(root_dir, job_num):
     build_functionsystem(root_dir, job_num, build_type="Debug", gtest=True)
 
 
-def build_binary(root_dir, job_num, version, build_type="Release", module="all", fast_debug=True, linker="auto"):
+def build_binary(root_dir, job_num, version, build_type="Release", component="all", linker="auto",
+                 cmake_args: dict[str, str] = None):
     build_functionsystem(
         root_dir,
         job_num,
-        build_type=build_type,
         version=version,
-        module=module,
-        fast_debug=fast_debug,
+        build_type=build_type,
+        component=component,
         linker=linker,
+        cmake_args=cmake_args,
     )
 
 
 def build_functionsystem(
-    root_dir,
-    job_num,
-    version="0.0.0",
-    build_type="Debug",
-    time_trace=False,
-    coverage=False,
-    jemalloc=False,
-    sanitizers=False,
-    gtest=False,
-    module="all",
-    fast_debug=True,
-    linker="auto",
+        root_dir,
+        job_num,
+        version="0.0.0",
+        build_type="Debug",
+        time_trace=False,
+        coverage=False,
+        jemalloc=False,
+        sanitizers=False,
+        gtest=False,
+        component="all",
+        linker="auto",
+        cmake_args: dict[str, str] = None,
 ):
     log.info("Build cpp code in functionsystem")
 
@@ -54,7 +55,10 @@ def build_functionsystem(
     code_path = os.path.join(root_dir, "functionsystem")
     output_dir = os.path.join(code_path, "output")
     build_dir = os.path.join(code_path, "build")
-    cmake_args = {
+
+    if cmake_args is None:
+        cmake_args = {}
+    cmake_args.update({
         "BUILD_VERSION": version_name(version),
         "CMAKE_INSTALL_PREFIX": output_dir,
         "CMAKE_BUILD_TYPE": build_type,
@@ -64,16 +68,15 @@ def build_functionsystem(
         "BUILD_THREAD_NUM": job_num,
         "ROOT_DIR": root_dir,  # 为了数据系统路径
         "JEMALLOC_PROF_ENABLE": bool2switch(jemalloc),
-        "FUNCTION_SYSTEM_BUILD_TARGET": module,
-        "FS_FAST_DEBUG": bool2switch(fast_debug),
-        "FS_LINKER": linker,
+        "FUNCTION_SYSTEM_BUILD_TARGET": component,
+        "FUNCTION_SYSTEM_BUILD_LINKER": linker,
         "FUNCTION_SYSTEM_BUILD_TIME_TRACE": bool2switch(time_trace),
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-    }
+    })
     cmake_generate(code_path, build_dir, cmake_args)
 
     # 使用 Ninja 编译程序
-    ninja_make(build_dir, str(job_num), module)
+    ninja_make(build_dir, str(job_num), component)
 
     # 使用 CMake 完成产物复制
     cmake_install(build_dir)
@@ -90,11 +93,11 @@ def cmake_generate(source_dir, build_dir, cmake_args: dict[str, str]):
     utils.sync_command(["cmake", "-G", "Ninja", "-S", source_dir, "-B", build_dir, *args])
 
 
-def ninja_make(build_dir: str, job_num: str, module: str = "all"):
-    log.info(f"Run Ninja build in dir[{build_dir}] using {job_num} cores. Module: {module}")
+def ninja_make(build_dir: str, job_num: str, component: str = "all"):
+    log.info(f"Run Ninja build in dir[{build_dir}] using {job_num} cores. Module: {component}")
     command = ["ninja", "-C", build_dir, "-j", job_num]
-    if module != "all":
-        command.append(module)
+    if component != "all":
+        command.append(component)
     utils.sync_command(command)
 
 
