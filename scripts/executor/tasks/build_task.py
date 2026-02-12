@@ -22,42 +22,43 @@ CXX_MODULES = {
 }
 
 
-def resolve_build_type(raw_build_type: str):
-    build_type = raw_build_type.lower()
-    if build_type == "release":
-        return "Release", False
-    if build_type == "debug":
-        return "Debug", False
-    if build_type == "debug_fast":
-        return "Debug", True
-    raise ValueError(f"Invalid build_type: {raw_build_type}")
-
-
-def run_build(root_dir, cmd_args):
+def run_build(root_dir, args):
     start_time = time.time()
-    cmake_build_type, fast_debug = resolve_build_type(cmd_args.build_type)
     args = {
         "root_dir": root_dir,
-        "job_num": cmd_args.job_num,
-        "version": cmd_args.version,
-        "build_type": cmake_build_type,
-        "module": cmd_args.module,
-        "fast_debug": fast_debug,
-        "linker": cmd_args.linker,
+        "job_num": args.job_num,
+        "version": args.version,
+        "build_type": args.build_type,
+        "component": args.component,
+        "linker": args.linker,
+        "cmake_args": dict(args.cmake_args),
     }
     if args["job_num"] > (os.cpu_count() or 1) * 2:
         log.warning(f"The -j {args['job_num']} is over the max logical cpu count({os.cpu_count()}) * 2")
     log.info(f"Start to build function-system with args: {json.dumps(args)}")
 
-    if args["module"] in CXX_MODULES:
+    if args["component"] in ["all", "cli"]:
+        builder.build_cli(root_dir)
+    if args["component"] in ["all", "meta_service"]:
+        builder.build_meta_service(root_dir)
+
+    if args["component"] in CXX_MODULES:
+        # 编译 CXX 程序依赖
         build_vendor(args)
         build_logs(args)
         build_litebus(args)
         build_metrics(args)
-    else:
-        log.info(f"Skip vendor/common cpp dependencies for module: {args['module']}")
+        # 编译项目 CXX 程序
+        builder.build_binary(
+            root_dir=root_dir,
+            job_num=args["job_num"],
+            version=args["version"],
+            build_type=args["build_type"],
+            component=args["component"],
+            linker=args["linker"],
+            cmake_args=args["cmake_args"],
+        )
 
-    build_functionsystem(root_dir, args)
     elapsed_time = time.time() - start_time
     log.info(f"Build function-system successfully in {elapsed_time:.2f} seconds")
 
@@ -114,37 +115,3 @@ def build_metrics(args):
     utils.sync_command(
         ["bash", "build.sh", "-j", str(args["job_num"])], cwd=os.path.join(args["root_dir"], "common", "metrics")
     )
-
-
-def build_functionsystem(root_dir, args):
-    log.info("Start to build functionsystem")
-    module = args["module"]
-    if module == "all":
-        # 编译 CPP 程序
-        builder.build_binary(
-            root_dir,
-            args["job_num"],
-            args["version"],
-            args["build_type"],
-            module,
-            fast_debug=args["fast_debug"],
-            linker=args["linker"],
-        )
-        # 编译 CLI 程序
-        builder.build_cli(root_dir)
-        # 编译 meta-service
-        builder.build_meta_service(root_dir)
-    elif module == "cli":
-        builder.build_cli(root_dir)
-    elif module == "meta_service":
-        builder.build_meta_service(root_dir)
-    else:
-        builder.build_binary(
-            root_dir,
-            args["job_num"],
-            args["version"],
-            args["build_type"],
-            module,
-            fast_debug=args["fast_debug"],
-            linker=args["linker"],
-        )

@@ -1,15 +1,22 @@
 # coding=UTF-8
 # Copyright (c) 2025 Huawei Technologies Co., Ltd
-import ctypes
-import importlib.metadata
 import os
+import sys
+import ctypes
+import argparse
 import platform
 import subprocess
-import sys
-from importlib.metadata import PackageNotFoundError
 from typing import Tuple
+import importlib.metadata
+from importlib.metadata import PackageNotFoundError
+
 
 # 请勿在此声明全局变量
+
+def parse_kv_args(string: str):
+    if '=' not in string:
+        raise argparse.ArgumentTypeError(f"参数必须为 key=value 格式")
+    return string.split('=', 1)
 
 
 def pipeline_env() -> dict:
@@ -38,7 +45,7 @@ def get_linux_resources() -> Tuple[int, int]:
                 total_mem_kb = int(line.split()[1])
                 break
 
-    total_mem_gb = round(total_mem_kb / (1024**2), 2)
+    total_mem_gb = round(total_mem_kb / (1024 ** 2), 2)
     return cpu_count, total_mem_gb
 
 

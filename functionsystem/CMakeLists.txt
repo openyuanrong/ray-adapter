@@ -54,7 +54,7 @@ option(BUILD_GCOV "Enable functionsystem gcov output" OFF)
 option(BUILD_LLT "Enable functionsystem unit test" OFF)
 option(SANITIZERS "Enable Sanitizers tool to detect progress bugs" OFF)
 option(FS_FAST_DEBUG "Use lighter Debug flags for faster local compile" ON)
-set(FS_LINKER "auto" CACHE STRING "Linker backend: auto/gold/lld/mold (auto keeps legacy behavior)")
+set(FS_LINKER "${FUNCTION_SYSTEM_BUILD_LINKER}" CACHE STRING "Linker backend: auto/gold/lld/mold (auto keeps legacy behavior)")
 
 # 引入三方件与配置
 # 设置 vendor 文件夹路径 | VENDOR_DIR
